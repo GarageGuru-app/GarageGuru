@@ -252,7 +252,8 @@ export default async function handler(req, res) {
         <meta charset="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>GarageGuru</title>
+        <title>GarageGuru - Automotive Service Management</title>
+        <meta name="description" content="Complete automotive service management system for garages. Manage customers, inventory, job cards, and invoicing all in one place." />
         <script type="module" crossorigin src="/assets/index.js"></script>
         <link rel="stylesheet" href="/assets/index.css">
       </head>
