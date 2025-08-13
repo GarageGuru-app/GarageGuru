@@ -1,0 +1,152 @@
+2025-08-13T16:13:42.201197849Z ==> Cloning from https://github.com/GarageGuru1/GarageGuru
+2025-08-13T16:13:51.852879041Z ==> Checking out commit e253d4e5de0cd09c593bf66ce9410896a6376c49 in branch main
+2025-08-13T16:13:53.306949231Z ==> Downloading cache...
+2025-08-13T16:14:04.898070521Z ==> Transferred 122MB in 7s. Extraction took 3s.
+2025-08-13T16:14:12.436747491Z ==> Using Node.js version 22.16.0 (default)
+2025-08-13T16:14:12.462779487Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2025-08-13T16:14:12.537802324Z ==> Running build command 'npm install; npm run build'...
+2025-08-13T16:14:13.276928341Z 
+2025-08-13T16:14:13.276948662Z up to date, audited 199 packages in 674ms
+2025-08-13T16:14:13.276955511Z 
+2025-08-13T16:14:13.277015343Z 23 packages are looking for funding
+2025-08-13T16:14:13.277019603Z   run `npm fund` for details
+2025-08-13T16:14:13.282855666Z 
+2025-08-13T16:14:13.282876847Z 1 moderate severity vulnerability
+2025-08-13T16:14:13.282879887Z 
+2025-08-13T16:14:13.282883147Z To address all issues (including breaking changes), run:
+2025-08-13T16:14:13.282886057Z   npm audit fix --force
+2025-08-13T16:14:13.282888197Z 
+2025-08-13T16:14:13.282891897Z Run `npm audit` for details.
+2025-08-13T16:14:13.462759104Z 
+2025-08-13T16:14:13.462785935Z > garageguru-backend@1.0.0 build
+2025-08-13T16:14:13.462791355Z > esbuild standalone.ts --platform=node --packages=external --bundle --format=esm --outfile=index.js
+2025-08-13T16:14:13.462796295Z 
+2025-08-13T16:14:13.477146503Z 
+2025-08-13T16:14:13.477173544Z   index.js  62.8kb
+2025-08-13T16:14:13.477177644Z 
+2025-08-13T16:14:13.477180764Z ⚡ Done in 7ms
+2025-08-13T16:14:14.373092769Z ==> Uploading build...
+2025-08-13T16:14:30.535616038Z ==> Uploaded in 14.6s. Compression took 1.5s
+2025-08-13T16:14:30.979777394Z ==> Build successful 🎉
+2025-08-13T16:14:57.326964365Z ==> Deploying...
+2025-08-13T16:15:17.960123385Z ==> Running 'npm run start'
+2025-08-13T16:15:19.056168355Z 
+2025-08-13T16:15:19.056186765Z > garageguru-backend@1.0.0 start
+2025-08-13T16:15:19.056191055Z > node index.js
+2025-08-13T16:15:19.056193345Z 
+2025-08-13T16:15:29.560032621Z 🚀 Backend server running on port 10000
+2025-08-13T16:15:29.560059462Z 🔗 Health check: http://localhost:10000/health
+2025-08-13T16:15:30.322918985Z HEAD / 200 in 4ms
+2025-08-13T16:15:37.892840465Z ==> Your service is live 🎉
+2025-08-13T16:15:37.920478645Z ==> 
+2025-08-13T16:15:37.943340825Z ==> ///////////////////////////////////////////////////////////
+2025-08-13T16:15:37.967456945Z ==> 
+2025-08-13T16:15:37.989354185Z ==> Available at your primary URL https://garageguru-backend.onrender.com
+2025-08-13T16:15:38.011791334Z ==> 
+2025-08-13T16:15:38.034690694Z ==> ///////////////////////////////////////////////////////////
+2025-08-13T16:15:39.025290472Z GET / 200 in 1ms
+2025-08-13T16:18:14.438151696Z GET /health 200 in 0ms
+2025-08-13T16:18:26.206257824Z Login error: error: Tenant or user not found
+2025-08-13T16:18:26.206282644Z     at file:///opt/render/project/src/server/node_modules/@neondatabase/serverless/index.mjs:1345:74
+2025-08-13T16:18:26.206291214Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-13T16:18:26.206296954Z     at async NeonPreparedQuery.execute (file:///opt/render/project/src/server/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+2025-08-13T16:18:26.206301144Z     at async DatabaseStorage.getUserByEmail (file:///opt/render/project/src/server/index.js:372:20)
+2025-08-13T16:18:26.206306804Z     at async file:///opt/render/project/src/server/index.js:1101:20 {
+2025-08-13T16:18:26.206311084Z   length: 52,
+2025-08-13T16:18:26.206316565Z   severity: 'FATAL',
+2025-08-13T16:18:26.206320655Z   code: 'XX000',
+2025-08-13T16:18:26.206324625Z   detail: undefined,
+2025-08-13T16:18:26.206328555Z   hint: undefined,
+2025-08-13T16:18:26.206332585Z   position: undefined,
+2025-08-13T16:18:26.206337805Z   internalPosition: undefined,
+2025-08-13T16:18:26.206341905Z   internalQuery: undefined,
+2025-08-13T16:18:26.206345925Z   where: undefined,
+2025-08-13T16:18:26.206350065Z   schema: undefined,
+2025-08-13T16:18:26.206354185Z   table: undefined,
+2025-08-13T16:18:26.206358075Z   column: undefined,
+2025-08-13T16:18:26.206362025Z   dataType: undefined,
+2025-08-13T16:18:26.206365965Z   constraint: undefined,
+2025-08-13T16:18:26.206370086Z   file: undefined,
+2025-08-13T16:18:26.206374206Z   line: undefined,
+2025-08-13T16:18:26.206378206Z   routine: undefined
+2025-08-13T16:18:26.206382236Z }
+2025-08-13T16:18:26.206891015Z POST /api/auth/login 500 in 1160ms
+2025-08-13T16:19:06.39690424Z GET /health 200 in 1ms
+2025-08-13T16:20:38.968539613Z ==> Detected service running on port 10000
+2025-08-13T16:20:39.07107576Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2025-08-13T16:23:46.034534356Z GET /health 200 in 1ms
+2025-08-13T16:24:52.851910687Z Login error: error: Tenant or user not found
+2025-08-13T16:24:52.851945007Z     at file:///opt/render/project/src/server/node_modules/@neondatabase/serverless/index.mjs:1345:74
+2025-08-13T16:24:52.851951527Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-13T16:24:52.851956887Z     at async NeonPreparedQuery.execute (file:///opt/render/project/src/server/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+2025-08-13T16:24:52.851961847Z     at async DatabaseStorage.getUserByEmail (file:///opt/render/project/src/server/index.js:372:20)
+2025-08-13T16:24:52.851966537Z     at async file:///opt/render/project/src/server/index.js:1101:20 {
+2025-08-13T16:24:52.851970977Z   length: 52,
+2025-08-13T16:24:52.851976328Z   severity: 'FATAL',
+2025-08-13T16:24:52.851980478Z   code: 'XX000',
+2025-08-13T16:24:52.851984858Z   detail: undefined,
+2025-08-13T16:24:52.851989028Z   hint: undefined,
+2025-08-13T16:24:52.851993428Z   position: undefined,
+2025-08-13T16:24:52.851998258Z   internalPosition: undefined,
+2025-08-13T16:24:52.852003088Z   internalQuery: undefined,
+2025-08-13T16:24:52.852007218Z   where: undefined,
+2025-08-13T16:24:52.852011208Z   schema: undefined,
+2025-08-13T16:24:52.852030269Z   table: undefined,
+2025-08-13T16:24:52.852033299Z   column: undefined,
+2025-08-13T16:24:52.852035809Z   dataType: undefined,
+2025-08-13T16:24:52.852038249Z   constraint: undefined,
+2025-08-13T16:24:52.852040789Z   file: undefined,
+2025-08-13T16:24:52.852043219Z   line: undefined,
+2025-08-13T16:24:52.852045999Z   routine: undefined
+2025-08-13T16:24:52.852048349Z }
+2025-08-13T16:24:52.85271059Z POST /api/auth/login 500 in 924ms
+2025-08-13T16:25:22.883265513Z Login error: error: Tenant or user not found
+2025-08-13T16:25:22.883303394Z     at file:///opt/render/project/src/server/node_modules/@neondatabase/serverless/index.mjs:1345:74
+2025-08-13T16:25:22.883309374Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-13T16:25:22.883314314Z     at async NeonPreparedQuery.execute (file:///opt/render/project/src/server/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+2025-08-13T16:25:22.883318514Z     at async DatabaseStorage.getUserByEmail (file:///opt/render/project/src/server/index.js:372:20)
+2025-08-13T16:25:22.883323904Z     at async file:///opt/render/project/src/server/index.js:1101:20 {
+2025-08-13T16:25:22.883328074Z   length: 52,
+2025-08-13T16:25:22.883332825Z   severity: 'FATAL',
+2025-08-13T16:25:22.883337085Z   code: 'XX000',
+2025-08-13T16:25:22.883341345Z   detail: undefined,
+2025-08-13T16:25:22.883345995Z   hint: undefined,
+2025-08-13T16:25:22.883350315Z   position: undefined,
+2025-08-13T16:25:22.883354935Z   internalPosition: undefined,
+2025-08-13T16:25:22.883359085Z   internalQuery: undefined,
+2025-08-13T16:25:22.883363575Z   where: undefined,
+2025-08-13T16:25:22.883367585Z   schema: undefined,
+2025-08-13T16:25:22.883372145Z   table: undefined,
+2025-08-13T16:25:22.883376835Z   column: undefined,
+2025-08-13T16:25:22.883381315Z   dataType: undefined,
+2025-08-13T16:25:22.883385505Z   constraint: undefined,
+2025-08-13T16:25:22.883389755Z   file: undefined,
+2025-08-13T16:25:22.883393775Z   line: undefined,
+2025-08-13T16:25:22.883397966Z   routine: undefined
+2025-08-13T16:25:22.883401886Z }
+2025-08-13T16:25:22.883973116Z POST /api/auth/login 500 in 934ms
+2025-08-13T16:25:36.794585391Z Login error: error: Tenant or user not found
+2025-08-13T16:25:36.794664322Z     at file:///opt/render/project/src/server/node_modules/@neondatabase/serverless/index.mjs:1345:74
+2025-08-13T16:25:36.794675082Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-13T16:25:36.794681172Z     at async NeonPreparedQuery.execute (file:///opt/render/project/src/server/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+2025-08-13T16:25:36.794686803Z     at async DatabaseStorage.getUserByEmail (file:///opt/render/project/src/server/index.js:372:20)
+2025-08-13T16:25:36.794692812Z     at async file:///opt/render/project/src/server/index.js:1101:20 {
+2025-08-13T16:25:36.794698423Z   length: 52,
+2025-08-13T16:25:36.794704273Z   severity: 'FATAL',
+2025-08-13T16:25:36.794709263Z   code: 'XX000',
+2025-08-13T16:25:36.794715103Z   detail: undefined,
+2025-08-13T16:25:36.794720303Z   hint: undefined,
+2025-08-13T16:25:36.794725733Z   position: undefined,
+2025-08-13T16:25:36.794731863Z   internalPosition: undefined,
+2025-08-13T16:25:36.794737213Z   internalQuery: undefined,
+2025-08-13T16:25:36.794742573Z   where: undefined,
+2025-08-13T16:25:36.794747933Z   schema: undefined,
+2025-08-13T16:25:36.794753253Z   table: undefined,
+2025-08-13T16:25:36.794758854Z   column: undefined,
+2025-08-13T16:25:36.794764144Z   dataType: undefined,
+2025-08-13T16:25:36.794769134Z   constraint: undefined,
+2025-08-13T16:25:36.794789254Z   file: undefined,
+2025-08-13T16:25:36.794792604Z   line: undefined,
+2025-08-13T16:25:36.794795914Z   routine: undefined
+2025-08-13T16:25:36.794799914Z }
+2025-08-13T16:25:36.795318603Z POST /api/auth/login 500 in 1180ms
