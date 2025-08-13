@@ -1,39 +1,33 @@
-# 🔧 Vercel Build Configuration Fix
+# 🔧 Vercel Build Configuration - CORRECT SETTINGS
 
-## Issue: "No output directory named dist found"
+## ✅ **Exact Vercel Configuration:**
 
-This happens because Vercel needs the correct build configuration for your project structure.
-
-## ✅ **Correct Vercel Settings:**
-
-### **Framework Detection:**
-- **Framework Preset**: Vite ✅ 
-- **Root Directory**: Leave EMPTY (not `client`) ✅
-- **Build Command**: `npm run build:client` ✅
-- **Output Directory**: `client/dist` ✅
-
-### **Why This Works:**
-Your project has a monorepo structure where:
-- Root `package.json` has the build commands
-- `npm run build:client` builds the frontend
-- Output goes to `client/dist` directory
+### **Import Settings:**
+- **Framework Preset**: Vite
+- **Root Directory**: Leave EMPTY (use project root)
+- **Build Command**: `vite build`
+- **Output Directory**: `dist/public`
 
 ### **Environment Variables:**
 ```
 VITE_API_URL=https://garageguru-backend.onrender.com
 ```
 
-### **Alternative if Above Doesn't Work:**
-If Vercel still has issues, try:
-- **Root Directory**: `client`
-- **Build Command**: `npm run build`
-- **Output Directory**: `dist`
+### **Why This Works:**
+Your `vite.config.ts` shows:
+```typescript
+build: {
+  outDir: path.resolve(import.meta.dirname, "dist/public"),
+}
+```
 
-But you'll need to make sure `client/package.json` exists with the right scripts.
+So Vite builds to `dist/public`, not just `dist`.
 
-## **Redeploy Steps:**
-1. Delete the failed deployment in Vercel
-2. Re-import with the correct settings above
-3. Deploy again
+## **Deployment Steps:**
+1. In Vercel dashboard, go to your project settings
+2. Update **Output Directory** to: `dist/public`
+3. Redeploy
 
-The build should complete successfully!
+Or delete and re-import with the correct settings above.
+
+**This will fix the build output directory issue!**
