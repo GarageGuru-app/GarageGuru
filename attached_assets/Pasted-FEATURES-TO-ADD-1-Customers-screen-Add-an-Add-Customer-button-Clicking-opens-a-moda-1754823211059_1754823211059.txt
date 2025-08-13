@@ -1,0 +1,43 @@
+FEATURES TO ADD
+1) Customers screen
+   - Add an “Add Customer” button.
+   - Clicking opens a modal/dialog to create a customer with: name, phone, bikeNumber, notes (optional).
+   - After create, update UI immediately (no refresh) and the new customer should be available in Job Card.
+
+2) Sync Customers ↔ Job Card
+   - In Job Card screen, replace plain text customer fields with a type-ahead selector.
+   - As the user types, show filtered matches by name, phone, or bikeNumber using server search API.
+   - Allow “Add new customer” inline: open the same modal; on success, auto-select the created customer in the Job Card form.
+
+3) Type-ahead search
+   - In BOTH Customers and Job Card, add a single search box that filters by name, phone, or bikeNumber.
+   - Debounce the input (~300ms).
+   - Show “No matches” state.
+
+4) Fix “failed to add spares”
+   - Ensure POST /api/spares accepts { name, sku?, price, quantity } with validation (price > 0, quantity ≥ 0).
+   - Ensure creating spare usage POST /api/spare-usage { jobCardId, sparePartId, quantityUsed } decrements stock atomically (transaction) and rejects if quantityUsed > available.
+   - Make the client parse/validate price (number) and quantity (int) before sending.
+
+WHAT TO CHANGE (use existing patterns, TypeScript)
+- shared/schema.ts: confirm tables & columns exist; add if missing: customers(name,phone,bikeNumber,notes,createdAt), jobCards(customerId,...), spareParts(...), sparePartUsage(...).
+- server/routes.ts: 
+  * POST /api/customers
+  * GET /api/customers/search?q=…
+  * (Optional) GET /api/customers/:id
+  * Ensure POST /api/spares and POST /api/spare-usage are correct and transactional.
+- server/storage.ts: implement createCustomer, searchCustomers, getCustomer; createSpare, createSpareUsage (with stock decrement in one transaction).
+- server/index.ts: keep `import 'dotenv/config'` at top. Keep port = process.env.PORT || 5000.
+- client:
+  * Add AddCustomerDialog component and wire it into Customers and Job Card.
+  * Customers page: “Add Customer” button + modal + debounced search.
+  * Job Card page: type-ahead selector using GET /api/customers/search; includes “Add new customer”.
+  * API helper: createCustomer, searchCustomers, createSpare, createSpareUsage.
+  * Spares UI: fix form parsing and error handling; show success/error toasts.
+
+ACCEPTANCE CRITERIA
+- I can add a customer from Customers screen and see it instantly in the list.
+- In Job Card, typing “bike num” or part of a name/phone shows live suggestions; selecting fills the form.
+- Adding a new customer from Job Card modal auto-selects it.
+- Creating a spare works; creating spare usage reduces stock; trying to over-use stock fails with a clear error.
+- No breaking changes to existing routes or UI styling; keep code minimal and consistent.

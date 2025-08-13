@@ -1,0 +1,98 @@
+// --- put these near your other state constants ---
+const SCAN_DEBOUNCE_MS = 700;
+const SAME_CODE_WINDOW_MS = 8000; // how long to treat repeated scans as "same code"
+let lastScanAt = 0;
+
+// normalize any raw scan text (trims, strips spaces around, uppercases bike-like codes)
+const normalizeCode = (s: string) => s.trim();
+
+// find a part by scanned code (matches partNumber or barcode)
+const findPartByCode = (code: string, list: any[]) =>
+  list.find((p: any) => p.partNumber === code || p.barcode === code);
+
+// --- REPLACE your current handleQuickScan with this one ---
+const handleQuickScan = (raw: string) => {
+  const now = Date.now();
+  if (now - lastScanAt < SCAN_DEBOUNCE_MS) return; // hard debounce
+  lastScanAt = now;
+
+  setShowQRScanner(false);
+  setShowBarcodeScanner(false);
+  setShowHybridScanner(false);
+
+  const scannedCode = normalizeCode(raw);
+  if (!scannedCode) {
+    toast({ title: "Invalid Code", description: "Scanned code is empty", variant: "destructive" });
+    return;
+  }
+
+  // parse (your existing parser preserved)
+  const { partNumber, quantity, sellingPrice } = parseScannedCode(scannedCode);
+  const scannedQty = parseInt(quantity) || 1;
+  const matched = findPartByCode(partNumber, spareParts);
+
+  // REPEAT SCAN path (same raw code within window)
+  if (lastScannedCode && scannedCode === lastScannedCode && now - lastScanAt <= SAME_CODE_WINDOW_MS) {
+    const newCount = scanCount + 1;
+    setScanCount(newCount);
+    setPendingScannedCode(scannedCode);
+
+    if (matched) {
+      setRepeatScanPart(matched);
+      setShowRepeatScanDialog(true);
+      toast({
+        title: "Same Code Detected",
+        description: `${matched.name} scanned ${newCount + 1} times. Confirm to add +1 to stock.`,
+      });
+    } else {
+      setRepeatScanPart(null);
+      setShowRepeatScanDialog(true);
+      toast({
+        title: "Same Code Detected",
+        description: `Unknown code scanned ${newCount + 1} times`,
+      });
+    }
+    return;
+  }
+
+  // NEW CODE path
+  setLastScannedCode(scannedCode);
+  setScanCount(0);
+  setAccumulatedQuantity(1);
+
+  if (matched) {
+    // open edit prefilled
+    setEditingPart(matched);
+    setFormData({
+      partNumber: matched.partNumber,
+      name: matched.name,
+      price: sellingPrice || matched.price.toString(),
+      costPrice: matched.costPrice?.toString() || "0",
+      quantity: scannedQty.toString(),
+      lowStockThreshold: matched.lowStockThreshold.toString(),
+      barcode: matched.barcode || scannedCode,
+    });
+    setIsDialogOpen(true);
+    toast({
+      title: "Part Found",
+      description: `Loaded ${matched.name}. ${scannedQty > 1 ? `Qty ${scannedQty}. ` : ""}${sellingPrice ? `Price ₹${sellingPrice}.` : ""}`,
+    });
+  } else {
+    // open create prefilled
+    setEditingPart(null);
+    setFormData({
+      partNumber,
+      name: "",
+      price: sellingPrice,
+      costPrice: "0",
+      quantity: scannedQty.toString(),
+      lowStockThreshold: "2",
+      barcode: scannedCode,
+    });
+    setIsDialogOpen(true);
+    toast({
+      title: "New Part",
+      description: `Code captured. ${scannedQty > 1 ? `Qty ${scannedQty}. ` : ""}${sellingPrice ? `Price ₹${sellingPrice}.` : ""}Fill remaining details.`,
+    });
+  }
+};

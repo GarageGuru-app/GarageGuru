@@ -1,0 +1,33 @@
+The camera opens but no QR/barcode is detected. Keep my current UI (overlay, torch, messages), and fix ONLY detection reliability. Apply all items:
+
+1) Readiness & Constraints
+- Wait for video to be READY before decoding: only start detection after `video.videoWidth > 0 && video.videoHeight > 0` (listen for "loadeddata").
+- Use getUserMedia with back-camera + higher resolution:
+  { video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 }, focusMode: "continuous" } }
+- If multiple devices, pick the back camera by label contains "back" or "environment".
+- Ensure <video playsinline autoplay muted> and NO CSS scaling that distorts the video (no transform/scale on the <video>).
+
+2) Hybrid Detection Pipeline (no UI changes)
+- Path A (preferred): Native BarcodeDetector with formats:
+  ['qr_code','code_128','code_39','ean_13','ean_8','upc_a','upc_e','itf','codabar','data_matrix','pdf417']
+  Loop with requestAnimationFrame; stop after first success.
+- Path B: Fallback to @zxing/browser BrowserMultiFormatReader with the same formats; continuous decode every 300–500ms. Handle NotFound by ignoring, log only unexpected errors.
+- Path C: Fallback to qr-scanner (QR only) if neither is available.
+- Export a single startHybridDecode(videoEl, onResult, onError?) → stopFn and wire it into the current scanner flow.
+
+3) Canvas/Frame Handling (avoid blank frames)
+- If you copy frames to canvas for ZXing, set canvas size EXACTLY to video.videoWidth/video.videoHeight (no CSS downscale). Do NOT read from a 0×0 or CSS-scaled canvas.
+- Do not mirror the canvas image; pass the raw camera frame to the decoder.
+- On iOS, ensure the decode starts AFTER "loadeddata" and the first `requestAnimationFrame` tick to avoid empty frames.
+
+4) Torch & Exposure (keep UI as-is)
+- Torch: only call `track.applyConstraints({ advanced: [{ torch: true/false }] })` when supported (detect via `getCapabilities().torch === true`). Show a disabled state if not supported.
+- Add a small “Low light? Try torch.” hint after 5 seconds without detection.
+
+5) HTTPS & Permissions
+- Ensure detection is blocked with a friendly message if the page is not HTTPS (except localhost).
+- If permission denied, show a guide to enable camera and provide the Manual Input fallback (already present).
+
+6) Throttling & Debounce
+- Debounce result so the onResult handler fires ONCE per scan (ignore repeated reads within 1s).
+- Limit ZXing decode loop to ~300–500ms intervals; BarcodeDetector should use rAF.

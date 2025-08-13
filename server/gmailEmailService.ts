@@ -1,0 +1,245 @@
+import nodemailer from 'nodemailer';
+
+interface AccessRequestData {
+  email: string;
+  name: string;
+  requestType: string;
+  message?: string;
+  timestamp: string;
+}
+
+export class GmailEmailService {
+  private static instance: GmailEmailService;
+  private transporter: any = null;
+  private isConfigured = false;
+
+  constructor() {
+    this.setupGmailTransporter();
+  }
+
+  static getInstance(): GmailEmailService {
+    if (!GmailEmailService.instance) {
+      GmailEmailService.instance = new GmailEmailService();
+    }
+    return GmailEmailService.instance;
+  }
+
+  private setupGmailTransporter() {
+    const gmailUser = process.env.GMAIL_USER; // Your Gmail address
+    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD; // App-specific password
+
+    if (gmailUser && gmailAppPassword) {
+      this.transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: gmailUser,
+          pass: gmailAppPassword,
+        },
+      });
+      this.isConfigured = true;
+      console.log('📧 Gmail SMTP configured successfully');
+    } else {
+      console.log('📧 Gmail SMTP not configured - missing credentials');
+    }
+  }
+
+  async sendAccessRequestNotification(
+    superAdminEmail: string,
+    requestData: AccessRequestData
+  ): Promise<boolean> {
+    if (!this.isConfigured) {
+      console.log('📧 Gmail SMTP not configured - logging request instead');
+      this.logAccessRequest(requestData);
+      return false;
+    }
+
+    try {
+      const mailOptions = {
+        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        to: superAdminEmail,
+        subject: `GarageGuru Admin - New Access Request from ${requestData.name}`,
+        html: this.generateAccessRequestEmail(requestData),
+        text: this.generateAccessRequestText(requestData)
+      };
+
+      console.log(`📧 Sending email via Gmail SMTP to: ${superAdminEmail}`);
+      await this.transporter.sendMail(mailOptions);
+      console.log(`📧 Access request email sent successfully via Gmail`);
+      return true;
+    } catch (error: any) {
+      console.error('📧 Gmail SMTP send failed:', error);
+      
+      if (error.code === 'EAUTH') {
+        console.log('\n🚨 GMAIL AUTHENTICATION ERROR 🚨');
+        console.log('========================================');
+        console.log('Fix: Generate App-Specific Password');
+        console.log('1. Go to Google Account settings');
+        console.log('2. Security → 2-Step Verification');
+        console.log('3. App passwords → Generate new password');
+        console.log('4. Use that password as GMAIL_APP_PASSWORD');
+        console.log('========================================\n');
+      }
+      
+      this.logAccessRequest(requestData);
+      return false;
+    }
+  }
+
+  private generateAccessRequestEmail(data: AccessRequestData): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GarageGuru Admin - Access Request</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header with Logo -->
+          <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px 20px; text-align: center;">
+            <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4L9 8H15L12 4Z" fill="#1e40af"/>
+                <path d="M8 10V18C8 19.1 8.9 20 10 20H14C15.1 20 16 19.1 16 18V10H8Z" fill="#3b82f6"/>
+                <circle cx="10" cy="14" r="1" fill="white"/>
+                <circle cx="14" cy="14" r="1" fill="white"/>
+                <rect x="11" y="16" width="2" height="2" fill="white"/>
+              </svg>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">GarageGuru</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Automotive Management System</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #1e40af; margin: 0 0 20px 0; font-size: 24px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
+              🔑 New Access Request
+            </h2>
+            
+            <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+              <h3 style="margin: 0 0 15px 0; color: #1e40af; font-size: 18px;">Request Details</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151; width: 100px;">👤 Name:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${data.name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">📧 Email:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${data.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">🎯 Role:</td>
+                  <td style="padding: 8px 0; color: #1f2937; text-transform: uppercase; font-weight: bold;">${data.requestType}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">⏰ Time:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${data.timestamp}</td>
+                </tr>
+                ${data.message ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151; vertical-align: top;">💬 Message:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${data.message}</td>
+                </tr>
+                ` : ''}
+              </table>
+            </div>
+
+            <div style="background: #ecfccb; padding: 20px; border-radius: 8px; border-left: 4px solid #65a30d; margin: 20px 0;">
+              <h4 style="margin: 0 0 15px 0; color: #365314; font-size: 16px;">🔐 Current Activation Codes</h4>
+              <div style="background: white; padding: 15px; border-radius: 6px; font-family: monospace;">
+                <p style="margin: 0 0 10px 0;"><strong style="color: #dc2626;">🔴 Admin Code:</strong> <span style="background: #fee2e2; padding: 4px 8px; border-radius: 4px; color: #991b1b;">${process.env.ADMIN_ACTIVATION_CODE || 'Not configured'}</span></p>
+                <p style="margin: 0;"><strong style="color: #2563eb;">🔵 Staff Code:</strong> <span style="background: #dbeafe; padding: 4px 8px; border-radius: 4px; color: #1d4ed8;">${process.env.STAFF_ACTIVATION_CODE || 'Not configured'}</span></p>
+              </div>
+            </div>
+
+            <div style="background: #fef3c7; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+              <h4 style="margin: 0 0 15px 0; color: #92400e; font-size: 16px;">✅ To Approve Access</h4>
+              <ol style="margin: 0; padding-left: 20px; color: #78350f;">
+                <li style="margin-bottom: 8px;">Review the request details above</li>
+                <li style="margin-bottom: 8px;">Reply to <strong>${data.email}</strong> with the appropriate activation code</li>
+                <li>Or generate new codes if needed from your admin dashboard</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- Professional Signature/Footer -->
+          <div style="background: #f9fafb; padding: 30px; border-top: 1px solid #e5e7eb;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h3 style="margin: 0 0 10px 0; color: #1e40af; font-size: 20px;">Ananth Automotive Garage</h3>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">Professional Automotive Service & Management</p>
+            </div>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="text-align: center; padding: 10px; border-right: 1px solid #e5e7eb; width: 33.33%;">
+                    <div style="color: #3b82f6; font-size: 20px; margin-bottom: 5px;">📧</div>
+                    <div style="font-size: 12px; color: #6b7280;">Email</div>
+                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">ananthautomotivegarage@gmail.com</div>
+                  </td>
+                  <td style="text-align: center; padding: 10px; border-right: 1px solid #e5e7eb; width: 33.33%;">
+                    <div style="color: #10b981; font-size: 20px; margin-bottom: 5px;">🔧</div>
+                    <div style="font-size: 12px; color: #6b7280;">Service</div>
+                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">Professional Automotive</div>
+                  </td>
+                  <td style="text-align: center; padding: 10px; width: 33.33%;">
+                    <div style="color: #f59e0b; font-size: 20px; margin-bottom: 5px;">⚡</div>
+                    <div style="font-size: 12px; color: #6b7280;">System</div>
+                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">GarageGuru Platform</div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+                This is an automated notification from GarageGuru Management System.<br>
+                Powered by Ananth Automotive Garage - Excellence in Automotive Service
+              </p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  private generateAccessRequestText(data: AccessRequestData): string {
+    return `
+🔑 NEW ACCESS REQUEST - GARAGEGURU
+
+Request Details:
+👤 Name: ${data.name}
+📧 Email: ${data.email}
+🎯 Requested Role: ${data.requestType.toUpperCase()}
+⏰ Time: ${data.timestamp}
+${data.message ? `💬 Message: ${data.message}` : ''}
+
+Current Activation Codes:
+🔴 Admin Code: ${process.env.ADMIN_ACTIVATION_CODE || 'Not configured'}
+🔵 Staff Code: ${process.env.STAFF_ACTIVATION_CODE || 'Not configured'}
+
+To Approve Access:
+1. Review the request details above
+2. Reply to ${data.email} with the appropriate activation code
+3. Or generate new codes if needed
+
+---
+GarageGuru Management System
+Access Control Notification
+    `;
+  }
+
+  private logAccessRequest(data: AccessRequestData): void {
+    console.log('\n🔑 NEW ACCESS REQUEST 🔑');
+    console.log('================================');
+    console.log(`📧 Email: ${data.email}`);
+    console.log(`👤 Name: ${data.name}`);
+    console.log(`🎯 Requested Role: ${data.requestType}`);
+    console.log(`💬 Message: ${data.message || 'No message provided'}`);
+    console.log(`⏰ Time: ${data.timestamp}`);
+    console.log('================================\n');
+  }
+}

@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+
+PRODUCTION_ENV_VARIABLES.md
+VERCEL_FIX.md
+vercel-env-copy-paste.txt

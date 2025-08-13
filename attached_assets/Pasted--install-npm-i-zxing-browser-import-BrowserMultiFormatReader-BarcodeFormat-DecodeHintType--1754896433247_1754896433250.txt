@@ -1,0 +1,140 @@
+// install: npm i @zxing/browser
+import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType, IScannerControls } from "@zxing/browser";
+
+type ScanResult = { text: string; format: string };
+type StopFn = () => void;
+
+/** Start camera and return the MediaStream + selected video track */
+export async function startCameraStream(): Promise<{ stream: MediaStream; track: MediaStreamTrack }> {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: { ideal: "environment" },
+      width: { ideal: 1920 },
+      height: { ideal: 1080 },
+    },
+    audio: false,
+  });
+  const track = stream.getVideoTracks()[0];
+  return { stream, track };
+}
+
+/** Wait until the video element has real dimensions */
+export async function waitVideoReady(video: HTMLVideoElement): Promise<void> {
+  if (video.readyState >= 2 && video.videoWidth && video.videoHeight) return;
+  await new Promise<void>((res) => {
+    const onLoaded = () => {
+      if (video.videoWidth && video.videoHeight) {
+        video.removeEventListener("loadeddata", onLoaded);
+        res();
+      }
+    };
+    video.addEventListener("loadeddata", onLoaded);
+  });
+}
+
+/** Hybrid decode: BarcodeDetector → ZXing; returns stop() and fires onResult once */
+export async function startHybridDecode(
+  video: HTMLVideoElement,
+  onResult: (r: ScanResult) => void,
+  onError?: (e: any) => void
+): Promise<StopFn> {
+  // ensure video is ready
+  await waitVideoReady(video);
+
+  // ---- A) Native BarcodeDetector (QR + most 1D barcodes) ----
+  // @ts-ignore
+  if (window.BarcodeDetector) {
+    try {
+      // @ts-ignore
+      const detector = new window.BarcodeDetector({
+        formats: [
+          "qr_code",
+          "code_128",
+          "code_39",
+          "ean_13",
+          "ean_8",
+          "upc_a",
+          "upc_e",
+          "itf",
+          "codabar",
+          "data_matrix",
+          "pdf417",
+        ],
+      });
+
+      let stopped = false;
+      const loop = async () => {
+        if (stopped) return;
+        try {
+          const codes = await detector.detect(video);
+          if (codes && codes.length) {
+            const c = codes[0];
+            onResult({ text: c.rawValue ?? "", format: c.format ?? "unknown" });
+            stopped = true;
+            return;
+          }
+        } catch (e) {
+          onError?.(e);
+        }
+        requestAnimationFrame(loop);
+      };
+      loop();
+
+      return () => {
+        stopped = true;
+      };
+    } catch (e) {
+      onError?.(e);
+      // fall through to ZXing
+    }
+  }
+
+  // ---- B) ZXing fallback (multi-format) ----
+  const hints = new Map();
+  hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+    BarcodeFormat.QR_CODE,
+    BarcodeFormat.CODE_128,
+    BarcodeFormat.CODE_39,
+    BarcodeFormat.EAN_13,
+    BarcodeFormat.EAN_8,
+    BarcodeFormat.UPC_A,
+    BarcodeFormat.UPC_E,
+    BarcodeFormat.ITF,
+    BarcodeFormat.CODABAR,
+    BarcodeFormat.DATA_MATRIX,
+    BarcodeFormat.PDF_417,
+  ]);
+
+  const reader = new BrowserMultiFormatReader(hints, 400);
+  let controls: IScannerControls | null = null;
+
+  try {
+    controls = await reader.decodeFromVideoElement(video, (res, err) => {
+      if (res) {
+        onResult({ text: res.getText(), format: res.getBarcodeFormat().toString() });
+        controls?.stop();
+        reader.reset();
+      } else if (err) {
+        // ignore NotFound; report other errors
+      }
+    });
+
+    return () => {
+      controls?.stop();
+      reader.reset();
+    };
+  } catch (e) {
+    onError?.(e);
+    return () => {};
+  }
+}
+
+/** Example wiring (call from your code):
+ *
+ * const video = document.createElement('video');
+ * video.playsInline = true; video.muted = true; video.autoplay = true;
+ * const { stream } = await startCameraStream();
+ * video.srcObject = stream; await video.play();
+ * const stop = await startHybridDecode(video, (r) => console.log(r));
+ * // later: stop(); stream.getTracks().forEach(t => t.stop());
+ */

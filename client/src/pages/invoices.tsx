@@ -1,0 +1,242 @@
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/lib/auth";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Search, FileText, Download, MessageCircle, Calendar, User, Bike } from "lucide-react";
+
+export default function Invoices() {
+  const [, navigate] = useLocation();
+  const { garage } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const { data: invoices = [], isLoading } = useQuery({
+    queryKey: ["/api/garages", garage?.id, "invoices"],
+    queryFn: async () => {
+      if (!garage?.id) return [];
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/invoices`);
+      return response.json();
+    },
+    enabled: !!garage?.id,
+  });
+
+  const filteredInvoices = invoices.filter((invoice: any) =>
+    invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    invoice.jobCard?.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    invoice.jobCard?.bikeNumber?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    
+    if (date.toDateString() === today.toDateString()) {
+      return `Today, ${date.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
+      })}`;
+    }
+    
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return `Yesterday, ${date.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
+      })}`;
+    }
+    
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const downloadPDF = (pdfUrl: string, invoiceNumber: string) => {
+    if (pdfUrl) {
+      const a = document.createElement('a');
+      a.href = pdfUrl;
+      a.download = `${invoiceNumber}.pdf`;
+      a.target = '_blank';
+      a.click();
+    }
+  };
+
+  const sendWhatsApp = (phone: string, pdfUrl: string) => {
+    const message = `Hi! Here's your service invoice: ${pdfUrl}`;
+    const whatsappUrl = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="screen-header">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/dashboard")}
+              className="text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h2 className="text-lg font-semibold">Invoices</h2>
+          </div>
+        </div>
+        <div className="screen-content flex items-center justify-center">
+          <div className="animate-pulse text-muted-foreground">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="screen-header">
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/dashboard")}
+            className="text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h2 className="text-lg font-semibold">Invoices</h2>
+        </div>
+        <div className="bg-white/20 px-3 py-1 rounded-full">
+          <span className="text-sm font-medium">{filteredInvoices.length} Invoices</span>
+        </div>
+      </div>
+
+      <div className="screen-content">
+        {/* Search Bar */}
+        <div className="mb-4">
+          <div className="relative search-bar-container">
+            <Search className="search-icon w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Search by invoice number, customer, or bike number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+        </div>
+
+        {/* Invoices List */}
+        {filteredInvoices.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="text-muted-foreground">
+                {searchTerm ? "No invoices found matching your search" : "No invoices generated yet"}
+              </div>
+              {!searchTerm && (
+                <Button 
+                  className="mt-4" 
+                  onClick={() => navigate("/pending-services")}
+                >
+                  Generate First Invoice
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {filteredInvoices.map((invoice: any) => (
+              <Card key={invoice.id} className="border-l-4 border-l-success">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center">
+                        <FileText className="text-success w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{invoice.invoiceNumber}</h3>
+                        <p className="text-sm text-muted-foreground">₹{Number(invoice.totalAmount).toLocaleString()}</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="success-bg success-text">
+                      Completed
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground mb-3">
+                    <div className="flex items-center space-x-2">
+                      <User className="w-4 h-4" />
+                      <span>{invoice.jobCard?.customerName || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Bike className="w-4 h-4" />
+                      <span>{invoice.jobCard?.bikeNumber || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>{formatDate(invoice.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <MessageCircle className="w-4 h-4" />
+                      <span>{invoice.whatsappSent ? 'Sent' : 'Not sent'}</span>
+                    </div>
+                  </div>
+
+                  <div className="text-sm bg-muted/30 p-2 rounded mb-3">
+                    <div className="flex justify-between">
+                      <span>Parts Total:</span>
+                      <span>₹{Number(invoice.partsTotal).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Service Charge:</span>
+                      <span>₹{Number(invoice.serviceCharge).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold border-t pt-1 mt-1">
+                      <span>Total:</span>
+                      <span>₹{Number(invoice.totalAmount).toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-2">
+                    {invoice.pdfUrl && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadPDF(invoice.pdfUrl, invoice.invoiceNumber)}
+                          className="px-3 py-1 text-xs"
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          Download PDF
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => sendWhatsApp(invoice.jobCard?.phone || '', invoice.pdfUrl)}
+                          className="px-3 py-1 text-xs"
+                        >
+                          <MessageCircle className="w-3 h-3 mr-1" />
+                          WhatsApp
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

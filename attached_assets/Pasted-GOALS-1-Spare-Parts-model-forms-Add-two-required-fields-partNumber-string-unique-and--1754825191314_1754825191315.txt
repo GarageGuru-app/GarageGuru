@@ -1,0 +1,71 @@
+GOALS
+1) Spare Parts model & forms:
+   - Add two required fields: partNumber (string, unique) and partName (string, not null).
+   - Pricing: price (decimal/number) required.
+   - Quantity: integer, default 0.
+   - When selecting/adding spares anywhere in the UI, allow lookup by EITHER partNumber OR partName.
+   - Validation: partNumber and partName are both required.
+   - Server must enforce unique partNumber.
+
+2) Invoice display:
+   - In invoice line items and totals, display BOTH partNumber and partName, plus price and quantity.
+   - Example line: `PN: <partNumber> — <partName> — Qty x UnitPrice = LineTotal`
+
+3) Fix client error "process is not defined" when clicking:
+   - "Generate PDF"
+   - "Send WhatsApp"
+   - "Preview PDF"
+   Root cause: client code is referencing `process.env.*` in Vite. Replace all CLIENT-SIDE references to `process.env.*` with `import.meta.env.*`.
+   - Specifically in `client/src/utils/pdf-generator.ts` and any other client files:
+     * Use `import.meta.env.VITE_CLOUDINARY_CLOUD_NAME`
+     * Use `import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET`
+     * If a base URL is needed: `import.meta.env.VITE_API_BASE || window.location.origin`
+   - Do NOT introduce Node `process` polyfills. Just remove `process.env` usage from the browser code.
+
+DETAILS
+
+A) Schema (shared/schema.ts)
+- Update spareParts table:
+  - partNumber: text().notNull().unique()
+  - name: text().notNull()
+  - price: decimal(10,2).notNull()
+  - quantity: integer().notNull().default(0)
+- Update any relations/usages accordingly (sparePartUsage stays the same but joins should be able to read both fields for invoices).
+
+B) Server (server/routes.ts, server/storage.ts)
+- POST /api/spares:
+  Body: { partNumber (required), name (required), price (required), quantity (required >=0) }
+  Validation with zod:
+    partNumber: string().min(1)
+    name: string().min(1)
+    price: coerce.number().positive()
+    quantity: coerce.number().int().min(0)
+  Enforce unique partNumber (conflict → 409 with clear message).
+- GET /api/spares/search?q=... should match by partNumber OR name (ILIKE %q%).
+- POST /api/spare-usage (existing): when joining to build invoice data, include both spareParts.partNumber and spareParts.name.
+
+C) Client
+1. Spare creation/edit forms:
+   - Add input for "Part Number" (required).
+   - Add input for "Part Name" (required).
+   - Validate on client side accordingly.
+2. Any spare selection components (e.g., in Job Card, Add Usage):
+   - Search box should match by partNumber OR name.
+   - Show result entries as: `PN: partNumber — name`.
+3. Invoice UI and PDF generation (`client/src/utils/pdf-generator.ts` and wherever invoice lines are prepared):
+   - Each line item must include both partNumber and name.
+   - Totals logic remains unchanged.
+4. Fix "process is not defined":
+   - Replace ALL browser-side `process.env.*` with `import.meta.env.*`.
+   - For Cloudinary upload, ensure:
+     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+   - For WhatsApp open, use `https://wa.me/` links or Browser plugin if applicable. Do NOT rely on Node `process`.
+
+D) Tests / Acceptance
+- Creating a spare without partNumber or partName → fails with clear message.
+- Create spare with partNumber + partName + price + quantity → succeeds.
+- Search spares by partNumber and by partName → both return matches.
+- Add spare usage to an invoice → invoice line shows `PN: <partNumber> — <partName> — Qty x UnitPrice`.
+- Click "Generate PDF", "Send WhatsApp", "Preview PDF" → no "process is not defined" errors; PDF uploads to Cloudinary as before.
+- If partNumber duplicate → server returns 409; client shows friendly error toast.
