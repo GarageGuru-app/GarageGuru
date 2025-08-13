@@ -1,14 +1,37 @@
+var __defProp = Object.defineProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+
 // standalone.ts
 import express from "express";
 import { createServer } from "http";
 import cors from "cors";
 
-// storage.ts
-import { drizzle } from "drizzle-orm/neon-serverless";
+// db.ts
 import { Pool, neonConfig } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
 import ws from "ws";
 
 // schema.ts
+var schema_exports = {};
+__export(schema_exports, {
+  customers: () => customers,
+  garages: () => garages,
+  insertCustomerSchema: () => insertCustomerSchema,
+  insertGarageSchema: () => insertGarageSchema,
+  insertInvoiceSchema: () => insertInvoiceSchema,
+  insertJobCardSchema: () => insertJobCardSchema,
+  insertSparePartSchema: () => insertSparePartSchema,
+  insertSuperAdminRequestSchema: () => insertSuperAdminRequestSchema,
+  insertUserSchema: () => insertUserSchema,
+  invoices: () => invoices,
+  jobCards: () => jobCards,
+  spareParts: () => spareParts,
+  superAdminRequests: () => superAdminRequests,
+  users: () => users
+});
 import { sql } from "drizzle-orm";
 import { pgTable, text, varchar, integer, decimal, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
@@ -147,389 +170,145 @@ var insertSuperAdminRequestSchema = createInsertSchema(superAdminRequests).omit(
   processedAt: true
 });
 
-// storage.ts
-import { eq, and, desc, sql as sql2 } from "drizzle-orm";
+// db.ts
 neonConfig.webSocketConstructor = ws;
-var connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL is required");
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?"
+  );
 }
-var pool = new Pool({ connectionString });
-var db = drizzle({ client: pool });
-var SupabaseStorage = class {
-  async getUserByEmail(email) {
-    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    return result[0];
-  }
-  async createUser(user) {
-    const result = await db.insert(users).values([user]).returning();
-    return result[0];
-  }
+var pool = new Pool({ connectionString: process.env.DATABASE_URL });
+var db = drizzle({ client: pool, schema: schema_exports });
+
+// storage-simple.ts
+import {
+  garages as garages2,
+  users as users2,
+  customers as customers2,
+  spareParts as spareParts2,
+  jobCards as jobCards2,
+  invoices as invoices2
+} from "@shared/schema";
+import { eq, and, desc, sql as sql2 } from "drizzle-orm";
+import bcrypt from "bcrypt";
+var DatabaseStorage = class {
   async createGarage(garage) {
-    const result = await db.insert(garages).values([garage]).returning();
+    const result = await db.insert(garages2).values([garage]).returning();
     return result[0];
   }
   async getGarage(id) {
-    const result = await db.select().from(garages).where(eq(garages.id, id)).limit(1);
+    const result = await db.select().from(garages2).where(eq(garages2.id, id)).limit(1);
     return result[0];
   }
   async updateGarage(id, garage) {
-    const result = await db.update(garages).set(garage).where(eq(garages.id, id)).returning();
+    const result = await db.update(garages2).set(garage).where(eq(garages2.id, id)).returning();
+    return result[0];
+  }
+  async createUser(user) {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const result = await db.insert(users2).values([{
+      ...user,
+      password: hashedPassword
+    }]).returning();
+    return result[0];
+  }
+  async getUser(id) {
+    const result = await db.select().from(users2).where(eq(users2.id, id)).limit(1);
+    return result[0];
+  }
+  async getUserByEmail(email) {
+    const result = await db.select().from(users2).where(eq(users2.email, email)).limit(1);
+    return result[0];
+  }
+  async updateUser(id, user) {
+    const result = await db.update(users2).set(user).where(eq(users2.id, id)).returning();
     return result[0];
   }
   async getCustomers(garageId) {
-    return await db.select().from(customers).where(eq(customers.garageId, garageId)).orderBy(desc(customers.createdAt));
+    return await db.select().from(customers2).where(eq(customers2.garageId, garageId)).orderBy(desc(customers2.createdAt));
+  }
+  async searchCustomers(garageId, query) {
+    return await db.select().from(customers2).where(and(
+      eq(customers2.garageId, garageId),
+      sql2`LOWER(${customers2.name}) LIKE LOWER(${"%" + query + "%"})`
+    )).orderBy(desc(customers2.createdAt));
   }
   async getCustomer(id, garageId) {
-    const result = await db.select().from(customers).where(and(eq(customers.id, id), eq(customers.garageId, garageId))).limit(1);
+    const result = await db.select().from(customers2).where(and(eq(customers2.id, id), eq(customers2.garageId, garageId))).limit(1);
     return result[0];
   }
   async createCustomer(customer) {
-    const result = await db.insert(customers).values([customer]).returning();
+    const result = await db.insert(customers2).values([customer]).returning();
     return result[0];
   }
   async updateCustomer(id, customer) {
-    const result = await db.update(customers).set(customer).where(eq(customers.id, id)).returning();
+    const result = await db.update(customers2).set(customer).where(eq(customers2.id, id)).returning();
     return result[0];
   }
-  async searchCustomers(garageId, query) {
-    const searchTerm = `%${query.toLowerCase()}%`;
-    return await db.select().from(customers).where(and(
-      eq(customers.garageId, garageId),
-      sql2`(LOWER(${customers.name}) LIKE ${searchTerm} OR LOWER(${customers.phone}) LIKE ${searchTerm} OR LOWER(${customers.bikeNumber}) LIKE ${searchTerm})`
-    )).orderBy(desc(customers.createdAt)).limit(10);
-  }
-  async searchSpareParts(garageId, query) {
-    const searchTerm = `%${query.toLowerCase()}%`;
-    return await db.select().from(spareParts).where(and(
-      eq(spareParts.garageId, garageId),
-      sql2`(LOWER(${spareParts.partNumber}) LIKE ${searchTerm} OR LOWER(${spareParts.name}) LIKE ${searchTerm})`
-    )).orderBy(desc(spareParts.createdAt)).limit(10);
-  }
   async getSpareParts(garageId) {
-    try {
-      return await db.select().from(spareParts).where(eq(spareParts.garageId, garageId)).orderBy(desc(spareParts.createdAt));
-    } catch (error) {
-      console.error("Error fetching spare parts:", error);
-      return [];
-    }
-  }
-  async getLowStockParts(garageId) {
-    try {
-      return await db.select().from(spareParts).where(and(
-        eq(spareParts.garageId, garageId),
-        sql2`quantity <= low_stock_threshold`
-      ));
-    } catch (error) {
-      console.error("Error fetching low stock parts:", error);
-      return [];
-    }
-  }
-  async createLowStockNotifications(garageId) {
-    try {
-      const lowStockParts = await this.getLowStockParts(garageId);
-      await db.delete(notifications).where(and(
-        eq(notifications.garageId, garageId),
-        eq(notifications.type, "low_stock")
-      ));
-      if (lowStockParts.length > 0) {
-        const notificationsToInsert = lowStockParts.map((part) => ({
-          garageId,
-          type: "low_stock",
-          title: "Low Stock Alert",
-          message: `${part.name} (${part.partNumber}) is running low. Only ${part.quantity} left.`,
-          isRead: false,
-          data: { partId: part.id, partNumber: part.partNumber, currentStock: part.quantity }
-        }));
-        await db.insert(notifications).values(notificationsToInsert);
-      }
-    } catch (error) {
-      console.error("Error creating low stock notifications:", error);
-    }
+    return await db.select().from(spareParts2).where(eq(spareParts2.garageId, garageId)).orderBy(desc(spareParts2.createdAt));
   }
   async getSparePart(id, garageId) {
-    const result = await db.select().from(spareParts).where(and(eq(spareParts.id, id), eq(spareParts.garageId, garageId))).limit(1);
+    const result = await db.select().from(spareParts2).where(and(eq(spareParts2.id, id), eq(spareParts2.garageId, garageId))).limit(1);
     return result[0];
   }
   async createSparePart(part) {
-    try {
-      const result = await db.insert(spareParts).values([part]).returning();
-      return result[0];
-    } catch (error) {
-      if (error.code === "23505" && error.constraint === "spare_parts_part_number_unique") {
-        throw new Error(`Part number "${part.partNumber}" already exists`);
-      }
-      throw error;
-    }
-  }
-  async updateSparePart(id, part) {
-    const result = await db.update(spareParts).set(part).where(eq(spareParts.id, id)).returning();
+    const result = await db.insert(spareParts2).values([part]).returning();
     return result[0];
   }
-  async deleteSparePart(id, garageId) {
-    await db.delete(spareParts).where(and(eq(spareParts.id, id), eq(spareParts.garageId, garageId)));
+  async updateSparePart(id, part) {
+    const result = await db.update(spareParts2).set(part).where(eq(spareParts2.id, id)).returning();
+    return result[0];
   }
   async getJobCards(garageId, status) {
-    const conditions = [eq(jobCards.garageId, garageId)];
+    const conditions = [eq(jobCards2.garageId, garageId)];
     if (status) {
-      conditions.push(eq(jobCards.status, status));
+      conditions.push(eq(jobCards2.status, status));
     }
-    return await db.select().from(jobCards).where(and(...conditions)).orderBy(desc(jobCards.createdAt));
+    return await db.select().from(jobCards2).where(and(...conditions)).orderBy(desc(jobCards2.createdAt));
   }
   async getJobCard(id, garageId) {
-    const result = await db.select().from(jobCards).where(and(eq(jobCards.id, id), eq(jobCards.garageId, garageId))).limit(1);
+    const result = await db.select().from(jobCards2).where(and(eq(jobCards2.id, id), eq(jobCards2.garageId, garageId))).limit(1);
     return result[0];
   }
   async createJobCard(jobCard) {
-    const result = await db.insert(jobCards).values([jobCard]).returning();
+    const result = await db.insert(jobCards2).values([jobCard]).returning();
     return result[0];
   }
   async updateJobCard(id, jobCard) {
-    const result = await db.update(jobCards).set(jobCard).where(eq(jobCards.id, id)).returning();
+    const result = await db.update(jobCards2).set(jobCard).where(eq(jobCards2.id, id)).returning();
     return result[0];
   }
   async getInvoices(garageId) {
     return await db.select({
-      id: invoices.id,
-      garageId: invoices.garageId,
-      jobCardId: invoices.jobCardId,
-      customerId: invoices.customerId,
-      invoiceNumber: invoices.invoiceNumber,
-      pdfUrl: invoices.pdfUrl,
-      whatsappSent: invoices.whatsappSent,
-      totalAmount: invoices.totalAmount,
-      partsTotal: invoices.partsTotal,
-      serviceCharge: invoices.serviceCharge,
-      createdAt: invoices.createdAt,
-      jobCard: {
-        customerName: sql2`COALESCE(${jobCards.customerName}, 'Unknown')`.as("customerName"),
-        phone: sql2`COALESCE(${jobCards.phone}, '')`.as("phone"),
-        bikeNumber: sql2`COALESCE(${jobCards.bikeNumber}, '')`.as("bikeNumber"),
-        complaint: sql2`COALESCE(${jobCards.complaint}, '')`.as("complaint")
-      }
-    }).from(invoices).leftJoin(jobCards, eq(invoices.jobCardId, jobCards.id)).where(eq(invoices.garageId, garageId)).orderBy(desc(invoices.createdAt));
-  }
-  async getCustomerInvoices(customerId, garageId) {
-    return await db.select().from(invoices).where(and(eq(invoices.customerId, customerId), eq(invoices.garageId, garageId))).orderBy(desc(invoices.createdAt));
+      id: invoices2.id,
+      garageId: invoices2.garageId,
+      jobCardId: invoices2.jobCardId,
+      customerId: invoices2.customerId,
+      invoiceNumber: invoices2.invoiceNumber,
+      pdfUrl: invoices2.pdfUrl,
+      whatsappSent: invoices2.whatsappSent,
+      totalAmount: invoices2.totalAmount,
+      partsTotal: invoices2.partsTotal,
+      serviceCharge: invoices2.serviceCharge,
+      createdAt: invoices2.createdAt
+    }).from(invoices2).where(eq(invoices2.garageId, garageId)).orderBy(desc(invoices2.createdAt));
   }
   async createInvoice(invoice) {
-    const result = await db.insert(invoices).values([invoice]).returning();
+    const result = await db.insert(invoices2).values([invoice]).returning();
     return result[0];
   }
   async updateInvoice(id, invoice) {
-    const result = await db.update(invoices).set(invoice).where(eq(invoices.id, id)).returning();
+    const result = await db.update(invoices2).set(invoice).where(eq(invoices2.id, id)).returning();
     return result[0];
   }
-  async getSalesStats(garageId) {
-    const result = await db.select({
-      totalInvoices: sql2`count(*)`,
-      totalPartsTotal: sql2`sum(${invoices.partsTotal})`,
-      totalServiceCharges: sql2`sum(${invoices.serviceCharge})`
-    }).from(invoices).where(eq(invoices.garageId, garageId));
-    const stats = result[0];
-    const partsRevenue = Number(stats.totalPartsTotal) || 0;
-    const serviceCharges = Number(stats.totalServiceCharges) || 0;
-    const totalProfit = serviceCharges;
-    return {
-      totalInvoices: stats.totalInvoices || 0,
-      totalPartsTotal: partsRevenue,
-      totalServiceCharges: serviceCharges,
-      totalProfit
-    };
-  }
-  async getMonthlySalesData(garageId) {
-    const result = await db.select({
-      month: sql2`to_char(${invoices.createdAt}, 'Month')`,
-      year: sql2`extract(year from ${invoices.createdAt})`,
-      serviceCharges: sql2`sum(${invoices.serviceCharge})`,
-      invoiceCount: sql2`count(*)`
-    }).from(invoices).where(eq(invoices.garageId, garageId)).groupBy(
-      sql2`extract(year from ${invoices.createdAt})`,
-      sql2`extract(month from ${invoices.createdAt})`,
-      sql2`to_char(${invoices.createdAt}, 'Month')`
-    ).orderBy(
-      sql2`extract(year from ${invoices.createdAt}) desc`,
-      sql2`extract(month from ${invoices.createdAt}) desc`
-    ).limit(6);
-    return result.map((item) => ({
-      month: item.month?.trim() || "",
-      year: Number(item.year) || (/* @__PURE__ */ new Date()).getFullYear(),
-      serviceCharges: Number(item.serviceCharges) || 0,
-      invoiceCount: Number(item.invoiceCount) || 0
-    }));
-  }
-  // Notifications methods
-  async getNotifications(garageId) {
-    try {
-      return await db.select().from(notifications).where(eq(notifications.garageId, garageId)).orderBy(desc(notifications.createdAt));
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      return [];
-    }
-  }
-  async createNotification(notification) {
-    try {
-      const result = await db.insert(notifications).values([notification]).returning();
-      return result[0];
-    } catch (error) {
-      console.error("Error creating notification:", error);
-      return null;
-    }
-  }
-  async markNotificationAsRead(id) {
-    try {
-      await db.update(notifications).set({ isRead: true }).where(eq(notifications.id, id));
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-    }
-  }
-  async markAllNotificationsAsRead(garageId) {
-    try {
-      await db.update(notifications).set({ isRead: true }).where(and(eq(notifications.garageId, garageId), eq(notifications.isRead, false)));
-    } catch (error) {
-      console.error("Error marking all notifications as read:", error);
-    }
-  }
-  async getUnreadNotificationCount(garageId) {
-    try {
-      const result = await db.select({ count: sql2`count(*)` }).from(notifications).where(and(eq(notifications.garageId, garageId), eq(notifications.isRead, false)));
-      return Number(result[0]?.count) || 0;
-    } catch (error) {
-      console.error("Error getting unread notification count:", error);
-      return 0;
-    }
-  }
-  // Enhanced sales analytics methods
-  async getSalesDataByDateRange(garageId, startDate, endDate, groupBy = "month") {
-    try {
-      let dateFormatSql;
-      let groupBySql;
-      switch (groupBy) {
-        case "hour":
-          dateFormatSql = sql2`to_char(${invoices.createdAt} AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:00')`;
-          groupBySql = sql2`to_char(${invoices.createdAt} AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:00')`;
-          break;
-        case "day":
-          dateFormatSql = sql2`to_char(${invoices.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD')`;
-          groupBySql = sql2`to_char(${invoices.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD')`;
-          break;
-        case "week":
-          dateFormatSql = sql2`to_char(date_trunc('week', ${invoices.createdAt}), 'YYYY-MM-DD')`;
-          groupBySql = sql2`to_char(date_trunc('week', ${invoices.createdAt}), 'YYYY-MM-DD')`;
-          break;
-        case "quarter":
-          dateFormatSql = sql2`to_char(date_trunc('quarter', ${invoices.createdAt}), 'YYYY') || '-Q' || extract(quarter from ${invoices.createdAt})`;
-          groupBySql = sql2`to_char(date_trunc('quarter', ${invoices.createdAt}), 'YYYY') || '-Q' || extract(quarter from ${invoices.createdAt})`;
-          break;
-        case "year":
-          dateFormatSql = sql2`to_char(${invoices.createdAt}, 'YYYY')`;
-          groupBySql = sql2`to_char(${invoices.createdAt}, 'YYYY')`;
-          break;
-        default:
-          dateFormatSql = sql2`to_char(${invoices.createdAt}, 'YYYY-MM')`;
-          groupBySql = sql2`to_char(${invoices.createdAt}, 'YYYY-MM')`;
-          break;
-      }
-      const result = await db.select({
-        period: dateFormatSql.as("period"),
-        serviceCharges: sql2`sum(${invoices.serviceCharge})`.as("serviceCharges"),
-        partsRevenue: sql2`sum(${invoices.partsTotal})`.as("partsRevenue"),
-        totalSales: sql2`sum(${invoices.serviceCharge} + ${invoices.partsTotal})`.as("totalSales"),
-        invoiceCount: sql2`count(*)`.as("invoiceCount")
-      }).from(invoices).where(and(
-        eq(invoices.garageId, garageId),
-        sql2`DATE(${invoices.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') >= ${startDate}::date`,
-        sql2`DATE(${invoices.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') <= ${endDate}::date`
-      )).groupBy(groupBySql).orderBy(groupBySql);
-      console.log(`SQL Result:`, result);
-      return result.map((item) => ({
-        period: String(item.period) || "",
-        totalSales: Number(item.totalSales) || 0,
-        serviceCharges: Number(item.serviceCharges) || 0,
-        partsRevenue: Number(item.partsRevenue) || 0,
-        profit: Number(item.serviceCharges) || 0,
-        // For now, profit = service charges
-        invoiceCount: Number(item.invoiceCount) || 0
-      }));
-    } catch (error) {
-      console.error("Error fetching sales data by date range:", error);
-      return [];
-    }
-  }
-  // Customer analytics methods
-  async getCustomerAnalytics(garageId, startDate, endDate, groupBy = "month") {
-    try {
-      const result = await db.select({
-        customerId: invoices.customerId,
-        customerName: customers.name,
-        serviceCount: sql2`count(*)`.as("serviceCount"),
-        totalRevenue: sql2`sum(${invoices.serviceCharge} + ${invoices.partsTotal})`.as("totalRevenue"),
-        lastVisit: sql2`max(${invoices.createdAt})`.as("lastVisit")
-      }).from(invoices).innerJoin(customers, eq(invoices.customerId, customers.id)).where(and(
-        eq(invoices.garageId, garageId),
-        sql2`${invoices.createdAt} >= ${startDate}::date`,
-        sql2`${invoices.createdAt} < (${endDate}::date + interval '1 day')`
-      )).groupBy(invoices.customerId, customers.name).orderBy(sql2`sum(${invoices.serviceCharge} + ${invoices.partsTotal}) DESC`);
-      return result.map((item) => ({
-        customerId: String(item.customerId) || "",
-        customerName: String(item.customerName) || "",
-        serviceCount: Number(item.serviceCount) || 0,
-        totalRevenue: Number(item.totalRevenue) || 0,
-        lastVisit: String(item.lastVisit) || ""
-      }));
-    } catch (error) {
-      console.error("Error fetching customer analytics:", error);
-      return [];
-    }
-  }
-  async getTopCustomersByServices(garageId, startDate, endDate, limit = 10) {
-    try {
-      const result = await db.select({
-        customerName: customers.name,
-        serviceCount: sql2`count(*)`.as("serviceCount"),
-        totalRevenue: sql2`sum(${invoices.serviceCharge} + ${invoices.partsTotal})`.as("totalRevenue")
-      }).from(invoices).innerJoin(customers, eq(invoices.customerId, customers.id)).where(and(
-        eq(invoices.garageId, garageId),
-        sql2`${invoices.createdAt} >= ${startDate}::date`,
-        sql2`${invoices.createdAt} < (${endDate}::date + interval '1 day')`
-      )).groupBy(customers.name).orderBy(sql2`count(*) DESC`).limit(limit);
-      return result.map((item) => ({
-        customerName: String(item.customerName) || "",
-        serviceCount: Number(item.serviceCount) || 0,
-        totalRevenue: Number(item.totalRevenue) || 0
-      }));
-    } catch (error) {
-      console.error("Error fetching top customers by services:", error);
-      return [];
-    }
-  }
-  async getTopCustomersByRevenue(garageId, startDate, endDate, limit = 10) {
-    try {
-      const result = await db.select({
-        customerName: customers.name,
-        serviceCount: sql2`count(*)`.as("serviceCount"),
-        totalRevenue: sql2`sum(${invoices.serviceCharge} + ${invoices.partsTotal})`.as("totalRevenue")
-      }).from(invoices).innerJoin(customers, eq(invoices.customerId, customers.id)).where(and(
-        eq(invoices.garageId, garageId),
-        sql2`${invoices.createdAt} >= ${startDate}::date`,
-        sql2`${invoices.createdAt} < (${endDate}::date + interval '1 day')`
-      )).groupBy(customers.name).orderBy(sql2`sum(${invoices.serviceCharge} + ${invoices.partsTotal}) DESC`).limit(limit);
-      return result.map((item) => ({
-        customerName: String(item.customerName) || "",
-        serviceCount: Number(item.serviceCount) || 0,
-        totalRevenue: Number(item.totalRevenue) || 0
-      }));
-    } catch (error) {
-      console.error("Error fetching top customers by revenue:", error);
-      return [];
-    }
-  }
 };
-var storage = new SupabaseStorage();
+var storage = new DatabaseStorage();
 
 // routes.ts
-import bcrypt from "bcrypt";
+import bcrypt2 from "bcrypt";
 import jwt from "jsonwebtoken";
+import { insertGarageSchema as insertGarageSchema2, insertCustomerSchema as insertCustomerSchema2, insertSparePartSchema as insertSparePartSchema2, insertJobCardSchema as insertJobCardSchema2, insertInvoiceSchema as insertInvoiceSchema2 } from "@shared/schema";
 
 // emailService.ts
 import sgMail from "@sendgrid/mail";
@@ -1017,7 +796,7 @@ async function registerRoutes(app2) {
     try {
       const { email, password, name, activationCode, garageName, ownerName, phone } = req.body;
       if (email === SUPER_ADMIN_EMAIL) {
-        const hashedPassword2 = await bcrypt.hash(password, 10);
+        const hashedPassword2 = await bcrypt2.hash(password, 10);
         const user2 = await storage.createUser({
           email,
           password: hashedPassword2,
@@ -1049,7 +828,7 @@ async function registerRoutes(app2) {
       if (existingUser) {
         return res.status(400).json({ message: "User already exists" });
       }
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt2.hash(password, 10);
       let garageId = null;
       if (role === "garage_admin") {
         const garage = await storage.createGarage({
@@ -1085,7 +864,7 @@ async function registerRoutes(app2) {
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      const validPassword = await bcrypt.compare(password, user.password);
+      const validPassword = await bcrypt2.compare(password, user.password);
       if (!validPassword) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -1121,7 +900,7 @@ async function registerRoutes(app2) {
   app2.put("/api/garages/:id", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
     try {
       const { id } = req.params;
-      const updateData = insertGarageSchema.partial().parse(req.body);
+      const updateData = insertGarageSchema2.partial().parse(req.body);
       const garage = await storage.updateGarage(id, updateData);
       res.json(garage);
     } catch (error) {
@@ -1131,8 +910,8 @@ async function registerRoutes(app2) {
   app2.get("/api/garages/:garageId/customers", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
-      const customers2 = await storage.getCustomers(garageId);
-      res.json(customers2);
+      const customers3 = await storage.getCustomers(garageId);
+      res.json(customers3);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch customers" });
     }
@@ -1140,7 +919,7 @@ async function registerRoutes(app2) {
   app2.post("/api/garages/:garageId/customers", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
-      const customerData = insertCustomerSchema.parse({ ...req.body, garageId });
+      const customerData = insertCustomerSchema2.parse({ ...req.body, garageId });
       const customer = await storage.createCustomer(customerData);
       res.json(customer);
     } catch (error) {
@@ -1154,8 +933,8 @@ async function registerRoutes(app2) {
       if (!q || typeof q !== "string") {
         return res.json([]);
       }
-      const customers2 = await storage.searchCustomers(garageId, q);
-      res.json(customers2);
+      const customers3 = await storage.searchCustomers(garageId, q);
+      res.json(customers3);
     } catch (error) {
       res.status(500).json({ message: "Failed to search customers" });
     }
@@ -1167,8 +946,8 @@ async function registerRoutes(app2) {
       if (!q || typeof q !== "string") {
         return res.json([]);
       }
-      const spareParts2 = await storage.searchSpareParts(garageId, q);
-      res.json(spareParts2);
+      const spareParts3 = await storage.searchSpareParts(garageId, q);
+      res.json(spareParts3);
     } catch (error) {
       res.status(500).json({ message: "Failed to search spare parts" });
     }
@@ -1176,8 +955,8 @@ async function registerRoutes(app2) {
   app2.get("/api/garages/:garageId/customers/:customerId/invoices", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId, customerId } = req.params;
-      const invoices2 = await storage.getCustomerInvoices(customerId, garageId);
-      res.json(invoices2);
+      const invoices3 = await storage.getCustomerInvoices(customerId, garageId);
+      res.json(invoices3);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch customer invoices" });
     }
@@ -1185,8 +964,8 @@ async function registerRoutes(app2) {
   app2.get("/api/garages/:garageId/spare-parts", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
-      const spareParts2 = await storage.getSpareParts(garageId);
-      res.json(spareParts2);
+      const spareParts3 = await storage.getSpareParts(garageId);
+      res.json(spareParts3);
     } catch (error) {
       console.error("Error in spare parts endpoint:", error);
       res.status(500).json({ message: "Failed to fetch spare parts" });
@@ -1206,7 +985,7 @@ async function registerRoutes(app2) {
   app2.post("/api/garages/:garageId/spare-parts", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
-      const partData = insertSparePartSchema.parse({ ...req.body, garageId });
+      const partData = insertSparePartSchema2.parse({ ...req.body, garageId });
       const sparePart = await storage.createSparePart(partData);
       res.json(sparePart);
     } catch (error) {
@@ -1225,7 +1004,7 @@ async function registerRoutes(app2) {
   app2.put("/api/garages/:garageId/spare-parts/:id", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
     try {
       const { id } = req.params;
-      const updateData = insertSparePartSchema.partial().parse(req.body);
+      const updateData = insertSparePartSchema2.partial().parse(req.body);
       const sparePart = await storage.updateSparePart(id, updateData);
       res.json(sparePart);
     } catch (error) {
@@ -1245,8 +1024,8 @@ async function registerRoutes(app2) {
     try {
       const { garageId } = req.params;
       const { status } = req.query;
-      const jobCards2 = await storage.getJobCards(garageId, status);
-      res.json(jobCards2);
+      const jobCards3 = await storage.getJobCards(garageId, status);
+      res.json(jobCards3);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch job cards" });
     }
@@ -1254,9 +1033,9 @@ async function registerRoutes(app2) {
   app2.post("/api/garages/:garageId/job-cards", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
-      const jobCardData = insertJobCardSchema.parse({ ...req.body, garageId });
+      const jobCardData = insertJobCardSchema2.parse({ ...req.body, garageId });
       let customer = await storage.getCustomers(garageId).then(
-        (customers2) => customers2.find((c) => c.phone === jobCardData.phone && c.bikeNumber === jobCardData.bikeNumber)
+        (customers3) => customers3.find((c) => c.phone === jobCardData.phone && c.bikeNumber === jobCardData.bikeNumber)
       );
       if (!customer) {
         customer = await storage.createCustomer({
@@ -1290,7 +1069,7 @@ async function registerRoutes(app2) {
   app2.put("/api/garages/:garageId/job-cards/:id", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { id } = req.params;
-      const updateData = insertJobCardSchema.partial().parse(req.body);
+      const updateData = insertJobCardSchema2.partial().parse(req.body);
       const jobCard = await storage.updateJobCard(id, {
         ...updateData,
         spareParts: updateData.spareParts?.map((part) => ({
@@ -1309,8 +1088,8 @@ async function registerRoutes(app2) {
   app2.get("/api/garages/:garageId/invoices", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
-      const invoices2 = await storage.getInvoices(garageId);
-      res.json(invoices2);
+      const invoices3 = await storage.getInvoices(garageId);
+      res.json(invoices3);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch invoices" });
     }
@@ -1318,7 +1097,7 @@ async function registerRoutes(app2) {
   app2.post("/api/garages/:garageId/invoices", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
-      const invoiceData = insertInvoiceSchema.parse({ ...req.body, garageId });
+      const invoiceData = insertInvoiceSchema2.parse({ ...req.body, garageId });
       const istTime = (/* @__PURE__ */ new Date()).toLocaleString("sv-SE", { timeZone: "Asia/Kolkata" });
       const localTimestamp = new Date(istTime);
       const invoice = await storage.createInvoice({
@@ -1450,8 +1229,8 @@ async function registerRoutes(app2) {
   app2.get("/api/garages/:garageId/notifications", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
-      const notifications2 = await storage.getNotifications(garageId);
-      res.json(notifications2);
+      const notifications = await storage.getNotifications(garageId);
+      res.json(notifications);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch notifications" });
     }
