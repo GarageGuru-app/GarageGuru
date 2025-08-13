@@ -6,7 +6,7 @@
 - **Framework Preset**: Vite
 - **Root Directory**: Leave EMPTY (use project root)
 - **Build Command**: `vite build`
-- **Output Directory**: `dist/public`
+- **Output Directory**: `dist` (NOT `dist/public`)
 
 ### **Environment Variables:**
 ```
@@ -14,14 +14,11 @@ VITE_API_URL=https://garageguru-backend.onrender.com
 ```
 
 ### **Why This Works:**
-Your `vite.config.ts` shows:
-```typescript
-build: {
-  outDir: path.resolve(import.meta.dirname, "dist/public"),
-}
-```
+Looking at your build logs, Vite actually builds to:
+- `dist/index.js` (64.7kB)
+- `dist/public/assets/` (for static assets)
 
-So Vite builds to `dist/public`, not just `dist`.
+So the main build output is in `dist/`, not `dist/public/`.
 
 ## **Deployment Steps:**
 1. In Vercel dashboard, go to your project settings
