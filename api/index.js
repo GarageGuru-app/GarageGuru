@@ -8,10 +8,14 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { url, method } = req;
+  // Parse the URL to get the path properly
+  const url = req.url || '';
+  const method = req.method;
   
-  // API Health check
-  if (url === '/api/health') {
+  console.log('API Request:', { url, method, body: req.body });
+  
+  // API Health check - handle different URL patterns
+  if (url === '/api/health' || url.endsWith('/health')) {
     return res.status(200).json({
       status: 'ok',
       service: 'GarageGuru',
@@ -21,8 +25,8 @@ export default async function handler(req, res) {
     });
   }
 
-  // Login endpoint with real authentication
-  if (url === '/api/auth/login' && method === 'POST') {
+  // Login endpoint with real authentication - handle different URL patterns
+  if ((url === '/api/auth/login' || url.endsWith('/auth/login')) && method === 'POST') {
     const { email, password } = req.body || {};
     
     if (!email || !password) {
@@ -91,8 +95,8 @@ export default async function handler(req, res) {
     }
   }
 
-  // User profile with authentication
-  if (url === '/api/user/profile') {
+  // User profile with authentication - handle different URL patterns
+  if (url === '/api/user/profile' || url.endsWith('/user/profile')) {
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(' ')[1];
@@ -261,10 +265,12 @@ export default async function handler(req, res) {
     return res.status(200).send(html);
   }
 
-  // Default 404
+  // Default fallback with detailed logging
+  console.log('Route not found:', { url, method, availableRoutes: ['/api/health', '/api/auth/login', '/api/user/profile'] });
   return res.status(404).json({ 
-    error: 'Route not found',
-    url: url,
-    method: method
+    error: 'Route not found', 
+    url, 
+    method,
+    message: 'Available routes: /api/health, /api/auth/login, /api/user/profile'
   });
 }
