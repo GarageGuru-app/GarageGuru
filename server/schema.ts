@@ -122,6 +122,27 @@ export const insertJobCardSchema = createInsertSchema(jobCards).omit({
   id: true,
   createdAt: true,
   completedAt: true,
+  status: true,
+  customerId: true,
+}).extend({
+  customerName: z.string().min(1, "Customer name is required"),
+  phone: z.string().min(1, "Phone number is required"),
+  bikeNumber: z.string().min(1, "Bike number is required"),
+  spareParts: z.array(z.object({
+    id: z.string(),
+    partNumber: z.string(),
+    name: z.string(),
+    quantity: z.number(),
+    price: z.number()
+  })).optional().default([]),
+  serviceCharge: z.union([
+    z.string(),
+    z.number().transform(String)
+  ]).optional(),
+  totalAmount: z.union([
+    z.string(),
+    z.number().transform(String)
+  ]).optional()
 });
 
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({

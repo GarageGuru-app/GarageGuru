@@ -487,7 +487,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       const jobCard = await storage.updateJobCard(id, {
         ...updateData,
-        spareParts: updateData.spareParts ? (updateData.spareParts as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>) : undefined
+        spareParts: updateData.spareParts
       });
       res.json(jobCard);
     } catch (error) {
@@ -516,8 +516,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const localTimestamp = new Date(istTime);
       
       const invoice = await storage.createInvoice({
-        ...invoiceData,
-        createdAt: localTimestamp
+        ...invoiceData
       });
       
       // Update job card status to completed

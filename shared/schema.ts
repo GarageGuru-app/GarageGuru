@@ -128,6 +128,9 @@ export const insertJobCardSchema = createInsertSchema(jobCards).omit({
   status: true,
   customerId: true,
 }).extend({
+  customerName: z.string().min(1, "Customer name is required"),
+  phone: z.string().min(1, "Phone number is required"),
+  bikeNumber: z.string().min(1, "Bike number is required"),
   spareParts: z.array(z.object({
     id: z.string(),
     partNumber: z.string(),
@@ -147,8 +150,7 @@ export const insertJobCardSchema = createInsertSchema(jobCards).omit({
 
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({
   id: true,
-}).extend({
-  createdAt: z.date().optional()
+  createdAt: true,
 });
 
 // Types
