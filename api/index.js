@@ -1,104 +1,103 @@
-const { createServer } = require('http');
-const { parse } = require('url');
-const next = require('next');
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
-
-// Simple Express app for Vercel
-const app = express();
-
-// Basic middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// Enable CORS
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+// Minimal Vercel serverless function
+module.exports = async (req, res) => {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
+    return res.status(200).end();
   }
-});
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    service: 'GarageGuru',
-    timestamp: new Date().toISOString(),
-    environment: 'production'
-  });
-});
-
-// Simple authentication endpoint for testing
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
+  const { url, method } = req;
   
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+  try {
+    // API Health check
+    if (url === '/api/health') {
+      return res.json({
+        status: 'ok',
+        service: 'GarageGuru',
+        timestamp: new Date().toISOString(),
+        environment: 'vercel-production'
+      });
+    }
+
+    // Login endpoint
+    if (url === '/api/auth/login' && method === 'POST') {
+      const { email, password } = req.body || {};
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password required' });
+      }
+      
+      return res.json({
+        message: 'Backend is working! Environment variables needed for full functionality.',
+        email: email,
+        status: 'pending_configuration'
+      });
+    }
+
+    // User profile
+    if (url === '/api/user/profile') {
+      return res.json({
+        message: 'Backend is working! Add environment variables to enable authentication.',
+        status: 'pending_configuration'
+      });
+    }
+
+    // Job cards
+    if (url.includes('/job-cards')) {
+      return res.json({
+        message: 'Backend is working! Add DATABASE_URL to enable real data.',
+        status: 'pending_configuration'
+      });
+    }
+
+    // Low stock parts
+    if (url.includes('/spare-parts/low-stock')) {
+      return res.json([]);
+    }
+
+    // Notifications
+    if (url.includes('/notifications/unread-count')) {
+      return res.json({ count: 0 });
+    }
+
+    // Sales stats
+    if (url.includes('/sales/stats')) {
+      return res.json({
+        totalRevenue: 0,
+        totalInvoices: 0,
+        averageInvoice: 0,
+        status: 'pending_configuration'
+      });
+    }
+
+    // Serve React app for all other routes
+    if (!url.startsWith('/api/')) {
+      const fs = require('fs');
+      const path = require('path');
+      const indexPath = path.join(__dirname, '../dist/public/index.html');
+      
+      if (fs.existsSync(indexPath)) {
+        const html = fs.readFileSync(indexPath, 'utf8');
+        res.setHeader('Content-Type', 'text/html');
+        return res.send(html);
+      }
+    }
+
+    // Default response
+    return res.status(404).json({ 
+      error: 'Route not found',
+      url: url,
+      method: method
+    });
+
+  } catch (error) {
+    console.error('Serverless function error:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message
+    });
   }
-  
-  // For now, return a basic success response
-  // This will be enhanced once environment variables are configured
-  res.json({
-    message: 'Backend is working! Environment variables need to be configured for full functionality.',
-    email: email,
-    status: 'pending_configuration'
-  });
-});
-
-// Basic API endpoints that return configuration status
-app.get('/api/user/profile', (req, res) => {
-  res.json({
-    message: 'Backend is working! Add environment variables to enable full authentication.',
-    status: 'pending_configuration'
-  });
-});
-
-app.get('/api/garages/:garageId/job-cards', (req, res) => {
-  res.json({
-    message: 'Backend is working! Add DATABASE_URL to enable real data.',
-    status: 'pending_configuration'
-  });
-});
-
-app.get('/api/garages/:garageId/spare-parts/low-stock', (req, res) => {
-  res.json([]);
-});
-
-app.get('/api/garages/:garageId/notifications/unread-count', (req, res) => {
-  res.json({ count: 0 });
-});
-
-app.get('/api/garages/:garageId/sales/stats', (req, res) => {
-  res.json({
-    totalRevenue: 0,
-    totalInvoices: 0,
-    averageInvoice: 0,
-    status: 'pending_configuration'
-  });
-});
-
-// Serve React app for all other routes
-app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, '../dist/public/index.html');
-  
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).send('React app not found');
-  }
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-module.exports = app;
+};
