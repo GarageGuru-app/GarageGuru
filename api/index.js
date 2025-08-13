@@ -244,23 +244,21 @@ export default async function handler(req, res) {
 
   // For all other routes, serve the React app
   if (!url || !url.startsWith('/api/')) {
-    // Return a simple HTML that will load the React app
-    const html = `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>GarageGuru - Automotive Service Management</title>
-        <meta name="description" content="Complete automotive service management system for garages. Manage customers, inventory, job cards, and invoicing all in one place." />
-        <script type="module" crossorigin src="/assets/index.js"></script>
-        <link rel="stylesheet" href="/assets/index.css">
-      </head>
-      <body>
-        <div id="root"></div>
-      </body>
-    </html>`;
+    // Return the built React app HTML
+    const html = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GarageGuru</title>
+    <script type="module" crossorigin src="/assets/index-Z7HpSreL.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-e0UFbN1B.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`;
     
     res.setHeader('Content-Type', 'text/html');
     return res.status(200).send(html);
