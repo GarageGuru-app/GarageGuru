@@ -77,6 +77,61 @@ export async function registerRoutes(app: Express): Promise<void> {
     });
   });
 
+  // Database debug endpoint for production troubleshooting
+  app.get('/api/debug/database', async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const garages = await storage.getAllGarages();
+      res.json({
+        userCount: users.length,
+        garageCount: garages.length,
+        sampleUser: users[0] ? { email: users[0].email, role: users[0].role } : null,
+        sampleGarage: garages[0] ? { name: garages[0].name } : null
+      });
+    } catch (error) {
+      console.error('Database debug error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Seed production database with test user/garage (for production setup)
+  app.post('/api/setup/seed-database', async (req, res) => {
+    try {
+      // Check if data already exists
+      const existingUsers = await storage.getAllUsers();
+      if (existingUsers.length > 0) {
+        return res.json({ message: 'Database already seeded', userCount: existingUsers.length });
+      }
+
+      // Create garage first
+      const garage = await storage.createGarage({
+        name: "Ananth Automotive garage",
+        ownerName: "Govind Naidu", 
+        phone: "7288856665",
+        email: "gorla.ananthkalyan@gmail.com",
+        logo: "https://res.cloudinary.com/dcueubsl8/image/upload/v1754845196/garage-logos/sjrppoab6sslhvm5rl7a.jpg"
+      });
+
+      // Create user
+      const user = await storage.createUser({
+        email: "gorla.ananthkalyan@gmail.com",
+        name: "Ananth",
+        role: "garage_admin",
+        garageId: garage.id,
+        password: "password123"
+      });
+
+      res.json({ 
+        message: 'Database seeded successfully',
+        garage: { id: garage.id, name: garage.name },
+        user: { id: user.id, email: user.email, role: user.role }
+      });
+    } catch (error) {
+      console.error('Database seeding error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Root endpoint for basic info (only in production)
   if (process.env.NODE_ENV === 'production') {
     app.get('/', (req, res) => {

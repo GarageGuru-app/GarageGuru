@@ -180,16 +180,168 @@ if (!process.env.DATABASE_URL) {
 var pool = new Pool({ connectionString: process.env.DATABASE_URL });
 var db = drizzle({ client: pool, schema: schema_exports });
 
+// ../shared/schema.ts
+import { sql as sql2 } from "drizzle-orm";
+import { pgTable as pgTable2, text as text2, varchar as varchar2, integer as integer2, decimal as decimal2, timestamp as timestamp2, boolean as boolean2, jsonb as jsonb2 } from "drizzle-orm/pg-core";
+import { createInsertSchema as createInsertSchema2 } from "drizzle-zod";
+import { z as z2 } from "zod";
+var garages2 = pgTable2("garages", {
+  id: varchar2("id").primaryKey().default(sql2`gen_random_uuid()`),
+  name: text2("name").notNull(),
+  ownerName: text2("owner_name").notNull(),
+  phone: text2("phone").notNull(),
+  email: text2("email").notNull(),
+  logo: text2("logo"),
+  // Cloudinary URL
+  createdAt: timestamp2("created_at").defaultNow()
+});
+var users2 = pgTable2("users", {
+  id: varchar2("id").primaryKey().default(sql2`gen_random_uuid()`),
+  email: text2("email").notNull().unique(),
+  password: text2("password").notNull(),
+  role: text2("role").notNull(),
+  // 'garage_admin', 'mechanic_staff', 'super_admin'
+  garageId: varchar2("garage_id").references(() => garages2.id),
+  name: text2("name").notNull(),
+  createdAt: timestamp2("created_at").defaultNow()
+});
+var customers2 = pgTable2("customers", {
+  id: varchar2("id").primaryKey().default(sql2`gen_random_uuid()`),
+  garageId: varchar2("garage_id").notNull().references(() => garages2.id),
+  name: text2("name").notNull(),
+  phone: text2("phone").notNull(),
+  bikeNumber: text2("bike_number").notNull(),
+  notes: text2("notes"),
+  totalJobs: integer2("total_jobs").default(0),
+  totalSpent: decimal2("total_spent", { precision: 10, scale: 2 }).default("0"),
+  lastVisit: timestamp2("last_visit"),
+  createdAt: timestamp2("created_at").defaultNow()
+});
+var spareParts2 = pgTable2("spare_parts", {
+  id: varchar2("id").primaryKey().default(sql2`gen_random_uuid()`),
+  garageId: varchar2("garage_id").notNull().references(() => garages2.id),
+  partNumber: text2("part_number").notNull().unique(),
+  name: text2("name").notNull(),
+  price: decimal2("price", { precision: 10, scale: 2 }).notNull(),
+  // Selling price
+  costPrice: decimal2("cost_price", { precision: 10, scale: 2 }).notNull().default("0"),
+  // Cost price
+  quantity: integer2("quantity").notNull().default(0),
+  lowStockThreshold: integer2("low_stock_threshold").default(2),
+  barcode: text2("barcode"),
+  createdAt: timestamp2("created_at").defaultNow()
+});
+var jobCards2 = pgTable2("job_cards", {
+  id: varchar2("id").primaryKey().default(sql2`gen_random_uuid()`),
+  garageId: varchar2("garage_id").notNull().references(() => garages2.id),
+  customerId: varchar2("customer_id").notNull().references(() => customers2.id),
+  customerName: text2("customer_name").notNull(),
+  phone: text2("phone").notNull(),
+  bikeNumber: text2("bike_number").notNull(),
+  complaint: text2("complaint").notNull(),
+  status: text2("status").notNull().default("pending"),
+  // 'pending', 'completed'
+  spareParts: jsonb2("spare_parts").$type().default([]),
+  serviceCharge: decimal2("service_charge", { precision: 10, scale: 2 }).default("0"),
+  totalAmount: decimal2("total_amount", { precision: 10, scale: 2 }).default("0"),
+  createdAt: timestamp2("created_at").defaultNow(),
+  completedAt: timestamp2("completed_at")
+});
+var invoices2 = pgTable2("invoices", {
+  id: varchar2("id").primaryKey().default(sql2`gen_random_uuid()`),
+  garageId: varchar2("garage_id").notNull().references(() => garages2.id),
+  jobCardId: varchar2("job_card_id").notNull().references(() => jobCards2.id),
+  customerId: varchar2("customer_id").notNull().references(() => customers2.id),
+  invoiceNumber: text2("invoice_number").notNull(),
+  pdfUrl: text2("pdf_url"),
+  // Cloudinary URL
+  whatsappSent: boolean2("whatsapp_sent").default(false),
+  totalAmount: decimal2("total_amount", { precision: 10, scale: 2 }).notNull(),
+  partsTotal: decimal2("parts_total", { precision: 10, scale: 2 }).notNull(),
+  serviceCharge: decimal2("service_charge", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp2("created_at", { withTimezone: true }).defaultNow()
+});
+var insertGarageSchema2 = createInsertSchema2(garages2).omit({
+  id: true,
+  createdAt: true
+});
+var insertUserSchema2 = createInsertSchema2(users2).omit({
+  id: true,
+  createdAt: true
+});
+var insertCustomerSchema2 = createInsertSchema2(customers2).omit({
+  id: true,
+  createdAt: true,
+  totalJobs: true,
+  totalSpent: true,
+  lastVisit: true
+});
+var insertSparePartSchema2 = createInsertSchema2(spareParts2).omit({
+  id: true,
+  createdAt: true
+}).extend({
+  partNumber: z2.string().min(1, "Part number is required"),
+  name: z2.string().min(1, "Part name is required"),
+  price: z2.union([
+    z2.string().refine((val) => parseFloat(val) > 0, "Selling price must be greater than 0"),
+    z2.number().positive("Selling price must be greater than 0").transform(String)
+  ]),
+  costPrice: z2.union([
+    z2.string().refine((val) => parseFloat(val) >= 0, "Cost price must be 0 or greater"),
+    z2.number().min(0, "Cost price must be 0 or greater").transform(String)
+  ]).optional().default("0"),
+  quantity: z2.number().int().min(0, "Quantity must be 0 or greater")
+});
+var insertJobCardSchema2 = createInsertSchema2(jobCards2).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+  status: true,
+  customerId: true
+}).extend({
+  customerName: z2.string().min(1, "Customer name is required"),
+  phone: z2.string().min(1, "Phone number is required"),
+  bikeNumber: z2.string().min(1, "Bike number is required"),
+  spareParts: z2.array(z2.object({
+    id: z2.string(),
+    partNumber: z2.string(),
+    name: z2.string(),
+    quantity: z2.number(),
+    price: z2.number()
+  })).optional().default([]),
+  serviceCharge: z2.union([
+    z2.string(),
+    z2.number().transform(String)
+  ]).optional(),
+  totalAmount: z2.union([
+    z2.string(),
+    z2.number().transform(String)
+  ]).optional()
+});
+var insertInvoiceSchema2 = createInsertSchema2(invoices2).omit({
+  id: true,
+  createdAt: true
+});
+var notifications = pgTable2("notifications", {
+  id: varchar2("id").primaryKey().default(sql2`gen_random_uuid()`),
+  garageId: varchar2("garage_id").notNull().references(() => garages2.id),
+  customerId: varchar2("customer_id").references(() => customers2.id),
+  type: varchar2("type").notNull(),
+  // 'milestone', 'low_stock', 'system'
+  title: varchar2("title").notNull(),
+  message: text2("message").notNull(),
+  isRead: boolean2("is_read").default(false),
+  data: jsonb2("data"),
+  // Additional data for the notification
+  createdAt: timestamp2("created_at").defaultNow()
+});
+var insertNotificationSchema = createInsertSchema2(notifications).omit({
+  id: true,
+  createdAt: true
+});
+
 // storage-simple.ts
-import {
-  garages as garages2,
-  users as users2,
-  customers as customers2,
-  spareParts as spareParts2,
-  jobCards as jobCards2,
-  invoices as invoices2
-} from "@shared/schema";
-import { eq, and, desc, sql as sql2 } from "drizzle-orm";
+import { eq, and, desc, sql as sql3, gte, lte } from "drizzle-orm";
 import bcrypt from "bcrypt";
 var DatabaseStorage = class {
   async createGarage(garage) {
@@ -230,7 +382,7 @@ var DatabaseStorage = class {
   async searchCustomers(garageId, query) {
     return await db.select().from(customers2).where(and(
       eq(customers2.garageId, garageId),
-      sql2`LOWER(${customers2.name}) LIKE LOWER(${"%" + query + "%"})`
+      sql3`LOWER(${customers2.name}) LIKE LOWER(${"%" + query + "%"})`
     )).orderBy(desc(customers2.createdAt));
   }
   async getCustomer(id, garageId) {
@@ -302,13 +454,108 @@ var DatabaseStorage = class {
     const result = await db.update(invoices2).set(invoice).where(eq(invoices2.id, id)).returning();
     return result[0];
   }
+  async getCustomerInvoices(customerId, garageId) {
+    return await db.select().from(invoices2).where(and(eq(invoices2.customerId, customerId), eq(invoices2.garageId, garageId))).orderBy(desc(invoices2.createdAt));
+  }
+  // Advanced spare parts operations
+  async searchSpareParts(garageId, query) {
+    return await db.select().from(spareParts2).where(and(
+      eq(spareParts2.garageId, garageId),
+      sql3`LOWER(${spareParts2.name}) LIKE LOWER(${"%" + query + "%"}) OR LOWER(${spareParts2.partNumber}) LIKE LOWER(${"%" + query + "%"})`
+    )).orderBy(desc(spareParts2.createdAt));
+  }
+  async getLowStockParts(garageId) {
+    return await db.select().from(spareParts2).where(and(
+      eq(spareParts2.garageId, garageId),
+      sql3`quantity <= low_stock_threshold`
+    ));
+  }
+  async deleteSparePart(id, garageId) {
+    await db.delete(spareParts2).where(and(eq(spareParts2.id, id), eq(spareParts2.garageId, garageId)));
+  }
+  // Analytics operations (simplified implementations)
+  async getSalesStats(garageId) {
+    const result = await db.select({
+      totalInvoices: sql3`COUNT(*)`,
+      totalRevenue: sql3`SUM(CAST(${invoices2.totalAmount} AS DECIMAL))`,
+      totalPartsTotal: sql3`SUM(CAST(${invoices2.partsTotal} AS DECIMAL))`,
+      totalServiceCharges: sql3`SUM(CAST(${invoices2.serviceCharge} AS DECIMAL))`
+    }).from(invoices2).where(eq(invoices2.garageId, garageId));
+    return result[0] || { totalInvoices: 0, totalRevenue: 0, totalPartsTotal: 0, totalServiceCharges: 0 };
+  }
+  async getMonthlySalesData(garageId) {
+    return await db.select({
+      month: sql3`DATE_TRUNC('month', ${invoices2.createdAt})`,
+      revenue: sql3`SUM(CAST(${invoices2.totalAmount} AS DECIMAL))`,
+      count: sql3`COUNT(*)`
+    }).from(invoices2).where(eq(invoices2.garageId, garageId)).groupBy(sql3`DATE_TRUNC('month', ${invoices2.createdAt})`).orderBy(sql3`DATE_TRUNC('month', ${invoices2.createdAt})`);
+  }
+  async getSalesDataByDateRange(garageId, startDate, endDate) {
+    return await db.select({
+      date: sql3`DATE(${invoices2.createdAt})`,
+      revenue: sql3`SUM(CAST(${invoices2.totalAmount} AS DECIMAL))`,
+      count: sql3`COUNT(*)`
+    }).from(invoices2).where(and(
+      eq(invoices2.garageId, garageId),
+      gte(invoices2.createdAt, new Date(startDate)),
+      lte(invoices2.createdAt, new Date(endDate))
+    )).groupBy(sql3`DATE(${invoices2.createdAt})`).orderBy(sql3`DATE(${invoices2.createdAt})`);
+  }
+  async getCustomerAnalytics(garageId) {
+    return await db.select({
+      customerId: invoices2.customerId,
+      totalSpent: sql3`SUM(CAST(${invoices2.totalAmount} AS DECIMAL))`,
+      totalJobs: sql3`COUNT(*)`
+    }).from(invoices2).where(eq(invoices2.garageId, garageId)).groupBy(invoices2.customerId).orderBy(sql3`SUM(CAST(${invoices2.totalAmount} AS DECIMAL)) DESC`);
+  }
+  async getTopCustomersByServices(garageId) {
+    return await db.select({
+      customerId: invoices2.customerId,
+      serviceCount: sql3`COUNT(*)`
+    }).from(invoices2).where(eq(invoices2.garageId, garageId)).groupBy(invoices2.customerId).orderBy(sql3`COUNT(*) DESC`).limit(10);
+  }
+  async getTopCustomersByRevenue(garageId) {
+    return await db.select({
+      customerId: invoices2.customerId,
+      totalRevenue: sql3`SUM(CAST(${invoices2.totalAmount} AS DECIMAL))`
+    }).from(invoices2).where(eq(invoices2.garageId, garageId)).groupBy(invoices2.customerId).orderBy(sql3`SUM(CAST(${invoices2.totalAmount} AS DECIMAL)) DESC`).limit(10);
+  }
+  // Notification operations (simplified - no actual notifications table)
+  async createNotification(notification) {
+    console.log("Notification created:", notification);
+    return { id: "mock-notification-id", ...notification };
+  }
+  async createLowStockNotifications(garageId) {
+    const lowStockParts = await this.getLowStockParts(garageId);
+    console.log(`Found ${lowStockParts.length} low stock parts for garage ${garageId}`);
+  }
+  async getNotifications(garageId) {
+    return [];
+  }
+  async getUnreadNotificationCount(garageId) {
+    return 0;
+  }
+  async markNotificationAsRead(notificationId, garageId) {
+    console.log(`Marked notification ${notificationId} as read for garage ${garageId}`);
+  }
+  async markAllNotificationsAsRead(garageId) {
+    console.log(`Marked all notifications as read for garage ${garageId}`);
+  }
+  // Debug operations for production troubleshooting
+  async getAllUsers() {
+    const result = await db.select().from(users2);
+    return result;
+  }
+  async getAllGarages() {
+    const result = await db.select().from(garages2);
+    return result;
+  }
 };
 var storage = new DatabaseStorage();
 
 // routes.ts
 import bcrypt2 from "bcrypt";
 import jwt from "jsonwebtoken";
-import { insertGarageSchema as insertGarageSchema2, insertCustomerSchema as insertCustomerSchema2, insertSparePartSchema as insertSparePartSchema2, insertJobCardSchema as insertJobCardSchema2, insertInvoiceSchema as insertInvoiceSchema2 } from "@shared/schema";
 
 // emailService.ts
 import sgMail from "@sendgrid/mail";
@@ -720,6 +967,51 @@ async function registerRoutes(app2) {
       environment: process.env.NODE_ENV || "development"
     });
   });
+  app2.get("/api/debug/database", async (req, res) => {
+    try {
+      const users3 = await storage.getAllUsers();
+      const garages3 = await storage.getAllGarages();
+      res.json({
+        userCount: users3.length,
+        garageCount: garages3.length,
+        sampleUser: users3[0] ? { email: users3[0].email, role: users3[0].role } : null,
+        sampleGarage: garages3[0] ? { name: garages3[0].name } : null
+      });
+    } catch (error) {
+      console.error("Database debug error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+  app2.post("/api/setup/seed-database", async (req, res) => {
+    try {
+      const existingUsers = await storage.getAllUsers();
+      if (existingUsers.length > 0) {
+        return res.json({ message: "Database already seeded", userCount: existingUsers.length });
+      }
+      const garage = await storage.createGarage({
+        name: "Ananth Automotive garage",
+        ownerName: "Govind Naidu",
+        phone: "7288856665",
+        email: "gorla.ananthkalyan@gmail.com",
+        logo: "https://res.cloudinary.com/dcueubsl8/image/upload/v1754845196/garage-logos/sjrppoab6sslhvm5rl7a.jpg"
+      });
+      const user = await storage.createUser({
+        email: "gorla.ananthkalyan@gmail.com",
+        name: "Ananth",
+        role: "garage_admin",
+        garageId: garage.id,
+        password: "password123"
+      });
+      res.json({
+        message: "Database seeded successfully",
+        garage: { id: garage.id, name: garage.name },
+        user: { id: user.id, email: user.email, role: user.role }
+      });
+    } catch (error) {
+      console.error("Database seeding error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
   if (process.env.NODE_ENV === "production") {
     app2.get("/", (req, res) => {
       res.json({
@@ -767,7 +1059,7 @@ async function registerRoutes(app2) {
   });
   app2.post("/api/auth/generate-codes", authenticateToken, requireRole(["super_admin"]), async (req, res) => {
     try {
-      const timestamp2 = Date.now().toString(36);
+      const timestamp3 = Date.now().toString(36);
       const randomAdmin = Math.random().toString(36).substring(2, 8).toUpperCase();
       const randomStaff = Math.random().toString(36).substring(2, 8).toUpperCase();
       const newAdminCode = `GARAGE-ADMIN-2025-${randomAdmin}`;
@@ -1077,7 +1369,7 @@ async function registerRoutes(app2) {
           partNumber: part.partNumber,
           name: part.name,
           quantity: part.quantity,
-          sellingPrice: String(part.price || part.sellingPrice || 0)
+          price: Number(part.price || part.sellingPrice || 0)
         }))
       });
       res.json(jobCard);
@@ -1160,8 +1452,7 @@ async function registerRoutes(app2) {
       const analyticsData = await storage.getSalesDataByDateRange(
         garageId,
         startDate,
-        endDate,
-        groupBy
+        endDate
       );
       res.json(analyticsData);
     } catch (error) {
@@ -1176,12 +1467,7 @@ async function registerRoutes(app2) {
       if (!startDate || !endDate) {
         return res.status(400).json({ message: "Start date and end date are required" });
       }
-      const analyticsData = await storage.getCustomerAnalytics(
-        garageId,
-        startDate,
-        endDate,
-        groupBy
-      );
+      const analyticsData = await storage.getCustomerAnalytics(garageId);
       res.json(analyticsData);
     } catch (error) {
       console.error("Customer analytics error:", error);
@@ -1195,12 +1481,7 @@ async function registerRoutes(app2) {
       if (!startDate || !endDate) {
         return res.status(400).json({ message: "Start date and end date are required" });
       }
-      const topCustomers = await storage.getTopCustomersByServices(
-        garageId,
-        startDate,
-        endDate,
-        parseInt(limit)
-      );
+      const topCustomers = await storage.getTopCustomersByServices(garageId);
       res.json(topCustomers);
     } catch (error) {
       console.error("Top customers by services error:", error);
@@ -1214,12 +1495,7 @@ async function registerRoutes(app2) {
       if (!startDate || !endDate) {
         return res.status(400).json({ message: "Start date and end date are required" });
       }
-      const topCustomers = await storage.getTopCustomersByRevenue(
-        garageId,
-        startDate,
-        endDate,
-        parseInt(limit)
-      );
+      const topCustomers = await storage.getTopCustomersByRevenue(garageId);
       res.json(topCustomers);
     } catch (error) {
       console.error("Top customers by revenue error:", error);
@@ -1229,8 +1505,8 @@ async function registerRoutes(app2) {
   app2.get("/api/garages/:garageId/notifications", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
-      const notifications = await storage.getNotifications(garageId);
-      res.json(notifications);
+      const notifications2 = await storage.getNotifications(garageId);
+      res.json(notifications2);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch notifications" });
     }
@@ -1247,7 +1523,7 @@ async function registerRoutes(app2) {
   app2.put("/api/garages/:garageId/notifications/:id/read", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { id } = req.params;
-      await storage.markNotificationAsRead(id);
+      await storage.markNotificationAsRead(id, req.params.garageId);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to mark notification as read" });
@@ -1309,7 +1585,7 @@ app.use((err, _req, res, _next) => {
   const message = err.message || "Internal Server Error";
   res.status(status).json({ message });
 });
-var port = parseInt(process.env.PORT || "3001", 10);
+var port = parseInt(process.env.PORT || "10000", 10);
 var server = createServer(app);
 server.listen(port, "0.0.0.0", () => {
   console.log(`\u{1F680} Backend server running on port ${port}`);

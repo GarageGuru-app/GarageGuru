@@ -65,6 +65,10 @@ export interface IStorage {
   getUnreadNotificationCount(garageId: string): Promise<number>;
   markNotificationAsRead(notificationId: string, garageId: string): Promise<void>;
   markAllNotificationsAsRead(garageId: string): Promise<void>;
+
+  // Debug operations for production troubleshooting
+  getAllUsers(): Promise<User[]>;
+  getAllGarages(): Promise<Garage[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -343,6 +347,17 @@ export class DatabaseStorage implements IStorage {
 
   async markAllNotificationsAsRead(garageId: string): Promise<void> {
     console.log(`Marked all notifications as read for garage ${garageId}`);
+  }
+
+  // Debug operations for production troubleshooting
+  async getAllUsers(): Promise<User[]> {
+    const result = await db.select().from(users);
+    return result;
+  }
+
+  async getAllGarages(): Promise<Garage[]> {
+    const result = await db.select().from(garages);
+    return result;
   }
 }
 
