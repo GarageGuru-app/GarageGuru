@@ -64,6 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log("🔐 Login attempt:", { email, password: "***" });
+      
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -72,26 +74,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log("📡 Login response:", { 
+        status: response.status, 
+        ok: response.ok, 
+        statusText: response.statusText 
+      });
+
       if (!response.ok) {
         let errorMessage = "Login failed";
         try {
-          const error = await response.json();
-          errorMessage = error.message || errorMessage;
+          const errorText = await response.text();
+          console.log("❌ Error response body:", errorText);
+          
+          // Try to parse as JSON
+          try {
+            const error = JSON.parse(errorText);
+            errorMessage = error.message || errorMessage;
+          } catch {
+            // If not JSON, use the text directly
+            errorMessage = errorText || response.statusText || errorMessage;
+          }
         } catch {
-          // If response is not JSON, use status text
           errorMessage = response.statusText || errorMessage;
         }
         throw new Error(errorMessage);
       }
 
-      const data = await response.json();
+      const responseText = await response.text();
+      console.log("✅ Success response body:", responseText);
+      
+      const data = JSON.parse(responseText);
+      console.log("🔑 Parsed login data:", { 
+        hasToken: !!data.token, 
+        user: data.user?.email, 
+        garage: data.garage?.name 
+      });
       
       // Set auth data from login response
       localStorage.setItem("auth-token", data.token);
       setToken(data.token);
       setUser(data.user);
       setGarage(data.garage);
+      
+      console.log("✅ Login successful, auth state updated");
     } catch (error) {
+      console.error("❌ Login error:", error);
       // Handle network errors or JSON parsing errors
       if (error instanceof Error) {
         throw error;
