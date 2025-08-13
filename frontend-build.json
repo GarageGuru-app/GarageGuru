@@ -1,0 +1,10 @@
+{
+  "name": "garageguru-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd client && npm run build",
+    "preview": "cd client && npm run preview"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
