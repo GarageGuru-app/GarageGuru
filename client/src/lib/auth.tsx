@@ -37,7 +37,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           Authorization: `Bearer ${token}`,
         },
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error('Profile fetch failed');
+          }
+          return res.json();
+        })
         .then(data => {
           if (data.user) {
             setUser(data.user);
@@ -58,26 +63,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   const login = async (email: string, password: string) => {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Login failed");
+      if (!response.ok) {
+        let errorMessage = "Login failed";
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      
+      // Set auth data from login response
+      localStorage.setItem("auth-token", data.token);
+      setToken(data.token);
+      setUser(data.user);
+      setGarage(data.garage);
+    } catch (error) {
+      // Handle network errors or JSON parsing errors
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Network error - please check your connection");
     }
-
-    const data = await response.json();
-    
-    // Set auth data from login response
-    localStorage.setItem("auth-token", data.token);
-    setToken(data.token);
-    setUser(data.user);
-    setGarage(data.garage);
   };
 
   const register = async (registerData: RegisterData) => {
