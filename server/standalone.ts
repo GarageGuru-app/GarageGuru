@@ -30,6 +30,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
+// Remove duplicate health endpoints - they will be added in registerRoutes
+
 // Register all routes
 registerRoutes(app);
 
@@ -39,11 +41,6 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";
   res.status(status).json({ message });
-});
-
-// Health check endpoint
-app.get('/health', (_req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Start server

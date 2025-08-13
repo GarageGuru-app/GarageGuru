@@ -67,6 +67,33 @@ const requireGarageAccess = (req: any, res: any, next: any) => {
 
 export async function registerRoutes(app: Express): Promise<void> {
   
+  // Health check endpoint for Render.com
+  app.get('/health', (req, res) => {
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(), 
+      service: 'garage-guru-backend',
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+
+  // Root endpoint for basic info (only in production)
+  if (process.env.NODE_ENV === 'production') {
+    app.get('/', (req, res) => {
+      res.json({ 
+        message: 'Garage Guru Backend API',
+        status: 'running',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0',
+        endpoints: {
+          health: '/health',
+          auth: '/api/auth/*',
+          garages: '/api/garages/*'
+        }
+      });
+    });
+  }
+  
   // Super admin email for access control
   const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'ananthautomotivegarage@gmail.com';
 
