@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage-simple";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { insertUserSchema, insertGarageSchema, insertCustomerSchema, insertSparePartSchema, insertJobCardSchema, insertInvoiceSchema } from "@shared/schema";
+import { insertUserSchema, insertGarageSchema, insertCustomerSchema, insertSparePartSchema, insertJobCardSchema, insertInvoiceSchema } from "../shared/schema";
 import { z } from "zod";
 import { EmailService } from "./emailService";
 import { GmailEmailService } from "./gmailEmailService";
@@ -519,7 +519,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           partNumber: part.partNumber,
           name: part.name,
           quantity: part.quantity,
-          sellingPrice: String(part.price || part.sellingPrice || 0)
+          price: Number(part.price || part.sellingPrice || 0)
         }))
       });
       res.json(jobCard);
@@ -622,8 +622,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const analyticsData = await storage.getSalesDataByDateRange(
         garageId, 
         startDate as string, 
-        endDate as string, 
-        groupBy as 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year'
+        endDate as string
       );
       res.json(analyticsData);
     } catch (error) {
@@ -642,12 +641,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(400).json({ message: 'Start date and end date are required' });
       }
       
-      const analyticsData = await storage.getCustomerAnalytics(
-        garageId, 
-        startDate as string, 
-        endDate as string, 
-        groupBy as 'day' | 'week' | 'month' | 'quarter' | 'year'
-      );
+      const analyticsData = await storage.getCustomerAnalytics(garageId);
       res.json(analyticsData);
     } catch (error) {
       console.error('Customer analytics error:', error);
@@ -664,12 +658,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(400).json({ message: 'Start date and end date are required' });
       }
       
-      const topCustomers = await storage.getTopCustomersByServices(
-        garageId, 
-        startDate as string, 
-        endDate as string, 
-        parseInt(limit as string)
-      );
+      const topCustomers = await storage.getTopCustomersByServices(garageId);
       res.json(topCustomers);
     } catch (error) {
       console.error('Top customers by services error:', error);
@@ -686,12 +675,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(400).json({ message: 'Start date and end date are required' });
       }
       
-      const topCustomers = await storage.getTopCustomersByRevenue(
-        garageId, 
-        startDate as string, 
-        endDate as string, 
-        parseInt(limit as string)
-      );
+      const topCustomers = await storage.getTopCustomersByRevenue(garageId);
       res.json(topCustomers);
     } catch (error) {
       console.error('Top customers by revenue error:', error);
@@ -723,7 +707,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   app.put("/api/garages/:garageId/notifications/:id/read", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { id } = req.params;
-      await storage.markNotificationAsRead(id);
+      await storage.markNotificationAsRead(id, req.params.garageId);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: 'Failed to mark notification as read' });

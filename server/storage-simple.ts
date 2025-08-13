@@ -4,7 +4,7 @@ import {
   garages, users, customers, spareParts, jobCards, invoices,
   type Garage, type User, type Customer, type SparePart, type JobCard, type Invoice,
   type InsertGarage, type InsertUser, type InsertCustomer, type InsertSparePart, type InsertJobCard, type InsertInvoice
-} from "@shared/schema";
+} from "../shared/schema";
 import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
@@ -41,8 +41,30 @@ export interface IStorage {
 
   // Invoice operations
   getInvoices(garageId: string): Promise<any[]>;
+  getCustomerInvoices(customerId: string, garageId: string): Promise<Invoice[]>;
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   updateInvoice(id: string, invoice: Partial<Invoice>): Promise<Invoice>;
+
+  // Advanced spare parts operations
+  searchSpareParts(garageId: string, query: string): Promise<SparePart[]>;
+  getLowStockParts(garageId: string): Promise<SparePart[]>;
+  deleteSparePart(id: string, garageId: string): Promise<void>;
+
+  // Analytics operations
+  getSalesStats(garageId: string): Promise<any>;
+  getMonthlySalesData(garageId: string): Promise<any>;
+  getSalesDataByDateRange(garageId: string, startDate: string, endDate: string): Promise<any>;
+  getCustomerAnalytics(garageId: string): Promise<any>;
+  getTopCustomersByServices(garageId: string): Promise<any>;
+  getTopCustomersByRevenue(garageId: string): Promise<any>;
+
+  // Notification operations
+  createNotification(notification: any): Promise<any>;
+  createLowStockNotifications(garageId: string): Promise<void>;
+  getNotifications(garageId: string): Promise<any[]>;
+  getUnreadNotificationCount(garageId: string): Promise<number>;
+  markNotificationAsRead(notificationId: string, garageId: string): Promise<void>;
+  markAllNotificationsAsRead(garageId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -195,6 +217,132 @@ export class DatabaseStorage implements IStorage {
   async updateInvoice(id: string, invoice: Partial<Invoice>): Promise<Invoice> {
     const result = await db.update(invoices).set(invoice).where(eq(invoices.id, id)).returning();
     return result[0];
+  }
+
+  async getCustomerInvoices(customerId: string, garageId: string): Promise<Invoice[]> {
+    return await db.select().from(invoices)
+      .where(and(eq(invoices.customerId, customerId), eq(invoices.garageId, garageId)))
+      .orderBy(desc(invoices.createdAt));
+  }
+
+  // Advanced spare parts operations
+  async searchSpareParts(garageId: string, query: string): Promise<SparePart[]> {
+    return await db.select().from(spareParts)
+      .where(and(
+        eq(spareParts.garageId, garageId),
+        sql`LOWER(${spareParts.name}) LIKE LOWER(${'%' + query + '%'}) OR LOWER(${spareParts.partNumber}) LIKE LOWER(${'%' + query + '%'})`
+      ))
+      .orderBy(desc(spareParts.createdAt));
+  }
+
+  async getLowStockParts(garageId: string): Promise<SparePart[]> {
+    return await db.select().from(spareParts)
+      .where(and(
+        eq(spareParts.garageId, garageId),
+        sql`quantity <= low_stock_threshold`
+      ));
+  }
+
+  async deleteSparePart(id: string, garageId: string): Promise<void> {
+    await db.delete(spareParts).where(and(eq(spareParts.id, id), eq(spareParts.garageId, garageId)));
+  }
+
+  // Analytics operations (simplified implementations)
+  async getSalesStats(garageId: string): Promise<any> {
+    const result = await db.select({
+      totalInvoices: sql`COUNT(*)`,
+      totalRevenue: sql`SUM(CAST(${invoices.totalAmount} AS DECIMAL))`,
+      totalPartsTotal: sql`SUM(CAST(${invoices.partsTotal} AS DECIMAL))`,
+      totalServiceCharges: sql`SUM(CAST(${invoices.serviceCharge} AS DECIMAL))`
+    }).from(invoices).where(eq(invoices.garageId, garageId));
+    
+    return result[0] || { totalInvoices: 0, totalRevenue: 0, totalPartsTotal: 0, totalServiceCharges: 0 };
+  }
+
+  async getMonthlySalesData(garageId: string): Promise<any> {
+    return await db.select({
+      month: sql`DATE_TRUNC('month', ${invoices.createdAt})`,
+      revenue: sql`SUM(CAST(${invoices.totalAmount} AS DECIMAL))`,
+      count: sql`COUNT(*)`
+    }).from(invoices)
+      .where(eq(invoices.garageId, garageId))
+      .groupBy(sql`DATE_TRUNC('month', ${invoices.createdAt})`)
+      .orderBy(sql`DATE_TRUNC('month', ${invoices.createdAt})`);
+  }
+
+  async getSalesDataByDateRange(garageId: string, startDate: string, endDate: string): Promise<any> {
+    return await db.select({
+      date: sql`DATE(${invoices.createdAt})`,
+      revenue: sql`SUM(CAST(${invoices.totalAmount} AS DECIMAL))`,
+      count: sql`COUNT(*)`
+    }).from(invoices)
+      .where(and(
+        eq(invoices.garageId, garageId),
+        gte(invoices.createdAt, new Date(startDate)),
+        lte(invoices.createdAt, new Date(endDate))
+      ))
+      .groupBy(sql`DATE(${invoices.createdAt})`)
+      .orderBy(sql`DATE(${invoices.createdAt})`);
+  }
+
+  async getCustomerAnalytics(garageId: string): Promise<any> {
+    return await db.select({
+      customerId: invoices.customerId,
+      totalSpent: sql`SUM(CAST(${invoices.totalAmount} AS DECIMAL))`,
+      totalJobs: sql`COUNT(*)`
+    }).from(invoices)
+      .where(eq(invoices.garageId, garageId))
+      .groupBy(invoices.customerId)
+      .orderBy(sql`SUM(CAST(${invoices.totalAmount} AS DECIMAL)) DESC`);
+  }
+
+  async getTopCustomersByServices(garageId: string): Promise<any> {
+    return await db.select({
+      customerId: invoices.customerId,
+      serviceCount: sql`COUNT(*)`
+    }).from(invoices)
+      .where(eq(invoices.garageId, garageId))
+      .groupBy(invoices.customerId)
+      .orderBy(sql`COUNT(*) DESC`)
+      .limit(10);
+  }
+
+  async getTopCustomersByRevenue(garageId: string): Promise<any> {
+    return await db.select({
+      customerId: invoices.customerId,
+      totalRevenue: sql`SUM(CAST(${invoices.totalAmount} AS DECIMAL))`
+    }).from(invoices)
+      .where(eq(invoices.garageId, garageId))
+      .groupBy(invoices.customerId)
+      .orderBy(sql`SUM(CAST(${invoices.totalAmount} AS DECIMAL)) DESC`)
+      .limit(10);
+  }
+
+  // Notification operations (simplified - no actual notifications table)
+  async createNotification(notification: any): Promise<any> {
+    console.log('Notification created:', notification);
+    return { id: 'mock-notification-id', ...notification };
+  }
+
+  async createLowStockNotifications(garageId: string): Promise<void> {
+    const lowStockParts = await this.getLowStockParts(garageId);
+    console.log(`Found ${lowStockParts.length} low stock parts for garage ${garageId}`);
+  }
+
+  async getNotifications(garageId: string): Promise<any[]> {
+    return [];
+  }
+
+  async getUnreadNotificationCount(garageId: string): Promise<number> {
+    return 0;
+  }
+
+  async markNotificationAsRead(notificationId: string, garageId: string): Promise<void> {
+    console.log(`Marked notification ${notificationId} as read for garage ${garageId}`);
+  }
+
+  async markAllNotificationsAsRead(garageId: string): Promise<void> {
+    console.log(`Marked all notifications as read for garage ${garageId}`);
   }
 }
 
