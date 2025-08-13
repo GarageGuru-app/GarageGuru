@@ -514,7 +514,13 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       const jobCard = await storage.updateJobCard(id, {
         ...updateData,
-        spareParts: updateData.spareParts
+        spareParts: updateData.spareParts?.map((part: any) => ({
+          id: part.id,
+          partNumber: part.partNumber,
+          name: part.name,
+          quantity: part.quantity,
+          sellingPrice: String(part.price || part.sellingPrice || 0)
+        }))
       });
       res.json(jobCard);
     } catch (error) {

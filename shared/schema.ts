@@ -167,6 +167,7 @@ export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 export type InsertSparePart = z.infer<typeof insertSparePartSchema>;
 export type InsertJobCard = z.infer<typeof insertJobCardSchema>;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type Notification = typeof notifications.$inferSelect;
 
 // Notifications table
 export const notifications = pgTable("notifications", {

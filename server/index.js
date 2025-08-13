@@ -302,10 +302,10 @@ var SupabaseStorage = class {
       serviceCharge: invoices.serviceCharge,
       createdAt: invoices.createdAt,
       jobCard: {
-        customerName: jobCards.customerName,
-        phone: jobCards.phone,
-        bikeNumber: jobCards.bikeNumber,
-        complaint: jobCards.complaint
+        customerName: sql2`COALESCE(${jobCards.customerName}, 'Unknown')`.as("customerName"),
+        phone: sql2`COALESCE(${jobCards.phone}, '')`.as("phone"),
+        bikeNumber: sql2`COALESCE(${jobCards.bikeNumber}, '')`.as("bikeNumber"),
+        complaint: sql2`COALESCE(${jobCards.complaint}, '')`.as("complaint")
       }
     }).from(invoices).leftJoin(jobCards, eq(invoices.jobCardId, jobCards.id)).where(eq(invoices.garageId, garageId)).orderBy(desc(invoices.createdAt));
   }
@@ -941,19 +941,21 @@ async function registerRoutes(app2) {
       environment: process.env.NODE_ENV || "development"
     });
   });
-  app2.get("/", (req, res) => {
-    res.json({
-      message: "Garage Guru Backend API",
-      status: "running",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      version: "1.0.0",
-      endpoints: {
-        health: "/health",
-        auth: "/api/auth/*",
-        garages: "/api/garages/*"
-      }
+  if (process.env.NODE_ENV === "production") {
+    app2.get("/", (req, res) => {
+      res.json({
+        message: "Garage Guru Backend API",
+        status: "running",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        version: "1.0.0",
+        endpoints: {
+          health: "/health",
+          auth: "/api/auth/*",
+          garages: "/api/garages/*"
+        }
+      });
     });
-  });
+  }
   const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || "ananthautomotivegarage@gmail.com";
   app2.post("/api/auth/request-access", async (req, res) => {
     try {
@@ -1291,7 +1293,13 @@ async function registerRoutes(app2) {
       const updateData = insertJobCardSchema.partial().parse(req.body);
       const jobCard = await storage.updateJobCard(id, {
         ...updateData,
-        spareParts: updateData.spareParts
+        spareParts: updateData.spareParts?.map((part) => ({
+          id: part.id,
+          partNumber: part.partNumber,
+          name: part.name,
+          quantity: part.quantity,
+          sellingPrice: String(part.price || part.sellingPrice || 0)
+        }))
       });
       res.json(jobCard);
     } catch (error) {

@@ -264,10 +264,10 @@ export class SupabaseStorage implements IStorage {
       serviceCharge: invoices.serviceCharge,
       createdAt: invoices.createdAt,
       jobCard: {
-        customerName: jobCards.customerName,
-        phone: jobCards.phone,
-        bikeNumber: jobCards.bikeNumber,
-        complaint: jobCards.complaint
+        customerName: sql`COALESCE(${jobCards.customerName}, 'Unknown')`.as('customerName'),
+        phone: sql`COALESCE(${jobCards.phone}, '')`.as('phone'),
+        bikeNumber: sql`COALESCE(${jobCards.bikeNumber}, '')`.as('bikeNumber'),
+        complaint: sql`COALESCE(${jobCards.complaint}, '')`.as('complaint')
       }
     })
     .from(invoices)
