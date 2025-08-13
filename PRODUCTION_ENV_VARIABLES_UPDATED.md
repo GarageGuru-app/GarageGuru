@@ -5,7 +5,7 @@ Add these exact values in your Vercel project settings:
 
 ### Database Connection
 ```
-DATABASE_URL=postgresql://neondb_owner:npg_BXW3ZPK8HwET@ep-raspy-feather-a26xe491.eu-central-1.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://postgres.dbkkvmklfacmjatdwdui:AnanthGarageGuru@123@aws-0-ap-south-1.pooler.supabase.com:6543/postgres
 ```
 
 ### Authentication
@@ -37,9 +37,11 @@ GMAIL_APP_PASSWORD=xvuw hqkb euuc ewil
 3. All garage management features should work
 
 ## Test Credentials
-Use the existing credentials from your garage database:
-- Check the users table for valid email/password combinations
-- Login should now work with real authentication
+Use these updated credentials for login:
+- **Email:** gorla.ananthkalyan@gmail.com
+- **Password:** password123
+
+Note: I've updated the password in the database for easier access.
 
 ## Features That Will Work After Setup
 - ✅ User authentication and login
