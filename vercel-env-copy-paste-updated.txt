@@ -1,0 +1,7 @@
+DATABASE_URL=postgresql://neondb_owner:npg_BXW3ZPK8HwET@ep-raspy-feather-a26xe491.eu-central-1.aws.neon.tech/neondb?sslmode=require
+JWT_SECRET=GarageGuru2025ProductionJWTSecret!
+GMAIL_USER=ananthautomotivegarage@gmail.com
+GMAIL_APP_PASSWORD=xvuw hqkb euuc ewil
+SUPER_ADMIN_EMAIL=ananthautomotivegarage@gmail.com
+ADMIN_ACTIVATION_CODE=GARAGE-ADMIN-2025-ABC123
+STAFF_ACTIVATION_CODE=GARAGE-STAFF-2025-XYZ789

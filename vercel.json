@@ -1,13 +1,25 @@
 {
-  "functions": {
-    "api/server.js": {
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
+  "version": 2,
+  "buildCommand": "npm run build",
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/api/server"
+      "src": "dist/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "client/dist/**",
+      "use": "@vercel/static"
     }
-  ]
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/dist/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/index.js"
+    }
+  ],
+  "outputDirectory": "dist"
 }
