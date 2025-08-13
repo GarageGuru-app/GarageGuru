@@ -44,7 +44,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // Start server
-const port = parseInt(process.env.PORT || '3001', 10);
+const port = parseInt(process.env.PORT || '10000', 10);
 const server = createServer(app);
 
 server.listen(port, '0.0.0.0', () => {
