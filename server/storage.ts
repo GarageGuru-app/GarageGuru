@@ -1,20 +1,24 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 import { 
-  garages, users, customers, spareParts, jobCards, invoices, notifications,
+  garages, users, customers, spareParts, jobCards, invoices, superAdminRequests,
   type Garage, type User, type Customer, type SparePart, type JobCard, type Invoice,
-  type SelectNotification, type InsertNotification,
-  type InsertGarage, type InsertUser, type InsertCustomer, type InsertSparePart, type InsertJobCard, type InsertInvoice
-} from "@shared/schema";
+  type SuperAdminRequest,
+  type InsertGarage, type InsertUser, type InsertCustomer, type InsertSparePart, type InsertJobCard, type InsertInvoice,
+  type InsertSuperAdminRequest
+} from "./schema.js";
 import { eq, and, desc, sql } from "drizzle-orm";
+
+neonConfig.webSocketConstructor = ws;
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   throw new Error("DATABASE_URL is required");
 }
 
-const client = postgres(connectionString);
-const db = drizzle(client);
+const pool = new Pool({ connectionString });
+const db = drizzle({ client: pool });
 
 export interface IStorage {
   // Auth
