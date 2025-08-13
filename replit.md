@@ -106,13 +106,13 @@ Preferred communication style: Simple, everyday language.
   - **Comprehensive Error Handling**: Graceful camera fallbacks and detection method switching
   - **Format Detection**: Automatically identifies and reports detected code format
 - ✅ Configured separate frontend and backend deployment architecture:
-  - **Deployment Strategy**: Frontend (React) → Vercel, Backend (Express) → Railway for maximum reliability
+  - **Deployment Strategy**: Frontend (React) → Vercel, Backend (Express) → Render.com for free forever hosting
   - **Frontend Configuration**: Updated API client with environment variables and JWT authentication
   - **Backend Preparation**: Created standalone Express server with CORS, health checks, and proper routing
   - **Cross-Domain Authentication**: JWT tokens with Authorization headers for secure API communication
   - **Environment Variables**: Frontend uses VITE_API_URL, backend uses existing database and email secrets
   - **Build Configuration**: Separate build processes for frontend static site and backend Node.js server
-  - **Ready for Deployment**: Railway for backend hosting, Vercel for frontend CDN delivery
+  - **Ready for Deployment**: Render.com for free backend hosting, Vercel for frontend CDN delivery
 
 ## System Architecture
 

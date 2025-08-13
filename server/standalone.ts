@@ -10,7 +10,8 @@ app.use(cors({
   origin: [
     'http://localhost:3000',
     'http://localhost:5173', 
-    'https://your-frontend-domain.vercel.app'  // Will be updated with actual domain
+    /\.vercel\.app$/,  // Allow any Vercel subdomain
+    /\.render\.com$/   // Allow any Render subdomain
   ],
   credentials: true
 }));

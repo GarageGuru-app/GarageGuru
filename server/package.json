@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "build": "esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=index.js",
-    "dev": "tsx index.ts"
+    "build": "esbuild standalone.ts --platform=node --packages=external --bundle --format=esm --outfile=index.js",
+    "dev": "tsx standalone.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.3",
