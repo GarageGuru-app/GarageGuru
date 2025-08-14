@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Search, User, Phone, FileText, Bike, Trash2 } from "lucide-react";
+import { ArrowLeft, Search, User, Phone, FileText, Bike } from "lucide-react";
 import { callCustomer } from "@/utils/whatsapp";
 import { useToast } from "@/hooks/use-toast";
 import AddCustomerDialog from "@/components/AddCustomerDialog";
@@ -40,37 +40,7 @@ export default function Customers() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const cleanupDuplicatesMutation = useMutation({
-    mutationFn: async () => {
-      if (!garage?.id) throw new Error("No garage selected");
-      const response = await apiRequest("POST", `/api/garages/${garage.id}/customers/cleanup-duplicates`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to cleanup duplicates");
-      }
-      return response.json();
-    },
-    onSuccess: (result) => {
-      toast({
-        title: "Cleanup Complete",
-        description: `${result.removed} duplicate customers removed, ${result.kept} customers kept`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "customers"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Cleanup Failed",
-        description: error.message || "Failed to cleanup duplicate customers",
-        variant: "destructive",
-      });
-    },
-  });
 
-  const handleCleanupDuplicates = () => {
-    if (confirm("This will remove duplicate customers based on bike numbers. Are you sure?")) {
-      cleanupDuplicatesMutation.mutate();
-    }
-  };
 
   const handleViewInvoices = async (customerId: string) => {
     try {
@@ -155,28 +125,16 @@ export default function Customers() {
             />
           </div>
           
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>
-                {searchTerm 
-                  ? `${filteredCustomers.length} of ${customers.length} customers` 
-                  : `${customers.length} total customers`
-                }
-              </span>
-              <span>
-                Total revenue: ₹{Number(customers.reduce((sum: number, customer: any) => sum + (parseFloat(customer.totalSpent) || 0), 0) || 0).toLocaleString()}
-              </span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCleanupDuplicates}
-              disabled={cleanupDuplicatesMutation.isPending}
-              className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              {cleanupDuplicatesMutation.isPending ? "Cleaning..." : "Remove Duplicates"}
-            </Button>
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>
+              {searchTerm 
+                ? `${filteredCustomers.length} of ${customers.length} customers` 
+                : `${customers.length} total customers`
+              }
+            </span>
+            <span>
+              Total revenue: ₹{Number(customers.reduce((sum: number, customer: any) => sum + (parseFloat(customer.totalSpent) || 0), 0) || 0).toLocaleString()}
+            </span>
           </div>
         </div>
 

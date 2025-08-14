@@ -72,6 +72,29 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  private static cleanupInitialized = false;
+
+  constructor() {
+    // Run cleanup once when first initialized
+    if (!DatabaseStorage.cleanupInitialized) {
+      DatabaseStorage.cleanupInitialized = true;
+      this.initializeCleanup();
+    }
+  }
+
+  private async initializeCleanup() {
+    try {
+      // Get all garages and clean up duplicates for each
+      const allGarages = await db.select({ id: garages.id }).from(garages);
+      
+      for (const garage of allGarages) {
+        await this.removeDuplicateCustomers(garage.id);
+        console.log(`Cleaned up duplicate customers for garage: ${garage.id}`);
+      }
+    } catch (error) {
+      console.error('Error during initial cleanup:', error);
+    }
+  }
   async createGarage(garage: InsertGarage): Promise<Garage> {
     const result = await db.insert(garages).values([garage]).returning();
     return result[0];
@@ -194,12 +217,12 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    // Remove duplicates
-    if (duplicatesToRemove.length > 0) {
+    // Remove duplicates one by one
+    for (const duplicateId of duplicatesToRemove) {
       await db.delete(customers).where(
         and(
           eq(customers.garageId, garageId),
-          sql`${customers.id} = ANY(${duplicatesToRemove})`
+          eq(customers.id, duplicateId)
         )
       );
     }
