@@ -262,7 +262,7 @@ export default function Sales() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-muted-foreground text-sm">Service Revenue</p>
-                  <p className="text-2xl font-bold text-blue-600">₹{(salesStats?.totalServiceCharges || 0).toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-blue-600">₹{Number(salesStats?.totalServiceCharges || 0).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground flex items-center mt-1">
                     <BarChart className="w-3 h-3 mr-1" />
                     Click to view analytics
@@ -281,7 +281,7 @@ export default function Sales() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-muted-foreground text-sm">Spares Revenue</p>
-                  <p className="text-2xl font-bold text-green-600">₹{(salesStats?.totalPartsTotal || 0).toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-green-600">₹{Number(salesStats?.totalPartsTotal || 0).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground flex items-center mt-1">
                     <BarChart className="w-3 h-3 mr-1" />
                     Click to view analytics
@@ -301,7 +301,7 @@ export default function Sales() {
                 <div>
                   <p className="text-muted-foreground text-sm">Profit (Service Charges)</p>
                   <p className="text-xs text-muted-foreground">Note: Parts cost calculation being enhanced</p>
-                  <p className="text-2xl font-bold success-text">₹{(salesStats?.totalProfit || 0).toLocaleString()}</p>
+                  <p className="text-2xl font-bold success-text">₹{Number(salesStats?.totalProfit || 0).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground flex items-center mt-1">
                     <BarChart className="w-3 h-3 mr-1" />
                     Click to view analytics
@@ -333,7 +333,7 @@ export default function Sales() {
                       />
                     </div>
                   </div>
-                  <span className="text-sm font-medium">₹{month.amount.toLocaleString()}</span>
+                  <span className="text-sm font-medium">₹{Number(month.amount || 0).toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -359,7 +359,7 @@ export default function Sales() {
                       <p className="text-sm text-muted-foreground">{formatDate(invoice.createdAt)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">₹{Number(invoice.totalAmount).toLocaleString()}</p>
+                      <p className="font-medium">₹{Number(invoice.totalAmount || 0).toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
