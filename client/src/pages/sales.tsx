@@ -132,9 +132,9 @@ export default function Sales() {
       const transformedData = rawData.map((item: any) => ({
         period: item.date || item.period || '',
         totalSales: Number(item.revenue || item.totalSales || 0),
-        serviceCharges: Number(item.revenue || item.serviceCharges || 0), // Use revenue as service charges for now
-        partsRevenue: 0, // Not available in current API
-        profit: Number(item.revenue || item.profit || 0), // Use revenue as profit for now
+        serviceCharges: Number(item.serviceCharges || 0),
+        partsRevenue: Number(item.partsRevenue || 0),
+        profit: Number(item.profit || item.serviceCharges || 0), // Profit calculation includes service charges
         invoiceCount: Number(item.count || item.invoiceCount || 0)
       }));
       
@@ -310,8 +310,8 @@ export default function Sales() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-muted-foreground text-sm">Profit (Service Charges)</p>
-                  <p className="text-xs text-muted-foreground">Note: Parts cost calculation being enhanced</p>
+                  <p className="text-muted-foreground text-sm">Current Profit (Service Only)</p>
+                  <p className="text-xs text-muted-foreground">Parts cost calculation being enhanced</p>
                   <p className="text-2xl font-bold success-text">₹{Number(salesStats?.totalProfit || 0).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground flex items-center mt-1">
                     <BarChart className="w-3 h-3 mr-1" />

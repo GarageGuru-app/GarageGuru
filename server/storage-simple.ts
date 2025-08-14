@@ -260,7 +260,19 @@ export class DatabaseStorage implements IStorage {
       totalServiceCharges: sql`SUM(CAST(${invoices.serviceCharge} AS DECIMAL))`
     }).from(invoices).where(eq(invoices.garageId, garageId));
     
-    return result[0] || { totalInvoices: 0, totalRevenue: 0, totalPartsTotal: 0, totalServiceCharges: 0 };
+    const stats = result[0];
+    const partsRevenue = Number(stats.totalPartsTotal) || 0;
+    const serviceCharges = Number(stats.totalServiceCharges) || 0;
+    
+    // For now, profit = service charges only (cost price calculation will be enhanced later)
+    const totalProfit = serviceCharges;
+    
+    return {
+      totalInvoices: stats.totalInvoices || 0,
+      totalPartsTotal: partsRevenue,
+      totalServiceCharges: serviceCharges,
+      totalProfit: totalProfit,
+    };
   }
 
   async getMonthlySalesData(garageId: string): Promise<any> {
@@ -275,9 +287,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSalesDataByDateRange(garageId: string, startDate: string, endDate: string): Promise<any> {
-    return await db.select({
+    const result = await db.select({
       date: sql`DATE(${invoices.createdAt})`,
-      revenue: sql`SUM(CAST(${invoices.totalAmount} AS DECIMAL))`,
+      totalRevenue: sql`SUM(CAST(${invoices.totalAmount} AS DECIMAL))`,
+      serviceCharges: sql`SUM(CAST(${invoices.serviceCharge} AS DECIMAL))`,
+      partsRevenue: sql`SUM(CAST(${invoices.partsTotal} AS DECIMAL))`,
       count: sql`COUNT(*)`
     }).from(invoices)
       .where(and(
@@ -287,6 +301,16 @@ export class DatabaseStorage implements IStorage {
       ))
       .groupBy(sql`DATE(${invoices.createdAt})`)
       .orderBy(sql`DATE(${invoices.createdAt})`);
+    
+    // Transform the result to include calculated profit
+    return result.map(item => ({
+      date: item.date,
+      revenue: Number(item.totalRevenue) || 0,
+      serviceCharges: Number(item.serviceCharges) || 0,
+      partsRevenue: Number(item.partsRevenue) || 0,
+      profit: Number(item.serviceCharges) || 0, // For now, profit = service charges (parts cost calculation being enhanced)
+      count: Number(item.count) || 0
+    }));
   }
 
   async getCustomerAnalytics(garageId: string): Promise<any> {

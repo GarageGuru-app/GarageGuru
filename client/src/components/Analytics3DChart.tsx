@@ -76,16 +76,16 @@ export function Analytics3DChart({
     let value;
     switch (type) {
       case 'service':
-        value = item.serviceCharges || item.revenue || 0;
+        value = item.serviceCharges || 0;
         break;
       case 'parts':
         value = item.partsRevenue || 0;
         break;
       case 'profit':
-        value = item.profit || item.serviceCharges || item.revenue || 0;
+        value = item.profit || 0;
         break;
       default:
-        value = item.totalSales || item.revenue || 0;
+        value = item.totalSales || 0;
     }
     return Number(value) || 0;
   };
