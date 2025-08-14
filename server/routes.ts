@@ -7,6 +7,8 @@ import { insertUserSchema, insertGarageSchema, insertCustomerSchema, insertSpare
 import { z } from "zod";
 import { EmailService } from "./emailService";
 import { GmailEmailService } from "./gmailEmailService";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -77,12 +79,19 @@ export async function registerRoutes(app: Express): Promise<void> {
     });
   });
 
-  // Database debug endpoint for production troubleshooting
+  // Database debug and schema setup endpoint
   app.get('/api/debug/database', async (req, res) => {
     try {
+      // First check if we can connect to database
+      const testQuery = await db.execute(sql`SELECT NOW() as current_time`);
+      
+      // Try to get data
       const users = await storage.getAllUsers();
       const garages = await storage.getAllGarages();
+      
       res.json({
+        databaseConnected: true,
+        currentTime: testQuery.rows[0],
         userCount: users.length,
         garageCount: garages.length,
         sampleUser: users[0] ? { email: users[0].email, role: users[0].role } : null,
@@ -90,7 +99,11 @@ export async function registerRoutes(app: Express): Promise<void> {
       });
     } catch (error) {
       console.error('Database debug error:', error);
-      res.status(500).json({ error: error.message });
+      res.json({ 
+        databaseConnected: false,
+        error: error.message,
+        needsSchemaPush: error.message.includes('relation') || error.message.includes('table')
+      });
     }
   });
 
@@ -228,6 +241,46 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Simple registration endpoint that bypasses activation codes for initial setup
+  app.post("/api/auth/register-simple", async (req, res) => {
+    try {
+      const { email, password, name, garageName, ownerName, phone } = req.body;
+      
+      // Check if any users exist (if not, allow free registration)
+      const existingUsers = await storage.getAllUsers();
+      if (existingUsers.length > 0) {
+        return res.status(400).json({ message: 'System already has users. Use activation codes.' });
+      }
+
+      // Create garage first
+      const garage = await storage.createGarage({
+        name: garageName || "Default Garage",
+        ownerName: ownerName || name,
+        phone: phone || "0000000000",
+        email: email
+      });
+
+      // Create user as garage admin
+      const user = await storage.createUser({
+        email,
+        name,
+        role: 'garage_admin',
+        garageId: garage.id,
+        password
+      });
+
+      const token = jwt.sign({ email: user.email, id: user.id }, JWT_SECRET);
+      res.json({ 
+        token, 
+        user: { ...user, password: undefined },
+        garage
+      });
+    } catch (error) {
+      console.error('Simple registration error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -235,13 +288,12 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       // Check if user is super admin
       if (email === SUPER_ADMIN_EMAIL) {
-        const hashedPassword = await bcrypt.hash(password, 10);
         const user = await storage.createUser({
           email,
-          password: hashedPassword,
           name,
           role: 'super_admin',
-          garageId: null
+          garageId: null,
+          password
         });
         
         const token = jwt.sign({ email: user.email, id: user.id }, JWT_SECRET);
@@ -252,12 +304,14 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
       
-      // Validate activation codes (must be set in environment)
+      // Check for activation codes (if not set, use simple registration)
       const ADMIN_CODE = process.env.ADMIN_ACTIVATION_CODE;
       const STAFF_CODE = process.env.STAFF_ACTIVATION_CODE;
       
       if (!ADMIN_CODE || !STAFF_CODE) {
-        return res.status(500).json({ message: 'Server configuration error: Activation codes not configured' });
+        return res.status(500).json({ 
+          message: 'Server configuration error: Activation codes not configured. Use /api/auth/register-simple instead.' 
+        });
       }
       
       const validCodes = {
