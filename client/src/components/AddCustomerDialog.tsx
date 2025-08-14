@@ -31,6 +31,12 @@ export default function AddCustomerDialog({ trigger, onCustomerCreated }: AddCus
     mutationFn: async (data: any) => {
       if (!garage?.id) throw new Error("No garage selected");
       const response = await apiRequest("POST", `/api/garages/${garage.id}/customers`, data);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create customer");
+      }
+      
       return response.json();
     },
     onSuccess: (customer) => {
@@ -43,10 +49,12 @@ export default function AddCustomerDialog({ trigger, onCustomerCreated }: AddCus
       setOpen(false);
       setFormData({ name: "", phone: "", bikeNumber: "", notes: "" });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const errorMessage = error.message || "Failed to add customer";
+      
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add customer",
+        title: "Duplicate Customer",
+        description: errorMessage,
         variant: "destructive",
       });
     },

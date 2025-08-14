@@ -447,8 +447,17 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       const customer = await storage.createCustomer(customerData);
       res.json(customer);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to create customer' });
+    } catch (error: any) {
+      // Check if it's a duplicate bike number error
+      if (error.message && error.message.includes('already exists')) {
+        res.status(409).json({ 
+          message: error.message,
+          type: 'duplicate_bike_number'
+        });
+      } else {
+        console.error('Error creating customer:', error);
+        res.status(500).json({ message: 'Failed to create customer' });
+      }
     }
   });
 

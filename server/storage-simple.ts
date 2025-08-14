@@ -133,7 +133,20 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async getCustomerByBikeNumber(bikeNumber: string, garageId: string): Promise<Customer | undefined> {
+    const result = await db.select().from(customers)
+      .where(and(eq(customers.bikeNumber, bikeNumber), eq(customers.garageId, garageId)))
+      .limit(1);
+    return result[0];
+  }
+
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
+    // Check for duplicate bike number in the same garage
+    const existingCustomer = await this.getCustomerByBikeNumber(customer.bikeNumber, customer.garageId);
+    if (existingCustomer) {
+      throw new Error(`Customer with bike number "${customer.bikeNumber}" already exists. Customer: ${existingCustomer.name}`);
+    }
+
     const result = await db.insert(customers).values([customer]).returning();
     return result[0];
   }
