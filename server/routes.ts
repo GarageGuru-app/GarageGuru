@@ -94,7 +94,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Seed production database with test user/garage (for production setup)
+  // Seed production database with test user/garage (bypasses activation codes)
   app.post('/api/setup/seed-database', async (req, res) => {
     try {
       // Check if data already exists
@@ -112,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         logo: "https://res.cloudinary.com/dcueubsl8/image/upload/v1754845196/garage-logos/sjrppoab6sslhvm5rl7a.jpg"
       });
 
-      // Create user
+      // Create user directly (bypass activation code validation for seeding)
       const user = await storage.createUser({
         email: "gorla.ananthkalyan@gmail.com",
         name: "Ananth",
@@ -122,9 +122,13 @@ export async function registerRoutes(app: Express): Promise<void> {
       });
 
       res.json({ 
-        message: 'Database seeded successfully',
+        message: 'Database seeded successfully - login ready',
         garage: { id: garage.id, name: garage.name },
-        user: { id: user.id, email: user.email, role: user.role }
+        user: { id: user.id, email: user.email, role: user.role },
+        loginCredentials: { 
+          email: "gorla.ananthkalyan@gmail.com", 
+          password: "password123" 
+        }
       });
     } catch (error) {
       console.error('Database seeding error:', error);
