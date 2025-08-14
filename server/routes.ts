@@ -10,7 +10,7 @@ import { GmailEmailService } from "./gmailEmailService";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
 
 // Extend Express Request type
 declare global {
@@ -369,23 +369,34 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
+      console.log('Login attempt for:', req.body?.email);
       const { email, password } = req.body;
       
+      if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password required' });
+      }
+      
       const user = await storage.getUserByEmail(email);
+      console.log('User found:', user ? 'Yes' : 'No');
+      
       if (!user) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       
       const validPassword = await bcrypt.compare(password, user.password);
+      console.log('Password valid:', validPassword ? 'Yes' : 'No');
+      
       if (!validPassword) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       
       const token = jwt.sign({ email: user.email, id: user.id }, JWT_SECRET);
+      console.log('JWT token generated successfully');
       
       let garage = null;
       if (user.garageId) {
         garage = await storage.getGarage(user.garageId);
+        console.log('Garage found:', garage ? 'Yes' : 'No');
       }
       
       res.json({ 
@@ -394,8 +405,15 @@ export async function registerRoutes(app: Express): Promise<void> {
         garage
       });
     } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      console.error('Login error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      res.status(500).json({ 
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 
