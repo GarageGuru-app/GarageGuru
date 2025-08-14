@@ -47,8 +47,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Database
 - **PostgreSQL**: Primary database using standard `pg` driver.
-- **Neon Database**: PostgreSQL provider with direct connection (replaced serverless driver).
-- **Raw SQL Queries**: Replaced Drizzle ORM with direct PostgreSQL queries for better reliability.
+- **Supabase**: PostgreSQL provider configured for production deployment.
+- **Automatic Migrations**: Tables created automatically on server startup.
+- **Raw SQL Queries**: Direct PostgreSQL queries for maximum compatibility.
 
 ### UI Libraries
 - **Radix UI**: Accessible component primitives.
