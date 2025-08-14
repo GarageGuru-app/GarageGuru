@@ -1,0 +1,242 @@
+// Standalone Production Server for Render.com
+// Uses only standard Node.js modules and pg driver
+// No build step required - can run directly with: node standalone-server.js
+
+import express from 'express';
+import cors from 'cors';
+import pkg from 'pg';
+const { Pool } = pkg;
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Environment configuration
+const PORT = process.env.PORT || 5000;
+const DATABASE_URL = process.env.DATABASE_URL;
+const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
+
+if (!DATABASE_URL) {
+  console.error('❌ DATABASE_URL environment variable is required');
+  process.exit(1);
+}
+
+console.log('🚀 Starting Garage Guru Production Server...');
+console.log('📊 Environment:', process.env.NODE_ENV || 'production');
+console.log('🔌 Port:', PORT);
+console.log('💾 Database:', DATABASE_URL ? 'configured' : 'missing');
+
+// PostgreSQL connection pool
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
+// Test database connection
+pool.connect()
+  .then(() => console.log('✅ Connected to PostgreSQL database'))
+  .catch(err => {
+    console.error('❌ Database connection failed:', err.message);
+    process.exit(1);
+  });
+
+// Express app setup
+const app = express();
+
+// Middleware
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-requested-with'],
+}));
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static files (frontend build)
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'dist')));
+}
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(), 
+    service: 'garage-guru-backend',
+    environment: process.env.NODE_ENV || 'production',
+    database: DATABASE_URL ? 'configured' : 'missing'
+  });
+});
+
+// Database ping endpoint
+app.get('/api/db/ping', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT 1 as ping, NOW() as timestamp, version() as db_version');
+    res.json({
+      success: true,
+      ping: result.rows[0].ping,
+      timestamp: result.rows[0].timestamp,
+      database_version: result.rows[0].db_version,
+      connection_count: pool.totalCount
+    });
+  } catch (error) {
+    console.error('Database ping error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Login endpoint
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    console.log('Login attempt for:', req.body?.email);
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password required' });
+    }
+
+    // Query user from database
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1 LIMIT 1',
+      [email]
+    );
+    
+    if (!result.rows.length) {
+      console.log('User not found:', email);
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const user = result.rows[0];
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    
+    if (!isValidPassword) {
+      console.log('Invalid password for:', email);
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        email: user.email,
+        userId: user.id,
+        role: user.role,
+        garageId: user.garage_id
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    console.log('Login successful for:', email);
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        garageId: user.garage_id
+      }
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Basic data endpoints
+app.get('/api/garages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('SELECT * FROM garages WHERE id = $1', [id]);
+    
+    if (!result.rows.length) {
+      return res.status(404).json({ message: 'Garage not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Get garage error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/api/customers/:garageId', async (req, res) => {
+  try {
+    const { garageId } = req.params;
+    const result = await pool.query(
+      'SELECT * FROM customers WHERE garage_id = $1 ORDER BY created_at DESC',
+      [garageId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get customers error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/api/spare-parts/:garageId', async (req, res) => {
+  try {
+    const { garageId } = req.params;
+    const result = await pool.query(
+      'SELECT * FROM spare_parts WHERE garage_id = $1 ORDER BY created_at DESC',
+      [garageId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get spare parts error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Serve React app for all other routes (SPA)
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  });
+}
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ message: 'Internal server error' });
+});
+
+// Start server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`🌐 Health check: http://localhost:${PORT}/health`);
+  console.log(`💾 Database ping: http://localhost:${PORT}/api/db/ping`);
+  console.log(`🔐 Login endpoint: http://localhost:${PORT}/api/auth/login`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  pool.end(() => {
+    console.log('Database pool closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  pool.end(() => {
+    console.log('Database pool closed');
+    process.exit(0);
+  });
+});
+
+export default app;
