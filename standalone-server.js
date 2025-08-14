@@ -143,12 +143,12 @@ async function initializeDatabase() {
     
     if (existingAdmin.rows.length === 0) {
       const bcrypt = require('bcrypt');
-      const defaultPassword = await bcrypt.hash('admin123', 10);
+      const defaultPassword = await bcrypt.hash('password123', 10);
       await pool.query(`
         INSERT INTO users (email, password, role, name, garage_id)
         VALUES ($1, $2, 'super_admin', 'Super Admin', NULL)
       `, [SUPER_ADMIN_EMAIL, defaultPassword]);
-      console.log(`✅ Super admin created: ${SUPER_ADMIN_EMAIL} (password: admin123)`);
+      console.log(`✅ Super admin created: ${SUPER_ADMIN_EMAIL} (password: password123)`);
     }
 
     console.log('✅ Database migrations completed successfully');
