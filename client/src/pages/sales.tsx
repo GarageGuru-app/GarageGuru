@@ -28,6 +28,16 @@ export default function Sales() {
     enabled: !!garage?.id,
   });
 
+  const { data: todayStats, isLoading: todayStatsLoading } = useQuery({
+    queryKey: ["/api/garages", garage?.id, "sales", "today"],
+    queryFn: async () => {
+      if (!garage?.id) return null;
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/sales/today`);
+      return response.json();
+    },
+    enabled: !!garage?.id,
+  });
+
   const { data: recentInvoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ["/api/garages", garage?.id, "invoices"],
     queryFn: async () => {
@@ -267,6 +277,25 @@ export default function Sales() {
             </CardContent>
           </Card>
 
+          {/* Total Profit KPI - From All Invoices */}
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleKPIClick('profit')}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-muted-foreground text-sm">Total Profit (All Invoices)</p>
+                  <p className="text-2xl font-bold success-text">₹{Number(salesStats?.totalProfit || 0).toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground flex items-center mt-1">
+                    <BarChart className="w-3 h-3 mr-1" />
+                    Click to view analytics
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="text-green-600 dark:text-green-400 w-6 h-6" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Service Revenue KPI - Clickable */}
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleKPIClick('service')}>
             <CardContent className="p-4">
@@ -305,25 +334,32 @@ export default function Sales() {
             </CardContent>
           </Card>
 
-          {/* Profit KPI - Clickable */}
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleKPIClick('profit')}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm">Current Profit (Service Only)</p>
-                  <p className="text-xs text-muted-foreground">Parts cost calculation being enhanced</p>
-                  <p className="text-2xl font-bold success-text">₹{Number(salesStats?.totalProfit || 0).toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground flex items-center mt-1">
-                    <BarChart className="w-3 h-3 mr-1" />
-                    Click to view analytics
-                  </p>
-                </div>
-                <div className="w-12 h-12 success-bg rounded-lg flex items-center justify-center">
-                  <TrendingUp className="success-text w-6 h-6" />
-                </div>
+          {/* Today's Sales Section */}
+          <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-lg p-4 border">
+            <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-200 mb-3">Today's Sales</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <p className="text-sm text-purple-600 dark:text-purple-300">Today's Profit</p>
+                <p className="text-xl font-bold text-purple-800 dark:text-purple-200">
+                  ₹{Number(todayStats?.todayProfit || 0).toLocaleString()}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-center">
+                <p className="text-sm text-purple-600 dark:text-purple-300">Today's Invoices</p>
+                <p className="text-xl font-bold text-purple-800 dark:text-purple-200">
+                  {todayStats?.todayInvoices || 0}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 text-center">
+              <p className="text-xs text-purple-600 dark:text-purple-400">
+                Today's Service: ₹{Number(todayStats?.todayServiceCharges || 0).toLocaleString()} | 
+                Parts: ₹{Number(todayStats?.todayPartsTotal || 0).toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+
         </div>
 
         {/* Service Charges Breakdown */}

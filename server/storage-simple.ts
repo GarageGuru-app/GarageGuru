@@ -275,6 +275,36 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async getTodaySalesStats(garageId: string): Promise<any> {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const result = await db.select({
+      todayInvoices: sql`COUNT(*)`,
+      todayRevenue: sql`SUM(CAST(${invoices.totalAmount} AS DECIMAL))`,
+      todayPartsTotal: sql`SUM(CAST(${invoices.partsTotal} AS DECIMAL))`,
+      todayServiceCharges: sql`SUM(CAST(${invoices.serviceCharge} AS DECIMAL))`
+    }).from(invoices)
+    .where(and(
+      eq(invoices.garageId, garageId),
+      sql`DATE(${invoices.createdAt}) = ${today}::date`
+    ));
+    
+    const stats = result[0];
+    const todayPartsRevenue = Number(stats.todayPartsTotal) || 0;
+    const todayServiceCharges = Number(stats.todayServiceCharges) || 0;
+    
+    // For now, today's profit = service charges only 
+    const todayProfit = todayServiceCharges;
+    
+    return {
+      todayInvoices: stats.todayInvoices || 0,
+      todayRevenue: Number(stats.todayRevenue) || 0,
+      todayPartsTotal: todayPartsRevenue,
+      todayServiceCharges: todayServiceCharges,
+      todayProfit: todayProfit,
+    };
+  }
+
   async getMonthlySalesData(garageId: string): Promise<any> {
     return await db.select({
       month: sql`DATE_TRUNC('month', ${invoices.createdAt})`,

@@ -712,6 +712,16 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  app.get("/api/garages/:garageId/sales/today", authenticateToken, requireRole(['garage_admin']), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const todayStats = await storage.getTodaySalesStats(garageId);
+      res.json(todayStats);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch today sales stats' });
+    }
+  });
+
   app.get("/api/garages/:garageId/sales/monthly", authenticateToken, requireRole(['garage_admin']), requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
