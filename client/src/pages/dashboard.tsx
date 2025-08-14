@@ -59,6 +59,16 @@ export default function Dashboard() {
     enabled: !!garage?.id && user?.role === "garage_admin",
   });
 
+  const { data: todayStats } = useQuery({
+    queryKey: ["/api/garages", garage?.id, "sales", "today"],
+    queryFn: async () => {
+      if (!garage?.id || user?.role !== "garage_admin") return null;
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/sales/today`);
+      return response.json();
+    },
+    enabled: !!garage?.id && user?.role === "garage_admin",
+  });
+
   const { data: lowStockParts } = useQuery({
     queryKey: ["/api/garages", garage?.id, "spare-parts", "low-stock"],
     queryFn: async () => {
@@ -83,7 +93,7 @@ export default function Dashboard() {
 
   const pendingCount = pendingJobs?.length || 0;
   const lowStockCount = lowStockParts?.length || 0;
-  const todaySales = salesStats?.totalServiceCharges || 0;
+  const todaySales = todayStats?.todayProfit || 0;
 
   // Show low stock alert popup on login if there are low stock items
   useEffect(() => {
@@ -201,8 +211,9 @@ export default function Dashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-muted-foreground text-sm">Today's Sales</p>
+                  <p className="text-muted-foreground text-sm">Today's Profit</p>
                   <p className="text-2xl font-bold">₹{Number(todaySales || 0).toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">Current day only</p>
                 </div>
                 <div className="icon-container success-bg">
                   <IndianRupee className="success-text text-xl w-6 h-6" />
