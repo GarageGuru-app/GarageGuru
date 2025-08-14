@@ -1,0 +1,50 @@
+2025-08-14T07:50:40.042129474Z     _errorEmitted: true,
+2025-08-14T07:50:40.042132274Z     _extensions: {},
+2025-08-14T07:50:40.042135024Z     _paused: false,
+2025-08-14T07:50:40.042137784Z     _protocol: '',
+2025-08-14T07:50:40.042140534Z     _readyState: 3,
+2025-08-14T07:50:40.042143264Z     _receiver: null,
+2025-08-14T07:50:40.042145995Z     _sender: null,
+2025-08-14T07:50:40.042148735Z     _socket: null,
+2025-08-14T07:50:40.042151595Z     _bufferedAmount: 0,
+2025-08-14T07:50:40.042156765Z     _isServer: false,
+2025-08-14T07:50:40.042159865Z     _redirects: 0,
+2025-08-14T07:50:40.042162645Z     _autoPong: true,
+2025-08-14T07:50:40.042165895Z     _url: 'wss://db.ulbnyozdoshjotgcufep.supabase.co/v2',
+2025-08-14T07:50:40.042168715Z     _req: null,
+2025-08-14T07:50:40.042171585Z     [Symbol(shapeMode)]: false,
+2025-08-14T07:50:40.042174375Z     [Symbol(kCapture)]: false
+2025-08-14T07:50:40.042177205Z   },
+2025-08-14T07:50:40.042180055Z   [Symbol(kType)]: 'error',
+2025-08-14T07:50:40.042183436Z   [Symbol(kError)]: Error: connect ENETUNREACH 2406:da1a:6b0:f60a:8825:7d4a:6f24:ceb1:443 - Local (:::0)
+2025-08-14T07:50:40.042187545Z       at internalConnect (node:net:1115:16)
+2025-08-14T07:50:40.042191006Z       at defaultTriggerAsyncIdScope (node:internal/async_hooks:464:18)
+2025-08-14T07:50:40.042194106Z       at GetAddrInfoReqWrap.emitLookup [as callback] (node:net:1522:9)
+2025-08-14T07:50:40.042196856Z       at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:134:8) {
+2025-08-14T07:50:40.042199636Z     errno: -101,
+2025-08-14T07:50:40.042202436Z     code: 'ENETUNREACH',
+2025-08-14T07:50:40.042205216Z     syscall: 'connect',
+2025-08-14T07:50:40.042208196Z     address: '2406:da1a:6b0:f60a:8825:7d4a:6f24:ceb1',
+2025-08-14T07:50:40.042211016Z     port: 443
+2025-08-14T07:50:40.042213786Z   },
+2025-08-14T07:50:40.042216686Z   [Symbol(kMessage)]: 'connect ENETUNREACH 2406:da1a:6b0:f60a:8825:7d4a:6f24:ceb1:443 - Local (:::0)'
+2025-08-14T07:50:40.042219556Z }
+2025-08-14T07:50:44.163429042Z ==> Your service is live 🎉
+2025-08-14T07:50:44.194944942Z ==> 
+2025-08-14T07:50:44.223359042Z ==> ///////////////////////////////////////////////////////////
+2025-08-14T07:50:44.270990592Z ==> 
+2025-08-14T07:50:44.303387561Z ==> Available at your primary URL https://garageguru-backend.onrender.com
+2025-08-14T07:50:44.332258701Z ==> 
+2025-08-14T07:50:44.36178322Z ==> ///////////////////////////////////////////////////////////
+2025-08-14T07:51:26.426643777Z Login attempt for: gorla.ananthkalyan@gmail.com
+2025-08-14T07:51:26.446254151Z Login error details: {
+2025-08-14T07:51:26.446277581Z   message: 'connect ENETUNREACH 2406:da1a:6b0:f60a:8825:7d4a:6f24:ceb1:443 - Local (:::0)',
+2025-08-14T07:51:26.446280862Z   stack: 'Error: connect ENETUNREACH 2406:da1a:6b0:f60a:8825:7d4a:6f24:ceb1:443 - Local (:::0)\n' +
+2025-08-14T07:51:26.446282731Z     '    at file:///opt/render/project/src/server/node_modules/@neondatabase/serverless/index.mjs:1345:74\n' +
+2025-08-14T07:51:26.446284511Z     '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+2025-08-14T07:51:26.446286702Z     '    at async NeonPreparedQuery.execute (file:///opt/render/project/src/server/node_modules/drizzle-orm/neon-serverless/session.js:76:20)\n' +
+2025-08-14T07:51:26.446288402Z     '    at async _DatabaseStorage.getUserByEmail (file:///opt/render/project/src/server/index.js:251:20)\n' +
+2025-08-14T07:51:26.446290622Z     '    at async file:///opt/render/project/src/server/index.js:1166:20',
+2025-08-14T07:51:26.446292522Z   name: undefined
+2025-08-14T07:51:26.446294282Z }
+2025-08-14T07:51:26.446951418Z POST /api/auth/login 500 in 20ms :: {"message":"Internal server error"}
