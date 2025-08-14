@@ -461,6 +461,20 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  app.post("/api/garages/:garageId/customers/cleanup-duplicates", authenticateToken, requireRole(['garage_admin']), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const result = await storage.removeDuplicateCustomers(garageId);
+      res.json({
+        message: `Cleanup completed: ${result.removed} duplicates removed, ${result.kept} customers kept`,
+        ...result
+      });
+    } catch (error: any) {
+      console.error('Error cleaning up duplicate customers:', error);
+      res.status(500).json({ message: 'Failed to cleanup duplicate customers' });
+    }
+  });
+
   app.get("/api/garages/:garageId/customers/search", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;

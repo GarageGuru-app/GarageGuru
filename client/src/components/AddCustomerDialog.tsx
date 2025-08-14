@@ -74,6 +74,10 @@ export default function AddCustomerDialog({ trigger, onCustomerCreated }: AddCus
   };
 
   const handleInputChange = (field: string, value: string) => {
+    // Convert bike number to uppercase automatically
+    if (field === 'bikeNumber') {
+      value = value.toUpperCase();
+    }
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

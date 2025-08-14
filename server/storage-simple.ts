@@ -134,26 +134,80 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCustomerByBikeNumber(bikeNumber: string, garageId: string): Promise<Customer | undefined> {
+    const upperBikeNumber = bikeNumber.toUpperCase();
     const result = await db.select().from(customers)
-      .where(and(eq(customers.bikeNumber, bikeNumber), eq(customers.garageId, garageId)))
+      .where(and(sql`UPPER(${customers.bikeNumber}) = ${upperBikeNumber}`, eq(customers.garageId, garageId)))
       .limit(1);
     return result[0];
   }
 
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    // Check for duplicate bike number in the same garage
-    const existingCustomer = await this.getCustomerByBikeNumber(customer.bikeNumber, customer.garageId);
+    // Convert bike number to uppercase
+    const customerData = { ...customer, bikeNumber: customer.bikeNumber.toUpperCase() };
+    
+    // Check for duplicate bike number in the same garage (case-insensitive)
+    const existingCustomer = await this.getCustomerByBikeNumber(customerData.bikeNumber, customerData.garageId);
     if (existingCustomer) {
-      throw new Error(`Customer with bike number "${customer.bikeNumber}" already exists. Customer: ${existingCustomer.name}`);
+      throw new Error(`Customer with bike number "${customerData.bikeNumber}" already exists. Customer: ${existingCustomer.name}`);
     }
 
-    const result = await db.insert(customers).values([customer]).returning();
+    const result = await db.insert(customers).values([customerData]).returning();
     return result[0];
   }
 
   async updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer> {
-    const result = await db.update(customers).set(customer).where(eq(customers.id, id)).returning();
+    // Convert bike number to uppercase if provided
+    const updateData = customer.bikeNumber 
+      ? { ...customer, bikeNumber: customer.bikeNumber.toUpperCase() }
+      : customer;
+    
+    const result = await db.update(customers).set(updateData).where(eq(customers.id, id)).returning();
     return result[0];
+  }
+
+  async removeDuplicateCustomers(garageId: string): Promise<{ removed: number; kept: number }> {
+    // Get all customers for this garage
+    const allCustomers = await db.select().from(customers)
+      .where(eq(customers.garageId, garageId))
+      .orderBy(customers.createdAt);
+    
+    const seenBikeNumbers = new Set<string>();
+    const duplicatesToRemove: string[] = [];
+    let keptCount = 0;
+    
+    // Process customers and identify duplicates (case-insensitive)
+    for (const customer of allCustomers) {
+      const upperBikeNumber = customer.bikeNumber.toUpperCase();
+      
+      if (seenBikeNumbers.has(upperBikeNumber)) {
+        duplicatesToRemove.push(customer.id);
+      } else {
+        seenBikeNumbers.add(upperBikeNumber);
+        keptCount++;
+        
+        // Update the kept customer to have uppercase bike number
+        if (customer.bikeNumber !== upperBikeNumber) {
+          await db.update(customers)
+            .set({ bikeNumber: upperBikeNumber })
+            .where(eq(customers.id, customer.id));
+        }
+      }
+    }
+    
+    // Remove duplicates
+    if (duplicatesToRemove.length > 0) {
+      await db.delete(customers).where(
+        and(
+          eq(customers.garageId, garageId),
+          sql`${customers.id} = ANY(${duplicatesToRemove})`
+        )
+      );
+    }
+    
+    return {
+      removed: duplicatesToRemove.length,
+      kept: keptCount
+    };
   }
 
   async getSpareParts(garageId: string): Promise<SparePart[]> {
