@@ -97,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         sampleUser: users[0] ? { email: users[0].email, role: users[0].role } : null,
         sampleGarage: garages[0] ? { name: garages[0].name } : null
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Database debug error:', error);
       res.json({ 
         databaseConnected: false,
@@ -143,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           password: "password123" 
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Database seeding error:', error);
       res.status(500).json({ error: error.message });
     }
@@ -275,7 +275,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         user: { ...user, password: undefined },
         garage
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Simple registration error:', error);
       res.status(500).json({ message: error.message });
     }
@@ -404,7 +404,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         user: { ...user, password: undefined },
         garage
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error details:', {
         message: error.message,
         stack: error.stack,
