@@ -1,58 +1,91 @@
-# 🚀 Render.com Deployment - ALL ISSUES FIXED
+# 🚀 RENDER DEPLOYMENT - FINAL SOLUTION
 
-## ✅ **FINAL FIX COMPLETE**
+## ❌ **ROOT CAUSE IDENTIFIED**
 
-I've resolved all the remaining deployment issues:
+The error occurs because Render.com is using the wrong entry point:
+- ❌ **Wrong**: `/opt/render/project/src/server/index.js` (old compiled file with Neon imports)
+- ✅ **Correct**: Should use `standalone-server.js` or proper entry point
 
-### **Fixed Issues:**
-1. ✅ **Import path errors** - Fixed `@shared/schema` imports  
-2. ✅ **Missing postgres package** - Added to dependencies
-3. ✅ **Missing @sendgrid/mail package** - Added to dependencies
-4. ✅ **Missing TypeScript types** - Added @types packages
-5. ✅ **Missing nodemailer dependencies** - Added all email packages
+## 🔧 **SOLUTION IMPLEMENTED**
 
-### **Complete Dependencies Added:**
-```json
-{
-  "@neondatabase/serverless": "^0.10.3",
-  "@sendgrid/mail": "^8.1.3",
-  "@types/bcrypt": "^5.0.2",
-  "@types/express": "^4.17.21", 
-  "@types/jsonwebtoken": "^9.0.6",
-  "@types/node": "^20.11.5",
-  "@types/nodemailer": "^6.4.14",
-  "bcrypt": "^5.1.1",
-  "cors": "^2.8.5",
-  "drizzle-orm": "^0.36.4",
-  "drizzle-zod": "^0.5.1",
-  "esbuild": "^0.20.0",
-  "express": "^4.21.1",
-  "jsonwebtoken": "^9.0.2",
-  "nodemailer": "^6.9.8",
-  "postgres": "^3.4.4",
-  "tsx": "^4.7.0",
-  "typescript": "^5.3.3",
-  "ws": "^8.18.0",
-  "zod": "^3.23.8"
-}
+### **1. Created Production Entry Point**
+- ✅ Created `index.js` that imports `standalone-server.js`
+- ✅ This ensures Render.com uses the correct server with pg driver
+
+### **2. Render.com Configuration**
+
+**Build Command (Option 1):**
+```bash
+npm install && npm run build
 ```
 
----
-
-## 🎯 **READY FOR SUCCESSFUL DEPLOYMENT**
-
-### **Next Steps:**
-1. **Push to GitHub** - All fixes are ready
-2. **Render.com will auto-redeploy** - Should work perfectly now
-3. **Get your backend URL** - Format: `https://garageguru-backend.onrender.com`
-4. **Deploy frontend to Vercel** - Using that backend URL
-
-### **Environment Variables for Render:**
+**Build Command (Option 2 - with verification):**
+```bash
+./render-build.sh
 ```
-DATABASE_URL=postgresql://postgres.dbkkvmklfacmjatdwdui:AnanthGarageGuru@123@aws-0-ap-south-1.pooler.supabase.com:6543/postgres
+
+**Build Command (Option 3 - minimal):**
+```bash
+npm install
+```
+
+**Start Command:**
+```bash
+node index.js
+```
+
+**Alternative Start Command (if above fails):**
+```bash
+node standalone-server.js
+```
+
+### **3. Environment Variables** (Ensure these are set in Render.com):
+```
+DATABASE_URL=postgresql://neondb_owner:npg_BXW3ZPK8HwET@ep-raspy-feather-a26xe491.eu-central-1.aws.neon.tech/neondb?sslmode=require
+NODE_ENV=production
 JWT_SECRET=GarageGuru2025ProductionJWTSecret!
-GMAIL_USER=ananthautomotivegarage@gmail.com  
+GMAIL_USER=ananthautomotivegarage@gmail.com
 GMAIL_APP_PASSWORD=xvuw hqkb euuc ewil
 ```
 
-**The deployment will succeed this time!** All missing packages and import issues are resolved.
+## 📋 **DEPLOYMENT STEPS**
+
+1. **Update Render.com Service Settings:**
+   - Build Command: `npm install`
+   - Start Command: `node index.js`
+
+2. **Verify Dependencies:**
+   - ✅ `pg: ^8.16.3` is in package.json
+   - ✅ `@types/pg: ^8.15.5` is in package.json
+
+3. **Test Endpoints After Deployment:**
+   - Health: `GET /health`
+   - Database: `GET /api/db/ping`
+   - Login: `POST /api/auth/login`
+
+## 🎯 **WHY THIS WORKS**
+
+1. **Simplified Entry Point**: `index.js` directly imports the working standalone server
+2. **No Build Complexity**: Skips the problematic build process that created old files
+3. **Direct pg Import**: `standalone-server.js` uses standard Node.js imports with pg driver
+4. **Production Ready**: Includes proper SSL configuration and error handling
+
+## 🔍 **VERIFICATION**
+
+The standalone server works perfectly in development:
+- ✅ PostgreSQL connection established
+- ✅ Health endpoint responding
+- ✅ Database ping returns version info
+- ✅ All dependencies properly installed
+
+This configuration eliminates the module resolution issues by using a direct, simple entry point that bypasses any build artifacts containing old Neon imports.
+
+## 📞 **QUICK TEST**
+
+After deployment, test with:
+```bash
+curl https://your-app.onrender.com/health
+curl https://your-app.onrender.com/api/db/ping
+```
+
+Should return successful responses with database connection confirmed.
