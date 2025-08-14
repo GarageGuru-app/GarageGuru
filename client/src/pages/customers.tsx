@@ -128,7 +128,7 @@ export default function Customers() {
               }
             </span>
             <span>
-              Total revenue: ₹{customers.reduce((sum: number, customer: any) => sum + (parseFloat(customer.totalSpent) || 0), 0).toLocaleString()}
+              Total revenue: ₹{Number(customers.reduce((sum: number, customer: any) => sum + (parseFloat(customer.totalSpent) || 0), 0) || 0).toLocaleString()}
             </span>
           </div>
         </div>
@@ -188,7 +188,7 @@ export default function Customers() {
                       <span>Last visit: {formatLastVisit(customer.lastVisit)}</span>
                       <div className="text-right">
                         <div>{customer.totalJobs || 0} visits</div>
-                        <div className="font-medium text-primary">₹{(parseFloat(customer.totalSpent) || 0).toLocaleString()}</div>
+                        <div className="font-medium text-primary">₹{Number(parseFloat(customer.totalSpent) || 0).toLocaleString()}</div>
                       </div>
                     </div>
                   </div>

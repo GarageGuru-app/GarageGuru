@@ -125,9 +125,20 @@ export default function Sales() {
         "GET", 
         `/api/garages/${garage.id}/sales/analytics?startDate=${filter.startDate}&endDate=${filter.endDate}&groupBy=${groupBy}`
       );
-      const data = await response.json();
-      console.log(`Analytics data received:`, data);
-      setAnalyticsData(data);
+      const rawData = await response.json();
+      console.log(`Analytics data received:`, rawData);
+      
+      // Transform the API data to match Analytics3DChart expected format
+      const transformedData = rawData.map((item: any) => ({
+        period: item.date || item.period || '',
+        totalSales: Number(item.revenue || item.totalSales || 0),
+        serviceCharges: Number(item.revenue || item.serviceCharges || 0), // Use revenue as service charges for now
+        partsRevenue: 0, // Not available in current API
+        profit: Number(item.revenue || item.profit || 0), // Use revenue as profit for now
+        invoiceCount: Number(item.count || item.invoiceCount || 0)
+      }));
+      
+      setAnalyticsData(transformedData);
     } catch (error) {
       console.error('Failed to fetch analytics data:', error);
       setAnalyticsData([]);

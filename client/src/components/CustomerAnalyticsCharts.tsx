@@ -15,7 +15,7 @@ interface CustomerAnalyticsChartsProps {
 }
 
 export function CustomerAnalyticsCharts({ serviceData, revenueData, isLoading }: CustomerAnalyticsChartsProps) {
-  const formatCurrency = (value: number) => `₹${value.toLocaleString()}`;
+  const formatCurrency = (value: number) => `₹${Number(value || 0).toLocaleString()}`;
   
   const truncateCustomerName = (name: string, maxLength: number = 12) => {
     return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;

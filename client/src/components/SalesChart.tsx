@@ -148,9 +148,9 @@ export function SalesChart({ title, type, isOpen, onClose, data, onFilterChange 
               <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="period" />
-                <YAxis tickFormatter={(value) => `₹${value.toLocaleString()}`} />
+                <YAxis tickFormatter={(value) => `₹${Number(value || 0).toLocaleString()}`} />
                 <Tooltip 
-                  formatter={(value: number) => [`₹${value.toLocaleString()}`, title]}
+                  formatter={(value: number) => [`₹${Number(value || 0).toLocaleString()}`, title]}
                   labelFormatter={(label) => `Period: ${label}`}
                 />
                 <Bar dataKey={getDataKey()} fill={getColor()} radius={[4, 4, 0, 0]} />
@@ -161,19 +161,19 @@ export function SalesChart({ title, type, isOpen, onClose, data, onFilterChange 
           {/* Summary Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold">₹{data.reduce((sum, item) => sum + item[getDataKey()], 0).toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{Number(data.reduce((sum, item) => sum + (Number(item[getDataKey()]) || 0), 0) || 0).toLocaleString()}</div>
               <div className="text-sm text-muted-foreground">Total {title}</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold">₹{data.length > 0 ? Math.round(data.reduce((sum, item) => sum + item[getDataKey()], 0) / data.length).toLocaleString() : 0}</div>
+              <div className="text-2xl font-bold">₹{Number(data.length > 0 ? Math.round(data.reduce((sum, item) => sum + (Number(item[getDataKey()]) || 0), 0) / data.length) : 0).toLocaleString()}</div>
               <div className="text-sm text-muted-foreground">Average</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold">₹{Math.max(...data.map(item => item[getDataKey()]), 0).toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{Number(Math.max(...data.map(item => Number(item[getDataKey()]) || 0), 0) || 0).toLocaleString()}</div>
               <div className="text-sm text-muted-foreground">Peak</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold">{data.reduce((sum, item) => sum + item.invoiceCount, 0)}</div>
+              <div className="text-2xl font-bold">{data.reduce((sum, item) => sum + (Number(item.invoiceCount) || 0), 0)}</div>
               <div className="text-sm text-muted-foreground">Total Invoices</div>
             </div>
           </div>

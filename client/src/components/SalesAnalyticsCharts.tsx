@@ -17,7 +17,7 @@ interface SalesAnalyticsChartsProps {
 }
 
 export function SalesAnalyticsCharts({ data, isLoading }: SalesAnalyticsChartsProps) {
-  const formatCurrency = (value: number) => `₹${value.toLocaleString()}`;
+  const formatCurrency = (value: number) => `₹${Number(value || 0).toLocaleString()}`;
   
   const formatPeriod = (period: string) => {
     // Handle hourly format (YYYY-MM-DD HH:00)

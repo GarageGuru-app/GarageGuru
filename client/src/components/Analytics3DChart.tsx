@@ -35,38 +35,41 @@ export function Analytics3DChart({
 }: Analytics3DChartProps) {
   if (!isOpen) return null;
 
-  const formatPeriod = (period: string) => {
+  const formatPeriod = (period: any) => {
+    // Ensure period is a string
+    const periodStr = String(period || '');
+    
     // Handle hourly format (YYYY-MM-DD HH:00)
-    if (period.match(/^\d{4}-\d{2}-\d{2} \d{2}:00$/)) {
-      const date = new Date(period.replace(' ', 'T') + ':00');
+    if (periodStr.match(/^\d{4}-\d{2}-\d{2} \d{2}:00$/)) {
+      const date = new Date(periodStr.replace(' ', 'T') + ':00');
       return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
     }
     
     // Handle daily format (YYYY-MM-DD)
-    if (period.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      const date = new Date(period);
+    if (periodStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const date = new Date(periodStr);
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
     
     // Handle monthly format (YYYY-MM)
-    if (period.match(/^\d{4}-\d{2}$/)) {
-      const [year, month] = period.split('-');
+    if (periodStr.match(/^\d{4}-\d{2}$/)) {
+      const [year, month] = periodStr.split('-');
       const date = new Date(parseInt(year), parseInt(month) - 1);
       return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     }
     
     // Handle quarterly format (YYYY-Q1, YYYY-Q2, etc.)
-    if (period.match(/^\d{4}-Q[1-4]$/)) {
-      const [year, quarter] = period.split('-');
+    if (periodStr.match(/^\d{4}-Q[1-4]$/)) {
+      const [year, quarter] = periodStr.split('-');
       return `${quarter} ${year}`;
     }
     
     // Handle yearly format (YYYY)
-    if (period.match(/^\d{4}$/)) {
-      return period;
+    if (periodStr.match(/^\d{4}$/)) {
+      return periodStr;
     }
     
-    return period;
+    return periodStr || 'Unknown';
   };
 
   const getValue = (item: any) => {
