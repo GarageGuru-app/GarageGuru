@@ -202,7 +202,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-muted-foreground text-sm">Today's Sales</p>
-                  <p className="text-2xl font-bold">₹{todaySales.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">₹{Number(todaySales || 0).toLocaleString()}</p>
                 </div>
                 <div className="icon-container success-bg">
                   <IndianRupee className="success-text text-xl w-6 h-6" />

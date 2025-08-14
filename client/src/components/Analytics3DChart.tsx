@@ -70,19 +70,24 @@ export function Analytics3DChart({
   };
 
   const getValue = (item: any) => {
+    let value;
     switch (type) {
       case 'service':
-        return item.serviceCharges;
+        value = item.serviceCharges || item.revenue || 0;
+        break;
       case 'parts':
-        return item.partsRevenue;
+        value = item.partsRevenue || 0;
+        break;
       case 'profit':
-        return item.profit || item.serviceCharges; // fallback to service charges for profit
+        value = item.profit || item.serviceCharges || item.revenue || 0;
+        break;
       default:
-        return item.totalSales;
+        value = item.totalSales || item.revenue || 0;
     }
+    return Number(value) || 0;
   };
 
-  const maxValue = data.length > 0 ? Math.max(...data.map(getValue)) : 0;
+  const maxValue = data.length > 0 ? Math.max(...data.map(getValue).filter(v => !isNaN(v) && v > 0)) || 1 : 1;
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
@@ -132,10 +137,10 @@ export function Analytics3DChart({
                   <div className="flex">
                     {/* Y-Axis */}
                     <div className="flex flex-col justify-between h-80 pr-4 text-xs text-gray-600 dark:text-gray-400 w-16">
-                      <span>₹{maxValue.toLocaleString()}</span>
-                      <span>₹{Math.round(maxValue * 0.75).toLocaleString()}</span>
-                      <span>₹{Math.round(maxValue * 0.5).toLocaleString()}</span>
-                      <span>₹{Math.round(maxValue * 0.25).toLocaleString()}</span>
+                      <span>₹{Number(maxValue || 0).toLocaleString()}</span>
+                      <span>₹{Math.round((maxValue || 0) * 0.75).toLocaleString()}</span>
+                      <span>₹{Math.round((maxValue || 0) * 0.5).toLocaleString()}</span>
+                      <span>₹{Math.round((maxValue || 0) * 0.25).toLocaleString()}</span>
                       <span>₹0</span>
                     </div>
                     
@@ -230,7 +235,7 @@ export function Analytics3DChart({
                                         {/* Value Label */}
                                         <div className="text-center mb-2">
                                           <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                            ₹{value.toLocaleString()}
+                                            ₹{Number(value || 0).toLocaleString()}
                                           </div>
                                         </div>
                                         
@@ -273,7 +278,7 @@ export function Analytics3DChart({
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    ₹{data.reduce((sum, item) => sum + getValue(item), 0).toLocaleString()}
+                    ₹{Number(data.reduce((sum, item) => sum + getValue(item), 0) || 0).toLocaleString()}
                   </div>
                   <div className="text-sm text-muted-foreground">Total Revenue</div>
                 </CardContent>
@@ -281,7 +286,7 @@ export function Analytics3DChart({
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    ₹{Math.round(data.reduce((sum, item) => sum + getValue(item), 0) / data.length).toLocaleString()}
+                    ₹{Number(Math.round((data.reduce((sum, item) => sum + getValue(item), 0) || 0) / (data.length || 1)) || 0).toLocaleString()}
                   </div>
                   <div className="text-sm text-muted-foreground">Average</div>
                 </CardContent>
@@ -289,7 +294,7 @@ export function Analytics3DChart({
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-purple-600">
-                    ₹{Math.max(...data.map(getValue)).toLocaleString()}
+                    ₹{Number(Math.max(...data.map(getValue).filter(v => !isNaN(v))) || 0).toLocaleString()}
                   </div>
                   <div className="text-sm text-muted-foreground">Highest</div>
                 </CardContent>

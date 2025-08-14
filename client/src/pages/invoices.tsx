@@ -165,7 +165,7 @@ export default function Invoices() {
                       </div>
                       <div>
                         <h3 className="font-semibold">{invoice.invoiceNumber}</h3>
-                        <p className="text-sm text-muted-foreground">₹{Number(invoice.totalAmount).toLocaleString()}</p>
+                        <p className="text-sm text-muted-foreground">₹{Number(invoice.totalAmount || 0).toLocaleString()}</p>
                       </div>
                     </div>
                     <Badge variant="secondary" className="success-bg success-text">
