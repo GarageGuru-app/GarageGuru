@@ -110,6 +110,42 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   
+  // Request access endpoint
+  if (url.pathname === '/api/auth/request-access' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const { email, name, requestType, message } = JSON.parse(body);
+        
+        console.log('Access request received:', { email, name, requestType });
+        
+        // For now, just log the request (production deployment needs email configuration)
+        const requestData = {
+          email,
+          name,
+          requestType: requestType || 'staff',
+          message,
+          timestamp: new Date().toISOString()
+        };
+        
+        console.log('🔑 ACCESS REQUEST LOGGED:', JSON.stringify(requestData, null, 2));
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          message: `Access request received for ${name} (${email}). Request logged for super admin review. Contact administrator directly for activation codes.`,
+          requestId: Date.now().toString(36)
+        }));
+        
+      } catch (error) {
+        console.error('Request access error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: 'Internal server error', error: error.message }));
+      }
+    });
+    return;
+  }
+  
   // Login endpoint
   if (url.pathname === '/api/auth/login' && req.method === 'POST') {
     let body = '';
@@ -162,7 +198,7 @@ const server = http.createServer(async (req, res) => {
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ 
     message: 'Endpoint not found',
-    available_endpoints: ['/health', '/api/db/ping', '/api/auth/login']
+    available_endpoints: ['/health', '/api/db/ping', '/api/auth/login', '/api/auth/request-access']
   }));
 });
 
