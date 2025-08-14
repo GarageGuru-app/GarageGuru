@@ -40,32 +40,32 @@ export function Analytics3DChart({
     const periodStr = String(period || '');
     
     // Handle hourly format (YYYY-MM-DD HH:00)
-    if (periodStr.match(/^\d{4}-\d{2}-\d{2} \d{2}:00$/)) {
+    if (periodStr && periodStr.match && periodStr.match(/^\d{4}-\d{2}-\d{2} \d{2}:00$/)) {
       const date = new Date(periodStr.replace(' ', 'T') + ':00');
       return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
     }
     
     // Handle daily format (YYYY-MM-DD)
-    if (periodStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    if (periodStr && periodStr.match && periodStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const date = new Date(periodStr);
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
     
     // Handle monthly format (YYYY-MM)
-    if (periodStr.match(/^\d{4}-\d{2}$/)) {
+    if (periodStr && periodStr.match && periodStr.match(/^\d{4}-\d{2}$/)) {
       const [year, month] = periodStr.split('-');
       const date = new Date(parseInt(year), parseInt(month) - 1);
       return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     }
     
     // Handle quarterly format (YYYY-Q1, YYYY-Q2, etc.)
-    if (periodStr.match(/^\d{4}-Q[1-4]$/)) {
+    if (periodStr && periodStr.match && periodStr.match(/^\d{4}-Q[1-4]$/)) {
       const [year, quarter] = periodStr.split('-');
       return `${quarter} ${year}`;
     }
     
     // Handle yearly format (YYYY)
-    if (periodStr.match(/^\d{4}$/)) {
+    if (periodStr && periodStr.match && periodStr.match(/^\d{4}$/)) {
       return periodStr;
     }
     
@@ -140,10 +140,10 @@ export function Analytics3DChart({
                   <div className="flex">
                     {/* Y-Axis */}
                     <div className="flex flex-col justify-between h-80 pr-4 text-xs text-gray-600 dark:text-gray-400 w-16">
-                      <span>₹{Number(maxValue || 0).toLocaleString()}</span>
-                      <span>₹{Math.round((maxValue || 0) * 0.75).toLocaleString()}</span>
-                      <span>₹{Math.round((maxValue || 0) * 0.5).toLocaleString()}</span>
-                      <span>₹{Math.round((maxValue || 0) * 0.25).toLocaleString()}</span>
+                      <span>₹{(Number(maxValue) || 0).toLocaleString()}</span>
+                      <span>₹{(Math.round((Number(maxValue) || 0) * 0.75) || 0).toLocaleString()}</span>
+                      <span>₹{(Math.round((Number(maxValue) || 0) * 0.5) || 0).toLocaleString()}</span>
+                      <span>₹{(Math.round((Number(maxValue) || 0) * 0.25) || 0).toLocaleString()}</span>
                       <span>₹0</span>
                     </div>
                     
@@ -281,7 +281,7 @@ export function Analytics3DChart({
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    ₹{Number(data.reduce((sum, item) => sum + getValue(item), 0) || 0).toLocaleString()}
+                    ₹{(Number(data.reduce((sum, item) => sum + getValue(item), 0)) || 0).toLocaleString()}
                   </div>
                   <div className="text-sm text-muted-foreground">Total Revenue</div>
                 </CardContent>
@@ -289,7 +289,7 @@ export function Analytics3DChart({
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    ₹{Number(Math.round((data.reduce((sum, item) => sum + getValue(item), 0) || 0) / (data.length || 1)) || 0).toLocaleString()}
+                    ₹{(Number(Math.round((data.reduce((sum, item) => sum + getValue(item), 0) || 0) / (data.length || 1))) || 0).toLocaleString()}
                   </div>
                   <div className="text-sm text-muted-foreground">Average</div>
                 </CardContent>
@@ -297,7 +297,7 @@ export function Analytics3DChart({
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-purple-600">
-                    ₹{Number(Math.max(...data.map(getValue).filter(v => !isNaN(v))) || 0).toLocaleString()}
+                    ₹{(Number(Math.max(...data.map(getValue).filter(v => !isNaN(v)))) || 0).toLocaleString()}
                   </div>
                   <div className="text-sm text-muted-foreground">Highest</div>
                 </CardContent>
