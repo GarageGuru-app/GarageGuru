@@ -1,5 +1,15 @@
--- Run this in your Supabase SQL Editor to create tables immediately
+# 🗄️ RUN THIS SQL IN SUPABASE NOW
 
+## 📋 **STEP-BY-STEP INSTRUCTIONS**
+
+### **Step 1: Go to Supabase SQL Editor**
+1. Open your Supabase dashboard
+2. Click on **"SQL Editor"** in the left sidebar
+3. Click **"New query"** button
+
+### **Step 2: Copy and Paste This Entire Script**
+
+```sql
 -- Create garages table
 CREATE TABLE IF NOT EXISTS garages (
   id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -95,8 +105,30 @@ CREATE INDEX IF NOT EXISTS idx_invoices_garage_id ON invoices(garage_id);
 INSERT INTO users (email, password, role, name, garage_id) 
 VALUES (
   'ananthautomotivegarage@gmail.com',
-  '$2b$10$AhdsLWkqePU9.E85tmisN.HpMYTrdFSMxjLEm.GooKqlkNTwFR0JK',  -- password123
+  '$2b$10$AhdsLWkqePU9.E85tmisN.HpMYTrdFSMxjLEm.GooKqlkNTwFR0JK',
   'super_admin',
   'Super Admin',
   NULL
 ) ON CONFLICT (email) DO NOTHING;
+```
+
+### **Step 3: Execute the Script**
+1. Click the **"Run"** button (or press Ctrl+Enter)
+2. Wait for success message
+3. Check the **"Tables"** section - you should see 6 new tables
+
+### **Step 4: Verify Setup**
+You should now see these tables in your Supabase dashboard:
+- ✅ `garages`
+- ✅ `users` 
+- ✅ `customers`
+- ✅ `spare_parts`
+- ✅ `job_cards`
+- ✅ `invoices`
+
+## 🔑 **YOUR LOGIN CREDENTIALS**
+- **Email**: `ananthautomotivegarage@gmail.com`
+- **Password**: `password123`
+
+## 🚀 **NEXT STEP**
+After running this script, your Supabase database will be ready for production deployment!
