@@ -1,14 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage-simple";
+import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { insertUserSchema, insertGarageSchema, insertCustomerSchema, insertSparePartSchema, insertJobCardSchema, insertInvoiceSchema } from "../shared/schema";
 import { z } from "zod";
 import { EmailService } from "./emailService";
 import { GmailEmailService } from "./gmailEmailService";
-import { db } from "./db";
-import { sql } from "drizzle-orm";
+import { pool } from "./db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
 
@@ -77,6 +76,29 @@ export async function registerRoutes(app: Express): Promise<void> {
       service: 'garage-guru-backend',
       environment: process.env.NODE_ENV || 'development'
     });
+  });
+
+  // Database ping route
+  app.get('/api/db/ping', async (req, res) => {
+    try {
+      const pingResult = await storage.ping();
+      const result = await pool.query('SELECT 1 as ping, NOW() as timestamp, version() as db_version');
+      res.json({
+        success: true,
+        ping: result.rows[0].ping,
+        timestamp: result.rows[0].timestamp,
+        database_version: result.rows[0].db_version,
+        storage_ping: pingResult,
+        database_url: process.env.DATABASE_URL ? 'configured' : 'missing'
+      });
+    } catch (error: any) {
+      console.error('Database ping error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        database_url: process.env.DATABASE_URL ? 'configured' : 'missing'
+      });
+    }
   });
 
   // Database debug and schema setup endpoint

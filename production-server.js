@@ -3,8 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { Pool } = require('@neondatabase/serverless');
-const { drizzle } = require('drizzle-orm/neon-serverless');
+const { Pool } = require('pg');
 
 const app = express();
 
@@ -14,12 +13,32 @@ app.use(express.json());
 
 // Database setup
 const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL 
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
-const db = drizzle({ client: pool });
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
+
+// Database ping route
+app.get('/api/db/ping', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT 1 as ping, NOW() as timestamp');
+    res.json({
+      success: true,
+      ping: result.rows[0].ping,
+      timestamp: result.rows[0].timestamp,
+      database_url: process.env.DATABASE_URL ? 'configured' : 'missing'
+    });
+  } catch (error) {
+    console.error('Database ping error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      database_url: process.env.DATABASE_URL ? 'configured' : 'missing'
+    });
+  }
+});
 
 // Health check
 app.get('/health', (req, res) => {

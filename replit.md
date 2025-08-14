@@ -46,9 +46,9 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### Database
-- **PostgreSQL**: Primary database.
-- **Neon Database**: Serverless PostgreSQL provider via `@neondatabase/serverless`.
-- **Drizzle Kit**: Database migrations and schema management.
+- **PostgreSQL**: Primary database using standard `pg` driver.
+- **Neon Database**: PostgreSQL provider with direct connection (replaced serverless driver).
+- **Raw SQL Queries**: Replaced Drizzle ORM with direct PostgreSQL queries for better reliability.
 
 ### UI Libraries
 - **Radix UI**: Accessible component primitives.

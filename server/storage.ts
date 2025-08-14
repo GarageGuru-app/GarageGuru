@@ -1,30 +1,90 @@
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
-import { 
-  garages, users, customers, spareParts, jobCards, invoices, superAdminRequests,
-  type Garage, type User, type Customer, type SparePart, type JobCard, type Invoice,
-  type SuperAdminRequest,
-  type InsertGarage, type InsertUser, type InsertCustomer, type InsertSparePart, type InsertJobCard, type InsertInvoice,
-  type InsertSuperAdminRequest
-} from "./schema.js";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { pool } from "./db.js";
 
-neonConfig.webSocketConstructor = ws;
-
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL is required");
+// Type definitions (keeping the same interface types)
+export interface User {
+  id: string;
+  email: string;
+  password: string;
+  role: string;
+  garage_id: string | null;
+  name: string | null;
+  created_at: Date;
 }
 
-const pool = new Pool({ connectionString });
-const db = drizzle({ client: pool });
+export interface Garage {
+  id: string;
+  name: string;
+  owner_name: string;
+  phone: string | null;
+  email: string | null;
+  logo: string | null;
+  created_at: Date;
+}
+
+export interface Customer {
+  id: string;
+  garage_id: string;
+  name: string;
+  phone: string | null;
+  bike_number: string | null;
+  total_jobs: number;
+  total_spent: number;
+  last_visit: Date | null;
+  created_at: Date;
+  notes: string | null;
+}
+
+export interface SparePart {
+  id: string;
+  garage_id: string;
+  name: string;
+  part_number: string | null;
+  price: number;
+  quantity: number;
+  low_stock_threshold: number;
+  barcode: string | null;
+  created_at: Date;
+  cost_price: number | null;
+}
+
+export interface JobCard {
+  id: string;
+  garage_id: string;
+  customer_id: string | null;
+  customer_name: string;
+  phone: string | null;
+  bike_number: string | null;
+  complaint: string;
+  status: string;
+  spare_parts: any;
+  service_charge: number;
+  total_amount: number;
+  created_at: Date;
+  completed_at: Date | null;
+}
+
+export interface Invoice {
+  id: string;
+  garage_id: string;
+  job_card_id: string | null;
+  customer_id: string | null;
+  invoice_number: string;
+  pdf_url: string | null;
+  whatsapp_sent: boolean;
+  total_amount: number;
+  parts_total: number;
+  service_charge: number;
+  created_at: Date;
+}
 
 export interface IStorage {
+  // Database health
+  ping(): Promise<boolean>;
+  
   // Auth
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  createGarage(garage: InsertGarage): Promise<Garage>;
+  createUser(user: Partial<User>): Promise<User>;
+  createGarage(garage: Partial<Garage>): Promise<Garage>;
   
   // Garages
   getGarage(id: string): Promise<Garage | undefined>;
@@ -34,7 +94,7 @@ export interface IStorage {
   getCustomers(garageId: string): Promise<Customer[]>;
   getCustomer(id: string, garageId: string): Promise<Customer | undefined>;
   searchCustomers(garageId: string, query: string): Promise<Customer[]>;
-  createCustomer(customer: InsertCustomer): Promise<Customer>;
+  createCustomer(customer: Partial<Customer>): Promise<Customer>;
   updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer>;
   
   // Spare Parts
@@ -42,20 +102,20 @@ export interface IStorage {
   getLowStockParts(garageId: string): Promise<SparePart[]>;
   getSparePart(id: string, garageId: string): Promise<SparePart | undefined>;
   searchSpareParts(garageId: string, query: string): Promise<SparePart[]>;
-  createSparePart(part: InsertSparePart): Promise<SparePart>;
+  createSparePart(part: Partial<SparePart>): Promise<SparePart>;
   updateSparePart(id: string, part: Partial<SparePart>): Promise<SparePart>;
   deleteSparePart(id: string, garageId: string): Promise<void>;
   
   // Job Cards
   getJobCards(garageId: string, status?: string): Promise<JobCard[]>;
   getJobCard(id: string, garageId: string): Promise<JobCard | undefined>;
-  createJobCard(jobCard: InsertJobCard): Promise<JobCard>;
+  createJobCard(jobCard: Partial<JobCard>): Promise<JobCard>;
   updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard>;
   
   // Invoices
   getInvoices(garageId: string): Promise<Invoice[]>;
   getCustomerInvoices(customerId: string, garageId: string): Promise<Invoice[]>;
-  createInvoice(invoice: InsertInvoice): Promise<Invoice>;
+  createInvoice(invoice: Partial<Invoice>): Promise<Invoice>;
   updateInvoice(id: string, invoice: Partial<Invoice>): Promise<Invoice>;
   
   // Analytics
@@ -74,248 +134,241 @@ export interface IStorage {
   }>>;
 }
 
-export class SupabaseStorage implements IStorage {
+export class DatabaseStorage implements IStorage {
+  async ping(): Promise<boolean> {
+    try {
+      const result = await pool.query('SELECT 1 as ping');
+      return result.rows[0]?.ping === 1;
+    } catch (error) {
+      console.error('Database ping failed:', error);
+      return false;
+    }
+  }
+
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    return result[0];
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE email = $1 LIMIT 1', [email]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('getUserByEmail error:', error);
+      return undefined;
+    }
   }
 
-  async createUser(user: InsertUser): Promise<User> {
-    const result = await db.insert(users).values([user]).returning();
-    return result[0];
+  async createUser(user: Partial<User>): Promise<User> {
+    const id = user.id || crypto.randomUUID();
+    const result = await pool.query(
+      'INSERT INTO users (id, email, password, role, garage_id, name, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [id, user.email, user.password, user.role, user.garage_id, user.name, new Date()]
+    );
+    return result.rows[0];
   }
 
-  async createGarage(garage: InsertGarage): Promise<Garage> {
-    const result = await db.insert(garages).values([garage]).returning();
-    return result[0];
+  async createGarage(garage: Partial<Garage>): Promise<Garage> {
+    const id = garage.id || crypto.randomUUID();
+    const result = await pool.query(
+      'INSERT INTO garages (id, name, owner_name, phone, email, logo, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [id, garage.name, garage.owner_name, garage.phone, garage.email, garage.logo, new Date()]
+    );
+    return result.rows[0];
   }
 
   async getGarage(id: string): Promise<Garage | undefined> {
-    const result = await db.select().from(garages).where(eq(garages.id, id)).limit(1);
-    return result[0];
+    try {
+      const result = await pool.query('SELECT * FROM garages WHERE id = $1', [id]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('getGarage error:', error);
+      return undefined;
+    }
   }
 
   async updateGarage(id: string, garage: Partial<Garage>): Promise<Garage> {
-    const result = await db.update(garages).set(garage).where(eq(garages.id, id)).returning();
-    return result[0];
+    const result = await pool.query(
+      'UPDATE garages SET name = COALESCE($2, name), owner_name = COALESCE($3, owner_name), phone = COALESCE($4, phone), email = COALESCE($5, email), logo = COALESCE($6, logo) WHERE id = $1 RETURNING *',
+      [id, garage.name, garage.owner_name, garage.phone, garage.email, garage.logo]
+    );
+    return result.rows[0];
   }
 
   async getCustomers(garageId: string): Promise<Customer[]> {
-    return await db.select().from(customers).where(eq(customers.garageId, garageId)).orderBy(desc(customers.createdAt));
+    const result = await pool.query('SELECT * FROM customers WHERE garage_id = $1 ORDER BY created_at DESC', [garageId]);
+    return result.rows;
   }
 
   async getCustomer(id: string, garageId: string): Promise<Customer | undefined> {
-    const result = await db.select().from(customers)
-      .where(and(eq(customers.id, id), eq(customers.garageId, garageId)))
-      .limit(1);
-    return result[0];
-  }
-
-  async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    const result = await db.insert(customers).values([customer]).returning();
-    return result[0];
-  }
-
-  async updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer> {
-    const result = await db.update(customers).set(customer).where(eq(customers.id, id)).returning();
-    return result[0];
+    try {
+      const result = await pool.query('SELECT * FROM customers WHERE id = $1 AND garage_id = $2', [id, garageId]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('getCustomer error:', error);
+      return undefined;
+    }
   }
 
   async searchCustomers(garageId: string, query: string): Promise<Customer[]> {
-    const searchTerm = `%${query.toLowerCase()}%`;
-    return await db.select().from(customers)
-      .where(and(
-        eq(customers.garageId, garageId),
-        sql`(LOWER(${customers.name}) LIKE ${searchTerm} OR LOWER(${customers.phone}) LIKE ${searchTerm} OR LOWER(${customers.bikeNumber}) LIKE ${searchTerm})`
-      ))
-      .orderBy(desc(customers.createdAt))
-      .limit(10);
+    const result = await pool.query(
+      'SELECT * FROM customers WHERE garage_id = $1 AND (name ILIKE $2 OR phone ILIKE $2 OR bike_number ILIKE $2)',
+      [garageId, `%${query}%`]
+    );
+    return result.rows;
   }
 
-  async searchSpareParts(garageId: string, query: string): Promise<SparePart[]> {
-    const searchTerm = `%${query.toLowerCase()}%`;
-    return await db.select().from(spareParts)
-      .where(and(
-        eq(spareParts.garageId, garageId),
-        sql`(LOWER(${spareParts.partNumber}) LIKE ${searchTerm} OR LOWER(${spareParts.name}) LIKE ${searchTerm})`
-      ))
-      .orderBy(desc(spareParts.createdAt))
-      .limit(10);
+  async createCustomer(customer: Partial<Customer>): Promise<Customer> {
+    const id = customer.id || crypto.randomUUID();
+    const result = await pool.query(
+      'INSERT INTO customers (id, garage_id, name, phone, bike_number, total_jobs, total_spent, last_visit, created_at, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+      [id, customer.garage_id, customer.name, customer.phone, customer.bike_number, customer.total_jobs || 0, customer.total_spent || 0, customer.last_visit, new Date(), customer.notes]
+    );
+    return result.rows[0];
   }
 
+  async updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer> {
+    const result = await pool.query(
+      'UPDATE customers SET name = COALESCE($2, name), phone = COALESCE($3, phone), bike_number = COALESCE($4, bike_number), total_jobs = COALESCE($5, total_jobs), total_spent = COALESCE($6, total_spent), last_visit = COALESCE($7, last_visit), notes = COALESCE($8, notes) WHERE id = $1 RETURNING *',
+      [id, customer.name, customer.phone, customer.bike_number, customer.total_jobs, customer.total_spent, customer.last_visit, customer.notes]
+    );
+    return result.rows[0];
+  }
+
+  // Spare Parts methods
   async getSpareParts(garageId: string): Promise<SparePart[]> {
-    try {
-      return await db.select().from(spareParts).where(eq(spareParts.garageId, garageId)).orderBy(desc(spareParts.createdAt));
-    } catch (error) {
-      console.error('Error fetching spare parts:', error);
-      return [];
-    }
+    const result = await pool.query('SELECT * FROM spare_parts WHERE garage_id = $1 ORDER BY created_at DESC', [garageId]);
+    return result.rows;
   }
 
   async getLowStockParts(garageId: string): Promise<SparePart[]> {
-    try {
-      return await db.select().from(spareParts)
-        .where(and(
-          eq(spareParts.garageId, garageId),
-          sql`quantity <= low_stock_threshold`
-        ));
-    } catch (error) {
-      console.error('Error fetching low stock parts:', error);
-      return [];
-    }
-  }
-
-  async createLowStockNotifications(garageId: string): Promise<void> {
-    try {
-      const lowStockParts = await this.getLowStockParts(garageId);
-      
-      // Remove existing low stock notifications for this garage
-      await db.delete(notifications)
-        .where(and(
-          eq(notifications.garageId, garageId),
-          eq(notifications.type, 'low_stock')
-        ));
-
-      // Create new notifications for each low stock part
-      if (lowStockParts.length > 0) {
-        const notificationsToInsert = lowStockParts.map(part => ({
-          garageId,
-          type: 'low_stock',
-          title: 'Low Stock Alert',
-          message: `${part.name} (${part.partNumber}) is running low. Only ${part.quantity} left.`,
-          isRead: false,
-          data: { partId: part.id, partNumber: part.partNumber, currentStock: part.quantity }
-        }));
-
-        await db.insert(notifications).values(notificationsToInsert);
-      }
-    } catch (error) {
-      console.error('Error creating low stock notifications:', error);
-    }
+    const result = await pool.query('SELECT * FROM spare_parts WHERE garage_id = $1 AND quantity <= low_stock_threshold', [garageId]);
+    return result.rows;
   }
 
   async getSparePart(id: string, garageId: string): Promise<SparePart | undefined> {
-    const result = await db.select().from(spareParts)
-      .where(and(eq(spareParts.id, id), eq(spareParts.garageId, garageId)))
-      .limit(1);
-    return result[0];
+    try {
+      const result = await pool.query('SELECT * FROM spare_parts WHERE id = $1 AND garage_id = $2', [id, garageId]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('getSparePart error:', error);
+      return undefined;
+    }
   }
 
-  async createSparePart(part: InsertSparePart): Promise<SparePart> {
-    try {
-      const result = await db.insert(spareParts).values([part]).returning();
-      return result[0];
-    } catch (error: any) {
-      if (error.code === '23505' && error.constraint === 'spare_parts_part_number_unique') {
-        throw new Error(`Part number "${part.partNumber}" already exists`);
-      }
-      throw error;
-    }
+  async searchSpareParts(garageId: string, query: string): Promise<SparePart[]> {
+    const result = await pool.query(
+      'SELECT * FROM spare_parts WHERE garage_id = $1 AND (name ILIKE $2 OR part_number ILIKE $2)',
+      [garageId, `%${query}%`]
+    );
+    return result.rows;
+  }
+
+  async createSparePart(part: Partial<SparePart>): Promise<SparePart> {
+    const id = part.id || crypto.randomUUID();
+    const result = await pool.query(
+      'INSERT INTO spare_parts (id, garage_id, name, part_number, price, quantity, low_stock_threshold, barcode, created_at, cost_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+      [id, part.garage_id, part.name, part.part_number, part.price, part.quantity || 0, part.low_stock_threshold || 5, part.barcode, new Date(), part.cost_price]
+    );
+    return result.rows[0];
   }
 
   async updateSparePart(id: string, part: Partial<SparePart>): Promise<SparePart> {
-    const result = await db.update(spareParts).set(part).where(eq(spareParts.id, id)).returning();
-    return result[0];
+    const result = await pool.query(
+      'UPDATE spare_parts SET name = COALESCE($2, name), part_number = COALESCE($3, part_number), price = COALESCE($4, price), quantity = COALESCE($5, quantity), low_stock_threshold = COALESCE($6, low_stock_threshold), barcode = COALESCE($7, barcode), cost_price = COALESCE($8, cost_price) WHERE id = $1 RETURNING *',
+      [id, part.name, part.part_number, part.price, part.quantity, part.low_stock_threshold, part.barcode, part.cost_price]
+    );
+    return result.rows[0];
   }
 
   async deleteSparePart(id: string, garageId: string): Promise<void> {
-    await db.delete(spareParts).where(and(eq(spareParts.id, id), eq(spareParts.garageId, garageId)));
+    await pool.query('DELETE FROM spare_parts WHERE id = $1 AND garage_id = $2', [id, garageId]);
   }
 
+  // Job Cards (simplified implementation)
   async getJobCards(garageId: string, status?: string): Promise<JobCard[]> {
-    const conditions = [eq(jobCards.garageId, garageId)];
+    let query = 'SELECT * FROM job_cards WHERE garage_id = $1';
+    let params = [garageId];
+    
     if (status) {
-      conditions.push(eq(jobCards.status, status));
+      query += ' AND status = $2';
+      params.push(status);
     }
     
-    return await db.select().from(jobCards)
-      .where(and(...conditions))
-      .orderBy(desc(jobCards.createdAt));
+    query += ' ORDER BY created_at DESC';
+    const result = await pool.query(query, params);
+    return result.rows;
   }
 
   async getJobCard(id: string, garageId: string): Promise<JobCard | undefined> {
-    const result = await db.select().from(jobCards)
-      .where(and(eq(jobCards.id, id), eq(jobCards.garageId, garageId)))
-      .limit(1);
-    return result[0];
+    try {
+      const result = await pool.query('SELECT * FROM job_cards WHERE id = $1 AND garage_id = $2', [id, garageId]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('getJobCard error:', error);
+      return undefined;
+    }
   }
 
-  async createJobCard(jobCard: any): Promise<JobCard> {
-    const result = await db.insert(jobCards).values([jobCard]).returning();
-    return result[0];
+  async createJobCard(jobCard: Partial<JobCard>): Promise<JobCard> {
+    const id = jobCard.id || crypto.randomUUID();
+    const result = await pool.query(
+      'INSERT INTO job_cards (id, garage_id, customer_id, customer_name, phone, bike_number, complaint, status, spare_parts, service_charge, total_amount, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
+      [id, jobCard.garage_id, jobCard.customer_id, jobCard.customer_name, jobCard.phone, jobCard.bike_number, jobCard.complaint, jobCard.status || 'pending', JSON.stringify(jobCard.spare_parts), jobCard.service_charge || 0, jobCard.total_amount || 0, new Date()]
+    );
+    return result.rows[0];
   }
 
   async updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard> {
-    const result = await db.update(jobCards).set(jobCard).where(eq(jobCards.id, id)).returning();
-    return result[0];
+    const result = await pool.query(
+      'UPDATE job_cards SET status = COALESCE($2, status), service_charge = COALESCE($3, service_charge), total_amount = COALESCE($4, total_amount), completed_at = COALESCE($5, completed_at) WHERE id = $1 RETURNING *',
+      [id, jobCard.status, jobCard.service_charge, jobCard.total_amount, jobCard.completed_at]
+    );
+    return result.rows[0];
   }
 
-  async getInvoices(garageId: string): Promise<any[]> {
-    return await db.select({
-      id: invoices.id,
-      garageId: invoices.garageId,
-      jobCardId: invoices.jobCardId,
-      customerId: invoices.customerId,
-      invoiceNumber: invoices.invoiceNumber,
-      pdfUrl: invoices.pdfUrl,
-      whatsappSent: invoices.whatsappSent,
-      totalAmount: invoices.totalAmount,
-      partsTotal: invoices.partsTotal,
-      serviceCharge: invoices.serviceCharge,
-      createdAt: invoices.createdAt,
-      jobCard: {
-        customerName: sql`COALESCE(${jobCards.customerName}, 'Unknown')`.as('customerName'),
-        phone: sql`COALESCE(${jobCards.phone}, '')`.as('phone'),
-        bikeNumber: sql`COALESCE(${jobCards.bikeNumber}, '')`.as('bikeNumber'),
-        complaint: sql`COALESCE(${jobCards.complaint}, '')`.as('complaint')
-      }
-    })
-    .from(invoices)
-    .leftJoin(jobCards, eq(invoices.jobCardId, jobCards.id))
-    .where(eq(invoices.garageId, garageId))
-    .orderBy(desc(invoices.createdAt));
+  // Invoices (simplified implementation)
+  async getInvoices(garageId: string): Promise<Invoice[]> {
+    const result = await pool.query('SELECT * FROM invoices WHERE garage_id = $1 ORDER BY created_at DESC', [garageId]);
+    return result.rows;
   }
 
   async getCustomerInvoices(customerId: string, garageId: string): Promise<Invoice[]> {
-    return await db.select().from(invoices)
-      .where(and(eq(invoices.customerId, customerId), eq(invoices.garageId, garageId)))
-      .orderBy(desc(invoices.createdAt));
+    const result = await pool.query('SELECT * FROM invoices WHERE customer_id = $1 AND garage_id = $2 ORDER BY created_at DESC', [customerId, garageId]);
+    return result.rows;
   }
 
-  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
-    const result = await db.insert(invoices).values([invoice]).returning();
-    return result[0];
+  async createInvoice(invoice: Partial<Invoice>): Promise<Invoice> {
+    const id = invoice.id || crypto.randomUUID();
+    const result = await pool.query(
+      'INSERT INTO invoices (id, garage_id, job_card_id, customer_id, invoice_number, pdf_url, whatsapp_sent, total_amount, parts_total, service_charge, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+      [id, invoice.garage_id, invoice.job_card_id, invoice.customer_id, invoice.invoice_number, invoice.pdf_url, invoice.whatsapp_sent || false, invoice.total_amount || 0, invoice.parts_total || 0, invoice.service_charge || 0, new Date()]
+    );
+    return result.rows[0];
   }
 
   async updateInvoice(id: string, invoice: Partial<Invoice>): Promise<Invoice> {
-    const result = await db.update(invoices).set(invoice).where(eq(invoices.id, id)).returning();
-    return result[0];
+    const result = await pool.query(
+      'UPDATE invoices SET whatsapp_sent = COALESCE($2, whatsapp_sent), pdf_url = COALESCE($3, pdf_url) WHERE id = $1 RETURNING *',
+      [id, invoice.whatsapp_sent, invoice.pdf_url]
+    );
+    return result.rows[0];
   }
 
+  // Analytics (simplified implementation)
   async getSalesStats(garageId: string): Promise<{
     totalInvoices: number;
     totalPartsTotal: number;
     totalServiceCharges: number;
     totalProfit: number;
   }> {
-    const result = await db.select({
-      totalInvoices: sql<number>`count(*)`,
-      totalPartsTotal: sql<number>`sum(${invoices.partsTotal})`,
-      totalServiceCharges: sql<number>`sum(${invoices.serviceCharge})`,
-    }).from(invoices).where(eq(invoices.garageId, garageId));
-
-    const stats = result[0];
-    const partsRevenue = Number(stats.totalPartsTotal) || 0;
-    const serviceCharges = Number(stats.totalServiceCharges) || 0;
+    const result = await pool.query(
+      'SELECT COUNT(*) as total_invoices, COALESCE(SUM(parts_total), 0) as total_parts_total, COALESCE(SUM(service_charge), 0) as total_service_charges, COALESCE(SUM(total_amount), 0) as total_profit FROM invoices WHERE garage_id = $1',
+      [garageId]
+    );
     
-    // For now, profit = service charges only (cost price calculation will be enhanced later)
-    const totalProfit = serviceCharges;
-    
+    const row = result.rows[0];
     return {
-      totalInvoices: stats.totalInvoices || 0,
-      totalPartsTotal: partsRevenue,
-      totalServiceCharges: serviceCharges,
-      totalProfit: totalProfit,
+      totalInvoices: parseInt(row.total_invoices),
+      totalPartsTotal: parseFloat(row.total_parts_total),
+      totalServiceCharges: parseFloat(row.total_service_charges), 
+      totalProfit: parseFloat(row.total_profit)
     };
   }
 
@@ -325,263 +378,28 @@ export class SupabaseStorage implements IStorage {
     serviceCharges: number;
     invoiceCount: number;
   }>> {
-    const result = await db.select({
-      month: sql<string>`to_char(${invoices.createdAt}, 'Month')`,
-      year: sql<number>`extract(year from ${invoices.createdAt})`,
-      serviceCharges: sql<number>`sum(${invoices.serviceCharge})`,
-      invoiceCount: sql<number>`count(*)`,
-    })
-    .from(invoices)
-    .where(eq(invoices.garageId, garageId))
-    .groupBy(
-      sql`extract(year from ${invoices.createdAt})`,
-      sql`extract(month from ${invoices.createdAt})`,
-      sql`to_char(${invoices.createdAt}, 'Month')`
-    )
-    .orderBy(
-      sql`extract(year from ${invoices.createdAt}) desc`,
-      sql`extract(month from ${invoices.createdAt}) desc`
-    )
-    .limit(6);
+    const result = await pool.query(
+      `SELECT 
+        EXTRACT(MONTH FROM created_at) as month,
+        EXTRACT(YEAR FROM created_at) as year,
+        COALESCE(SUM(service_charge), 0) as service_charges,
+        COUNT(*) as invoice_count
+       FROM invoices 
+       WHERE garage_id = $1 
+       GROUP BY EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)
+       ORDER BY year DESC, month DESC
+       LIMIT 12`,
+      [garageId]
+    );
 
-    return result.map(item => ({
-      month: item.month?.trim() || '',
-      year: Number(item.year) || new Date().getFullYear(),
-      serviceCharges: Number(item.serviceCharges) || 0,
-      invoiceCount: Number(item.invoiceCount) || 0,
+    return result.rows.map(row => ({
+      month: new Date(0, row.month - 1).toLocaleString('default', { month: 'short' }),
+      year: parseInt(row.year),
+      serviceCharges: parseFloat(row.service_charges),
+      invoiceCount: parseInt(row.invoice_count)
     }));
-  }
-
-  // Notifications methods
-  async getNotifications(garageId: string): Promise<SelectNotification[]> {
-    try {
-      return await db.select().from(notifications)
-        .where(eq(notifications.garageId, garageId))
-        .orderBy(desc(notifications.createdAt));
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      return [];
-    }
-  }
-
-  async createNotification(notification: InsertNotification): Promise<SelectNotification | null> {
-    try {
-      const result = await db.insert(notifications).values([notification]).returning();
-      return result[0];
-    } catch (error) {
-      console.error('Error creating notification:', error);
-      return null;
-    }
-  }
-
-  async markNotificationAsRead(id: string): Promise<void> {
-    try {
-      await db.update(notifications)
-        .set({ isRead: true })
-        .where(eq(notifications.id, id));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  }
-
-  async markAllNotificationsAsRead(garageId: string): Promise<void> {
-    try {
-      await db.update(notifications)
-        .set({ isRead: true })
-        .where(and(eq(notifications.garageId, garageId), eq(notifications.isRead, false)));
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  }
-
-  async getUnreadNotificationCount(garageId: string): Promise<number> {
-    try {
-      const result = await db.select({ count: sql<number>`count(*)` })
-        .from(notifications)
-        .where(and(eq(notifications.garageId, garageId), eq(notifications.isRead, false)));
-      return Number(result[0]?.count) || 0;
-    } catch (error) {
-      console.error('Error getting unread notification count:', error);
-      return 0;
-    }
-  }
-
-  // Enhanced sales analytics methods
-  async getSalesDataByDateRange(garageId: string, startDate: string, endDate: string, groupBy: 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' = 'month'): Promise<Array<{
-    period: string;
-    totalSales: number;
-    serviceCharges: number;
-    partsRevenue: number;
-    profit: number;
-    invoiceCount: number;
-  }>> {
-    try {
-      let dateFormatSql: any;
-      let groupBySql: any;
-
-      switch (groupBy) {
-        case 'hour':
-          dateFormatSql = sql`to_char(${invoices.createdAt} AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:00')`;
-          groupBySql = sql`to_char(${invoices.createdAt} AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:00')`;
-          break;
-        case 'day':
-          dateFormatSql = sql`to_char(${invoices.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD')`;
-          groupBySql = sql`to_char(${invoices.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD')`;
-          break;
-        case 'week':
-          dateFormatSql = sql`to_char(date_trunc('week', ${invoices.createdAt}), 'YYYY-MM-DD')`;
-          groupBySql = sql`to_char(date_trunc('week', ${invoices.createdAt}), 'YYYY-MM-DD')`;
-          break;
-        case 'quarter':
-          dateFormatSql = sql`to_char(date_trunc('quarter', ${invoices.createdAt}), 'YYYY') || '-Q' || extract(quarter from ${invoices.createdAt})`;
-          groupBySql = sql`to_char(date_trunc('quarter', ${invoices.createdAt}), 'YYYY') || '-Q' || extract(quarter from ${invoices.createdAt})`;
-          break;
-        case 'year':
-          dateFormatSql = sql`to_char(${invoices.createdAt}, 'YYYY')`;
-          groupBySql = sql`to_char(${invoices.createdAt}, 'YYYY')`;
-          break;
-        default: // month
-          dateFormatSql = sql`to_char(${invoices.createdAt}, 'YYYY-MM')`;
-          groupBySql = sql`to_char(${invoices.createdAt}, 'YYYY-MM')`;
-          break;
-      }
-
-      const result = await db.select({
-        period: dateFormatSql.as('period'),
-        serviceCharges: sql<number>`sum(${invoices.serviceCharge})`.as('serviceCharges'),
-        partsRevenue: sql<number>`sum(${invoices.partsTotal})`.as('partsRevenue'),
-        totalSales: sql<number>`sum(${invoices.serviceCharge} + ${invoices.partsTotal})`.as('totalSales'),
-        invoiceCount: sql<number>`count(*)`.as('invoiceCount'),
-      })
-      .from(invoices)
-      .where(and(
-        eq(invoices.garageId, garageId),
-        sql`DATE(${invoices.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') >= ${startDate}::date`,
-        sql`DATE(${invoices.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') <= ${endDate}::date`
-      ))
-      .groupBy(groupBySql)
-      .orderBy(groupBySql);
-
-      console.log(`SQL Result:`, result);
-
-      return result.map(item => ({
-        period: String(item.period) || '',
-        totalSales: Number(item.totalSales) || 0,
-        serviceCharges: Number(item.serviceCharges) || 0,
-        partsRevenue: Number(item.partsRevenue) || 0,
-        profit: Number(item.serviceCharges) || 0, // For now, profit = service charges
-        invoiceCount: Number(item.invoiceCount) || 0,
-      }));
-    } catch (error) {
-      console.error('Error fetching sales data by date range:', error);
-      return [];
-    }
-  }
-
-  // Customer analytics methods
-  async getCustomerAnalytics(garageId: string, startDate: string, endDate: string, groupBy: 'day' | 'week' | 'month' | 'quarter' | 'year' = 'month'): Promise<Array<{
-    customerId: string;
-    customerName: string;
-    serviceCount: number;
-    totalRevenue: number;
-    lastVisit: string;
-  }>> {
-    try {
-      const result = await db.select({
-        customerId: invoices.customerId,
-        customerName: customers.name,
-        serviceCount: sql<number>`count(*)`.as('serviceCount'),
-        totalRevenue: sql<number>`sum(${invoices.serviceCharge} + ${invoices.partsTotal})`.as('totalRevenue'),
-        lastVisit: sql<string>`max(${invoices.createdAt})`.as('lastVisit'),
-      })
-      .from(invoices)
-      .innerJoin(customers, eq(invoices.customerId, customers.id))
-      .where(and(
-        eq(invoices.garageId, garageId),
-        sql`${invoices.createdAt} >= ${startDate}::date`,
-        sql`${invoices.createdAt} < (${endDate}::date + interval '1 day')`
-      ))
-      .groupBy(invoices.customerId, customers.name)
-      .orderBy(sql<number>`sum(${invoices.serviceCharge} + ${invoices.partsTotal}) DESC`);
-
-      return result.map(item => ({
-        customerId: String(item.customerId) || '',
-        customerName: String(item.customerName) || '',
-        serviceCount: Number(item.serviceCount) || 0,
-        totalRevenue: Number(item.totalRevenue) || 0,
-        lastVisit: String(item.lastVisit) || '',
-      }));
-    } catch (error) {
-      console.error('Error fetching customer analytics:', error);
-      return [];
-    }
-  }
-
-  async getTopCustomersByServices(garageId: string, startDate: string, endDate: string, limit: number = 10): Promise<Array<{
-    customerName: string;
-    serviceCount: number;
-    totalRevenue: number;
-  }>> {
-    try {
-      const result = await db.select({
-        customerName: customers.name,
-        serviceCount: sql<number>`count(*)`.as('serviceCount'),
-        totalRevenue: sql<number>`sum(${invoices.serviceCharge} + ${invoices.partsTotal})`.as('totalRevenue'),
-      })
-      .from(invoices)
-      .innerJoin(customers, eq(invoices.customerId, customers.id))
-      .where(and(
-        eq(invoices.garageId, garageId),
-        sql`${invoices.createdAt} >= ${startDate}::date`,
-        sql`${invoices.createdAt} < (${endDate}::date + interval '1 day')`
-      ))
-      .groupBy(customers.name)
-      .orderBy(sql<number>`count(*) DESC`)
-      .limit(limit);
-
-      return result.map(item => ({
-        customerName: String(item.customerName) || '',
-        serviceCount: Number(item.serviceCount) || 0,
-        totalRevenue: Number(item.totalRevenue) || 0,
-      }));
-    } catch (error) {
-      console.error('Error fetching top customers by services:', error);
-      return [];
-    }
-  }
-
-  async getTopCustomersByRevenue(garageId: string, startDate: string, endDate: string, limit: number = 10): Promise<Array<{
-    customerName: string;
-    serviceCount: number;
-    totalRevenue: number;
-  }>> {
-    try {
-      const result = await db.select({
-        customerName: customers.name,
-        serviceCount: sql<number>`count(*)`.as('serviceCount'),
-        totalRevenue: sql<number>`sum(${invoices.serviceCharge} + ${invoices.partsTotal})`.as('totalRevenue'),
-      })
-      .from(invoices)
-      .innerJoin(customers, eq(invoices.customerId, customers.id))
-      .where(and(
-        eq(invoices.garageId, garageId),
-        sql`${invoices.createdAt} >= ${startDate}::date`,
-        sql`${invoices.createdAt} < (${endDate}::date + interval '1 day')`
-      ))
-      .groupBy(customers.name)
-      .orderBy(sql<number>`sum(${invoices.serviceCharge} + ${invoices.partsTotal}) DESC`)
-      .limit(limit);
-
-      return result.map(item => ({
-        customerName: String(item.customerName) || '',
-        serviceCount: Number(item.serviceCount) || 0,
-        totalRevenue: Number(item.totalRevenue) || 0,
-      }));
-    } catch (error) {
-      console.error('Error fetching top customers by revenue:', error);
-      return [];
-    }
   }
 }
 
-export const storage = new SupabaseStorage();
+// Export storage instance
+export const storage = new DatabaseStorage();
