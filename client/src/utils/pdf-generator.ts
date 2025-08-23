@@ -16,21 +16,37 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   
   let yPos = 20;
   
-  // Add logo if exists
+  // Add logo if exists - optimized for smaller file size
   if (garage.logo) {
     try {
       const response = await fetch(garage.logo);
       const blob = await response.blob();
-      const reader = new FileReader();
       
-      const imageData = await new Promise<string>((resolve) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(blob);
-      });
-      
-      // Add logo to PDF (small size on the left)
-      pdf.addImage(imageData, 'JPEG', 20, 10, 40, 20);
-      yPos = 35;
+      // Only process if image is reasonable size (< 500KB)
+      if (blob.size < 500000) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        const imageData = await new Promise<string>((resolve, reject) => {
+          img.onload = () => {
+            // Resize to small dimensions for PDF
+            canvas.width = 120;
+            canvas.height = 60;
+            ctx?.drawImage(img, 0, 0, 120, 60);
+            
+            // Convert to JPEG with compression
+            const compressedData = canvas.toDataURL('image/jpeg', 0.7);
+            resolve(compressedData);
+          };
+          img.onerror = reject;
+          img.src = URL.createObjectURL(blob);
+        });
+        
+        // Add compressed logo to PDF
+        pdf.addImage(imageData, 'JPEG', 20, 10, 30, 15);
+        yPos = 35;
+      }
     } catch (error) {
       console.error('Failed to load logo:', error);
       // Continue without logo
@@ -58,9 +74,9 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   yPos += 50;
   pdf.text(`Invoice Number: ${invoiceNumber}`, 20, yPos);
   pdf.text(`Date: ${new Date().toLocaleDateString()}`, 20, yPos + 10);
-  pdf.text(`Customer: ${jobCard.customer_name}`, 20, yPos + 20);
+  pdf.text(`Customer: ${jobCard.customerName}`, 20, yPos + 20);
   pdf.text(`Phone: ${jobCard.phone}`, 20, yPos + 30);
-  pdf.text(`Bike Number: ${jobCard.bike_number}`, 20, yPos + 40);
+  pdf.text(`Bike Number: ${jobCard.bikeNumber}`, 20, yPos + 40);
   
   // Services & Parts
   yPos += 60;
@@ -72,13 +88,13 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   
   let partsTotal = 0;
   
-  if (jobCard.spare_parts && Array.isArray(jobCard.spare_parts)) {
-    jobCard.spare_parts.forEach((part: any) => {
+  if (jobCard.spareParts && Array.isArray(jobCard.spareParts)) {
+    jobCard.spareParts.forEach((part: any) => {
       const lineTotal = part.price * part.quantity;
       partsTotal += lineTotal;
       
       // Display both part number and name
-      const partDisplay = part.part_number ? `PN: ${part.part_number} — ${part.name}` : part.name;
+      const partDisplay = part.partNumber ? `PN: ${part.partNumber} — ${part.name}` : part.name;
       pdf.text(`${partDisplay} — Qty ${part.quantity} x ₹${part.price}`, 20, yPos);
       pdf.text(`₹${lineTotal.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
       yPos += 10;
