@@ -359,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (role === 'garage_admin') {
         const garage = await storage.createGarage({
           name: garageName,
-          ownerName,
+          owner_name: ownerName || name,
           phone,
           email
         });
