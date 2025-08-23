@@ -29,9 +29,9 @@ export default function Customers() {
   });
 
   const filteredCustomers = customers.filter((customer: any) =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.includes(searchTerm) ||
-    customer.bikeNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    customer.name?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
+    customer.phone?.includes(searchTerm) ||
+    customer.bikeNumber?.toLowerCase?.()?.includes(searchTerm.toLowerCase())
   );
 
   const formatLastVisit = (dateString: string | null) => {

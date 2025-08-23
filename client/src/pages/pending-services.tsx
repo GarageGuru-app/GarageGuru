@@ -29,8 +29,8 @@ export default function PendingServices() {
   });
 
   const filteredJobs = pendingJobs.filter((job: any) =>
-    job.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.bike_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    job.customer_name?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
+    job.bike_number?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
     job.phone?.includes(searchTerm)
   );
 

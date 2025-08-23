@@ -103,8 +103,8 @@ export default function Invoice() {
     const now = new Date();
     const yyyyMMdd = now.toISOString().slice(0, 10).replace(/-/g, '');
     const HHmmss = now.toTimeString().slice(0, 8).replace(/:/g, '');
-    const customerNameSlug = jobCard.customerName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-    const bikeNoSlug = jobCard.bikeNumber.replace(/[^a-zA-Z0-9]/g, '');
+    const customerNameSlug = (jobCard.customer_name || 'customer').toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    const bikeNoSlug = (jobCard.bike_number || 'bike').replace(/[^a-zA-Z0-9]/g, '');
     const garageIdShort = garage?.id?.slice(0, 8) || 'garage';
     
     return `INV-${yyyyMMdd}-${HHmmss}-${garageIdShort}-${customerNameSlug}-${bikeNoSlug}-${invoiceId}`;

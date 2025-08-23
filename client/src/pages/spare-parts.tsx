@@ -209,8 +209,8 @@ export default function SpareParts() {
 
   const filteredParts = spareParts.filter((part: any) => {
     const matchesSearch =
-      part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      part.partNumber.toLowerCase().includes(searchTerm.toLowerCase());
+      part.name?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
+      part.partNumber?.toLowerCase?.()?.includes(searchTerm.toLowerCase());
 
     if (showLowStockOnly) {
       return matchesSearch && part.quantity <= part.lowStockThreshold;
@@ -255,7 +255,7 @@ export default function SpareParts() {
     if (!editingPart) {
       const existingPart = spareParts.find(
         (part: any) =>
-          part.partNumber.toLowerCase() === formData.partNumber.toLowerCase(),
+          part.partNumber?.toLowerCase?.() === formData.partNumber?.toLowerCase?.(),
       );
 
       if (existingPart) {

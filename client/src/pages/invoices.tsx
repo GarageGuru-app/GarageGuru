@@ -25,9 +25,9 @@ export default function Invoices() {
   });
 
   const filteredInvoices = invoices.filter((invoice: any) =>
-    invoice.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.bike_number?.toLowerCase().includes(searchTerm.toLowerCase())
+    invoice.invoice_number?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
+    invoice.customer_name?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
+    invoice.bike_number?.toLowerCase?.()?.includes(searchTerm.toLowerCase())
   );
 
   const formatDate = (dateString: string | null | undefined) => {
