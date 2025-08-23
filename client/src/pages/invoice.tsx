@@ -119,14 +119,14 @@ export default function Invoice() {
       console.log('Creating invoice with data:', {
         jobCardId: jobCard.id,
         invoiceNumber,
-        customerName: jobCard.customerName,
-        bikeNumber: jobCard.bikeNumber,
+        customerName: jobCard.customer_name,
+        bikeNumber: jobCard.bike_number,
         complaint: jobCard.complaint,
         spareParts: jobCard.spareParts,
         serviceCharge,
         partsTotal,
         totalAmount,
-        customerId: jobCard.customerId
+        customerId: jobCard.customer_id
       });
 
       // Generate PDF
@@ -143,7 +143,7 @@ export default function Invoice() {
       // Create invoice record
       const createdInvoice = await createInvoiceMutation.mutateAsync({
         jobCardId: jobCard.id,
-        customerId: jobCard.customerId,
+        customerId: jobCard.customer_id,
         invoiceNumber,
         pdfUrl,
         totalAmount: String(totalAmount),
@@ -240,11 +240,11 @@ export default function Invoice() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Customer:</span>
-                <span>{jobCard.customerName}</span>
+                <span>{jobCard.customer_name}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Bike Number:</span>
-                <span>{jobCard.bikeNumber}</span>
+                <span>{jobCard.bike_number}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Complaint:</span>

@@ -800,7 +800,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       });
       
       // Update customer stats and check for milestones
-      const customer = await storage.getCustomer(jobCard.customerId, garageId);
+      const customer = await storage.getCustomer(invoice.customerId, garageId);
       if (customer) {
         const newTotalJobs = (customer.totalJobs || 0) + 1;
         await storage.updateCustomer(customer.id, {

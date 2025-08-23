@@ -338,7 +338,7 @@ export class DatabaseStorage implements IStorage {
   async updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard> {
     const result = await pool.query(
       'UPDATE job_cards SET status = COALESCE($2, status), service_charge = COALESCE($3, service_charge), total_amount = COALESCE($4, total_amount), completed_at = COALESCE($5, completed_at) WHERE id = $1 RETURNING *',
-      [id, jobCard.status, jobCard.service_charge, jobCard.total_amount, jobCard.completed_at]
+      [id, jobCard.status, jobCard.serviceCharge, jobCard.totalAmount, jobCard.completedAt]
     );
     return result.rows[0];
   }
@@ -358,7 +358,7 @@ export class DatabaseStorage implements IStorage {
     const id = invoice.id || crypto.randomUUID();
     const result = await pool.query(
       'INSERT INTO invoices (id, garage_id, job_card_id, customer_id, invoice_number, pdf_url, whatsapp_sent, total_amount, parts_total, service_charge, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
-      [id, invoice.garage_id, invoice.job_card_id, invoice.customer_id, invoice.invoice_number, invoice.pdf_url, invoice.whatsapp_sent || false, invoice.total_amount || 0, invoice.parts_total || 0, invoice.service_charge || 0, new Date()]
+      [id, invoice.garageId, invoice.jobCardId, invoice.customerId, invoice.invoiceNumber, invoice.pdfUrl, invoice.whatsappSent || false, invoice.totalAmount || 0, invoice.partsTotal || 0, invoice.serviceCharge || 0, new Date()]
     );
     return result.rows[0];
   }
