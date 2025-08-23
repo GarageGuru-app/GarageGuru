@@ -181,14 +181,14 @@ export default function Register() {
             <Input
               id="activationCode"
               type="text"
-              placeholder="Enter 6-digit OTP + letter (e.g., 123456a for admin, 789012s for staff)"
+              placeholder="Enter 8-character activation code (e.g., A1B2C3D4)"
               value={formData.activationCode}
               onChange={(e) => handleInputChange("activationCode", e.target.value)}
               className="bg-white/10 border-white/20 placeholder-white/70 text-white focus:border-white/50"
               required
             />
             <p className="text-xs text-blue-200 mt-1">
-              Format: 6-digit number + letter (a=admin, s=staff)<br/>
+              Format: 8-character alphanumeric code<br/>
               <span className="text-green-400">✓ Code is auto-generated when you request access</span>
             </p>
           </div>

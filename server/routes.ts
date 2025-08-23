@@ -224,10 +224,16 @@ export async function registerRoutes(app: Express): Promise<void> {
         }
       }
 
-      // Generate OTP automatically
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const roleLetter = requestType === 'admin' ? 'a' : 's';
-      const generatedActivationCode = otp + roleLetter;
+      // Generate random alphanumeric activation code
+      const generateRandomCode = () => {
+        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let result = '';
+        for (let i = 0; i < 8; i++) {
+          result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+      };
+      const generatedActivationCode = generateRandomCode();
 
       const requestData = {
         email,
@@ -355,18 +361,17 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       
       // Check for activation codes (if not set, use simple registration)
-      // Validate OTP-style activation codes (6-digit number + 'a' for admin or 's' for staff)
-      const otpPattern = /^(\d{6})([as])$/;
-      const match = activationCode.match(otpPattern);
-      
-      if (!match) {
+      // Validate alphanumeric activation code (8 characters: digits and letters)
+      const codePattern = /^[A-Z0-9]{8}$/;
+      if (!codePattern.test(activationCode)) {
         return res.status(400).json({ 
-          message: 'Invalid activation code format. Use 6-digit OTP + letter (a for admin, s for staff). Contact super admin for access.' 
+          message: 'Invalid activation code format. Use the 8-character code provided by super admin.' 
         });
       }
       
-      const [, otp, roleLetter] = match;
-      const role = roleLetter === 'a' ? 'garage_admin' : 'mechanic_staff';
+      // For now, we'll determine role based on registration form data
+      // Admin users provide garage info, staff users provide selectedGarageId
+      const role = (req.body.garageName && req.body.ownerName) ? 'garage_admin' : 'mechanic_staff';
       
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);

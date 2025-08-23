@@ -156,26 +156,26 @@ export class GmailEmailService {
               </table>
             </div>
 
-            <div style="background: #ecfccb; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 20px 0;">
-              <h4 style="margin: 0 0 15px 0; color: #065f46; font-size: 18px;">✅ Generated Activation Code</h4>
-              <div style="background: white; padding: 20px; border-radius: 8px; border: 2px solid #10b981; text-align: center;">
-                <p style="margin: 0 0 10px 0; font-size: 14px; color: #6b7280;">Ready to send to user:</p>
-                <div style="background: #f0fdf4; padding: 15px; border-radius: 6px; margin: 10px 0;">
-                  <span style="font-family: monospace; font-size: 24px; font-weight: bold; color: #065f46; letter-spacing: 2px;">${data.generatedActivationCode || 'CODE_NOT_GENERATED'}</span>
+            <div style="background: #10b981; padding: 25px; border-radius: 12px; margin: 25px 0; text-align: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+              <h4 style="margin: 0 0 15px 0; color: white; font-size: 20px;">🔑 ACTIVATION CODE</h4>
+              <div style="background: white; padding: 25px; border-radius: 8px; margin: 15px 0;">
+                <p style="margin: 0 0 10px 0; font-size: 14px; color: #6b7280;">Send this code to the user:</p>
+                <div style="background: #f9fafb; padding: 20px; border-radius: 8px; border: 2px dashed #10b981;">
+                  <span style="font-family: 'Courier New', monospace; font-size: 32px; font-weight: bold; color: #065f46; letter-spacing: 3px;">${data.generatedActivationCode || 'ERROR'}</span>
                 </div>
-                <p style="margin: 0; font-size: 12px; color: #059669; font-weight: bold;">
-                  ${data.requestType === 'admin' ? '🔴 Admin Access Code' : '🔵 Staff Access Code'}
-                </p>
               </div>
+              <p style="margin: 10px 0 0 0; color: white; font-size: 14px; font-weight: bold;">
+                ${data.requestType.toUpperCase()} ACCESS CODE
+              </p>
             </div>
 
             <div style="background: #fef3c7; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
               <h4 style="margin: 0 0 15px 0; color: #92400e; font-size: 16px;">📝 To Approve This Request</h4>
               <ol style="margin: 0; padding-left: 20px; color: #78350f;">
                 <li style="margin-bottom: 8px;">Review the request details above</li>
-                <li style="margin-bottom: 8px;">Copy the generated activation code</li>
-                <li style="margin-bottom: 8px;">Send the code to <strong>${data.email}</strong> via email</li>
-                <li>Or generate new codes if needed from your admin dashboard</li>
+                <li style="margin-bottom: 8px;">Copy the activation code: <strong>${data.generatedActivationCode}</strong></li>
+                <li style="margin-bottom: 8px;">Email the code to <strong>${data.email}</strong></li>
+                <li>User can then register with this activation code</li>
               </ol>
             </div>
           </div>
@@ -234,13 +234,13 @@ ${data.garageId && data.garageName ? `🏪 Selected Garage: ${data.garageName} (
 ⏰ Time: ${data.timestamp}
 ${data.message ? `💬 Message: ${data.message}` : ''}
 
-✅ GENERATED ACTIVATION CODE: ${data.generatedActivationCode || 'CODE_NOT_GENERATED'}
-${data.requestType === 'admin' ? '🔴 Admin Access Code' : '🔵 Staff Access Code'}
+🔑 ACTIVATION CODE: ${data.generatedActivationCode || 'ERROR'}
+${data.requestType.toUpperCase()} ACCESS CODE
 
 To Approve Access:
 1. Review the request details above
-2. Copy the generated activation code: ${data.generatedActivationCode || 'CODE_NOT_GENERATED'}
-3. Send the code to ${data.email} via email
+2. Send this activation code to ${data.email}: ${data.generatedActivationCode || 'ERROR'}
+3. User can register with this code
 
 ---
 GarageGuru Management System
