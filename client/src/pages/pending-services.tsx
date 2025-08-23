@@ -29,9 +29,9 @@ export default function PendingServices() {
   });
 
   const filteredJobs = pendingJobs.filter((job: any) =>
-    job.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.bikeNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.phone.includes(searchTerm)
+    job.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    job.bike_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    job.phone?.includes(searchTerm)
   );
 
   const formatDate = (dateString: string) => {
@@ -131,7 +131,7 @@ export default function PendingServices() {
               <Card key={job.id} className="border-l-4 border-l-warning">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">{job.customerName}</h3>
+                    <h3 className="font-semibold">{job.customer_name}</h3>
                     <Badge variant="secondary" className="warning-bg warning-text">
                       Pending
                     </Badge>
@@ -140,7 +140,7 @@ export default function PendingServices() {
                   <div className="space-y-1 text-sm text-muted-foreground mb-3">
                     <div className="flex items-center space-x-2">
                       <Bike className="w-4 h-4" />
-                      <span>{job.bikeNumber}</span>
+                      <span>{job.bike_number}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Phone className="w-4 h-4" />
@@ -206,7 +206,7 @@ export default function PendingServices() {
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Name:</span>
-                    <span>{selectedJob.customerName}</span>
+                    <span>{selectedJob.customer_name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Phone:</span>
@@ -214,7 +214,7 @@ export default function PendingServices() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Bike Number:</span>
-                    <span>{selectedJob.bikeNumber}</span>
+                    <span>{selectedJob.bike_number}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Date:</span>
