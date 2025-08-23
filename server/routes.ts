@@ -224,6 +224,11 @@ export async function registerRoutes(app: Express): Promise<void> {
         }
       }
 
+      // Generate OTP automatically
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const roleLetter = requestType === 'admin' ? 'a' : 's';
+      const generatedActivationCode = otp + roleLetter;
+
       const requestData = {
         email,
         name,
@@ -232,6 +237,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         garageId,
         garageName,
         garageOwner,
+        generatedActivationCode,
         timestamp: new Date().toLocaleString()
       };
 

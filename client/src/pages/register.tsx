@@ -188,7 +188,8 @@ export default function Register() {
               required
             />
             <p className="text-xs text-blue-200 mt-1">
-              Format: 6-digit number + letter (a=admin, s=staff)
+              Format: 6-digit number + letter (a=admin, s=staff)<br/>
+              <span className="text-green-400">✓ Code is auto-generated when you request access</span>
             </p>
           </div>
 
@@ -346,6 +347,12 @@ export default function Register() {
           {showAccessRequest && (
             <form onSubmit={handleAccessRequest} className="space-y-4 bg-white/5 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-center">Access Request</h3>
+              <div className="bg-blue-900/30 border border-blue-400/30 rounded-lg p-3 mb-4">
+                <p className="text-xs text-blue-200 text-center">
+                  🔑 <strong>Auto-Generated Codes:</strong> The system will create a unique activation code for you.<br/>
+                  Super admin will receive it via email and provide it to you.
+                </p>
+              </div>
               
               <div>
                 <Label htmlFor="requestEmail" className="block text-sm font-medium mb-2">

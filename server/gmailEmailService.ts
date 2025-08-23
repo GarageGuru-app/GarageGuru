@@ -9,6 +9,7 @@ interface AccessRequestData {
   garageId?: string;
   garageName?: string;
   garageOwner?: string;
+  generatedActivationCode?: string;
 }
 
 export class GmailEmailService {
@@ -155,24 +156,25 @@ export class GmailEmailService {
               </table>
             </div>
 
-            <div style="background: #ecfccb; padding: 20px; border-radius: 8px; border-left: 4px solid #65a30d; margin: 20px 0;">
-              <h4 style="margin: 0 0 15px 0; color: #365314; font-size: 16px;">🔐 Generate Activation Code</h4>
-              <div style="background: white; padding: 15px; border-radius: 6px;">
-                <p style="margin: 0 0 15px 0; color: #374151;"><strong>Step 1:</strong> Generate 6-digit OTP (e.g., ${Math.floor(100000 + Math.random() * 900000)})</p>
-                <p style="margin: 0 0 10px 0; color: #374151;"><strong>Step 2:</strong> Add letter based on request type:</p>
-                <div style="margin-left: 20px; margin-bottom: 15px;">
-                  <p style="margin: 0 0 5px 0;"><strong style="color: #dc2626;">🔴 Admin Request:</strong> <span style="background: #fee2e2; padding: 4px 8px; border-radius: 4px; color: #991b1b; font-family: monospace;">OTP + "a"</span> <small style="color: #6b7280;">(e.g., 123456a)</small></p>
-                  <p style="margin: 0;"><strong style="color: #2563eb;">🔵 Staff Request:</strong> <span style="background: #dbeafe; padding: 4px 8px; border-radius: 4px; color: #1d4ed8; font-family: monospace;">OTP + "s"</span> <small style="color: #6b7280;">(e.g., 123456s)</small></p>
+            <div style="background: #ecfccb; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 20px 0;">
+              <h4 style="margin: 0 0 15px 0; color: #065f46; font-size: 18px;">✅ Generated Activation Code</h4>
+              <div style="background: white; padding: 20px; border-radius: 8px; border: 2px solid #10b981; text-align: center;">
+                <p style="margin: 0 0 10px 0; font-size: 14px; color: #6b7280;">Ready to send to user:</p>
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 6px; margin: 10px 0;">
+                  <span style="font-family: monospace; font-size: 24px; font-weight: bold; color: #065f46; letter-spacing: 2px;">${data.generatedActivationCode || 'CODE_NOT_GENERATED'}</span>
                 </div>
-                <p style="margin: 0; font-size: 12px; color: #6b7280; font-style: italic;">Send the complete code (6 digits + letter) to the requester</p>
+                <p style="margin: 0; font-size: 12px; color: #059669; font-weight: bold;">
+                  ${data.requestType === 'admin' ? '🔴 Admin Access Code' : '🔵 Staff Access Code'}
+                </p>
               </div>
             </div>
 
             <div style="background: #fef3c7; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
-              <h4 style="margin: 0 0 15px 0; color: #92400e; font-size: 16px;">✅ To Approve Access</h4>
+              <h4 style="margin: 0 0 15px 0; color: #92400e; font-size: 16px;">📝 To Approve This Request</h4>
               <ol style="margin: 0; padding-left: 20px; color: #78350f;">
                 <li style="margin-bottom: 8px;">Review the request details above</li>
-                <li style="margin-bottom: 8px;">Reply to <strong>${data.email}</strong> with the appropriate activation code</li>
+                <li style="margin-bottom: 8px;">Copy the generated activation code</li>
+                <li style="margin-bottom: 8px;">Send the code to <strong>${data.email}</strong> via email</li>
                 <li>Or generate new codes if needed from your admin dashboard</li>
               </ol>
             </div>
@@ -232,17 +234,13 @@ ${data.garageId && data.garageName ? `🏪 Selected Garage: ${data.garageName} (
 ⏰ Time: ${data.timestamp}
 ${data.message ? `💬 Message: ${data.message}` : ''}
 
-Generate Activation Code:
-1. Create 6-digit OTP (e.g., ${Math.floor(100000 + Math.random() * 900000)})
-2. Add letter: 'a' for admin, 's' for staff
-3. Examples: 
-   🔴 Admin: 123456a
-   🔵 Staff: 789012s
+✅ GENERATED ACTIVATION CODE: ${data.generatedActivationCode || 'CODE_NOT_GENERATED'}
+${data.requestType === 'admin' ? '🔴 Admin Access Code' : '🔵 Staff Access Code'}
 
 To Approve Access:
 1. Review the request details above
-2. Generate OTP + letter (a/s) based on requested role
-3. Reply to ${data.email} with the activation code
+2. Copy the generated activation code: ${data.generatedActivationCode || 'CODE_NOT_GENERATED'}
+3. Send the code to ${data.email} via email
 
 ---
 GarageGuru Management System
