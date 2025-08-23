@@ -69,15 +69,22 @@ export default function Register() {
         body: JSON.stringify(accessRequest),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         toast({
           title: "Access Request Sent",
-          description: "Your request has been sent to the super admin. You'll receive an activation code if approved.",
+          description: data.message || "Your request has been sent to the super admin. You'll receive an activation code if approved.",
         });
         setShowAccessRequest(false);
         setAccessRequest({ email: "", name: "", requestType: "staff", message: "" });
       } else {
-        throw new Error("Failed to send request");
+        // Display the actual server error message
+        toast({
+          title: "Request Failed",
+          description: data.message || "Failed to send access request. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       toast({
