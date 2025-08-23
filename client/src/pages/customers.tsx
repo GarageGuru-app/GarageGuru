@@ -133,7 +133,7 @@ export default function Customers() {
               }
             </span>
             <span>
-              Total revenue: ₹{Number(customers.reduce((sum: number, customer: any) => sum + (parseFloat(customer.totalSpent) || 0), 0) || 0).toLocaleString()}
+              Total revenue: ₹{Number(customers.reduce((sum: number, customer: any) => sum + (parseFloat((customer as any).total_spent || customer.totalSpent) || 0), 0) || 0).toLocaleString()}
             </span>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function Customers() {
                         <p className="text-sm text-muted-foreground">{customer.phone}</p>
                         <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                           <Bike className="w-3 h-3" />
-                          <span>{customer.bikeNumber}</span>
+                          <span>{(customer as any).bike_number || customer.bikeNumber || 'N/A'}</span>
                         </div>
                       </div>
                     </div>
@@ -190,10 +190,10 @@ export default function Customers() {
                   
                   <div className="mt-3 pt-3 border-t">
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Last visit: {formatLastVisit(customer.lastVisit)}</span>
+                      <span>Last visit: {formatLastVisit((customer as any).last_visit || customer.lastVisit)}</span>
                       <div className="text-right">
-                        <div>{customer.totalJobs || 0} visits</div>
-                        <div className="font-medium text-primary">₹{Number(parseFloat(customer.totalSpent) || 0).toLocaleString()}</div>
+                        <div>{(customer as any).total_jobs || customer.totalJobs || 0} visits</div>
+                        <div className="font-medium text-primary">₹{Number(parseFloat((customer as any).total_spent || customer.totalSpent) || 0).toLocaleString()}</div>
                       </div>
                     </div>
                   </div>

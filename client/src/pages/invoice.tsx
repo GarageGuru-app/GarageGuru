@@ -92,8 +92,9 @@ export default function Invoice() {
     );
   }
 
-  const partsTotal = Array.isArray(jobCard.spareParts) 
-    ? jobCard.spareParts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0)
+  const spareParts = (jobCard as any).spare_parts || jobCard.spareParts || [];
+  const partsTotal = Array.isArray(spareParts) 
+    ? spareParts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0)
     : 0;
   
   const totalAmount = partsTotal + serviceCharge;
@@ -175,7 +176,7 @@ export default function Invoice() {
       // Create invoice record
       const createdInvoice = await createInvoiceMutation.mutateAsync({
         jobCardId: jobCard.id,
-        customerId: jobCard.customer_id,
+        customerId: (jobCard as any).customer_id || jobCard.customerId,
         invoiceNumber,
         pdfUrl,
         totalAmount: String(totalAmount),
@@ -279,11 +280,11 @@ export default function Invoice() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Customer:</span>
-                <span>{jobCard.customerName}</span>
+                <span>{(jobCard as any).customer_name || jobCard.customerName || 'N/A'}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Bike Number:</span>
-                <span>{jobCard.bikeNumber}</span>
+                <span>{(jobCard as any).bike_number || jobCard.bikeNumber || 'N/A'}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Complaint:</span>
@@ -296,7 +297,7 @@ export default function Invoice() {
               <h4 className="font-semibold mb-3">Services & Parts</h4>
               
               <div className="space-y-2">
-                {Array.isArray(jobCard.spareParts) && jobCard.spareParts.map((part: any, index: number) => (
+                {Array.isArray((jobCard as any).spare_parts || jobCard.spareParts) && ((jobCard as any).spare_parts || jobCard.spareParts).map((part: any, index: number) => (
                   <div key={index} className="flex justify-between text-sm">
                     <span>
                       {part.partNumber ? `PN: ${part.partNumber} — ${part.name}` : part.name} — Qty {part.quantity} x ₹{part.price}

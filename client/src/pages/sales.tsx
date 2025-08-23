@@ -116,7 +116,10 @@ export default function Sales() {
   });
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString || dateString === 'Invalid Date') return 'Invalid Date';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
@@ -448,7 +451,7 @@ export default function Sales() {
                   <div key={invoice.id} className="flex items-center justify-between py-2 border-b border-border last:border-b-0">
                     <div>
                       <p className="font-medium">Invoice #{invoice.invoiceNumber}</p>
-                      <p className="text-sm text-muted-foreground">{formatDate(invoice.createdAt)}</p>
+                      <p className="text-sm text-muted-foreground">{formatDate((invoice as any).created_at || invoice.createdAt)}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">₹{Number(invoice.totalAmount || 0).toLocaleString()}</p>
