@@ -155,7 +155,9 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   formData.append('upload_preset', uploadPreset);
   formData.append('resource_type', 'raw');
   if (filename) {
-    formData.append('public_id', filename);
+    // Ensure filename has .pdf extension for Cloudinary
+    const pdfFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
+    formData.append('public_id', pdfFilename);
   }
   
   try {

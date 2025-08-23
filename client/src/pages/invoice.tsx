@@ -209,10 +209,12 @@ export default function Invoice() {
         });
       } else {
         // Just download PDF with proper filename and extension
-        const url = URL.createObjectURL(finalPdfBlob);
+        const pdfBlob = new Blob([finalPdfBlob], { type: 'application/pdf' });
+        const url = URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `${finalFilename}.pdf`;
+        a.style.display = 'none';
         document.body.appendChild(a); // Ensure element is in DOM
         a.click();
         document.body.removeChild(a); // Clean up
