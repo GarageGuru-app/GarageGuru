@@ -112,6 +112,40 @@ export default function Invoice() {
   
   const invoiceNumber = `INV-${Date.now()}`;
 
+  const handlePreviewPDF = async () => {
+    setIsGenerating(true);
+    
+    try {
+      // Generate PDF for preview
+      const pdfBlob = await generateInvoicePDF({
+        jobCard,
+        garage,
+        serviceCharge,
+        invoiceNumber,
+      });
+      
+      // Open PDF in new tab for preview
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, '_blank');
+      
+      // Clean up the URL after a delay
+      setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
+      
+      toast({
+        title: "Success",
+        description: "PDF opened for preview",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to preview PDF",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleGeneratePDF = async (sendWhatsApp: boolean = false) => {
     setIsGenerating(true);
     
@@ -121,6 +155,7 @@ export default function Invoice() {
         invoiceNumber,
         customerName: jobCard.customer_name,
         bikeNumber: jobCard.bike_number,
+        phone: jobCard.phone,
         complaint: jobCard.complaint,
         spareParts: jobCard.spare_parts,
         serviceCharge,
@@ -170,7 +205,7 @@ export default function Invoice() {
       
       if (sendWhatsApp) {
         // Send WhatsApp message
-        sendWhatsAppMessage(jobCard.phone, finalPdfUrl);
+        sendWhatsAppMessage(jobCard.phone || '', finalPdfUrl);
         toast({
           title: "Success",
           description: "Invoice generated and WhatsApp opened",
@@ -305,7 +340,7 @@ export default function Invoice() {
           </Button>
           
           <Button
-            onClick={() => handleGeneratePDF(false)}
+            onClick={() => handlePreviewPDF()}
             disabled={isGenerating}
             variant="outline"
             className="w-full"
