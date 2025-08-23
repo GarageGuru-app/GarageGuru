@@ -47,18 +47,30 @@ export default function GarageSetup() {
       const response = await apiRequest("POST", "/api/garages", data);
       return response.json();
     },
-    onSuccess: (garage) => {
+    onSuccess: async (garage) => {
       toast({
         title: "Success",
         description: "Garage created successfully! Welcome to GarageGuru.",
         variant: "default",
       });
       
-      // Refresh user profile to get updated garage info
-      queryClient.invalidateQueries({ queryKey: ["/api/user/profile"] });
-      
-      // Redirect to dashboard after successful setup
-      setTimeout(() => navigate("/dashboard"), 1000);
+      // Force refresh of auth context by refetching profile
+      try {
+        const token = localStorage.getItem("auth-token");
+        const response = await fetch("/api/user/profile", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        // This will trigger a page refresh/redirect through auth context
+        if (data.garage) {
+          window.location.href = "/dashboard";
+        }
+      } catch (error) {
+        console.error("Profile refresh error:", error);
+        // Fallback: force page reload
+        setTimeout(() => window.location.reload(), 500);
+      }
     },
     onError: (error: any) => {
       toast({

@@ -519,8 +519,8 @@ export async function registerRoutes(app: Express): Promise<void> {
   app.get("/api/user/profile", authenticateToken, async (req, res) => {
     try {
       let garage = null;
-      if (req.user.garageId) {
-        garage = await storage.getGarage(req.user.garageId);
+      if (req.user.garage_id) {
+        garage = await storage.getGarage(req.user.garage_id);
       }
       
       res.json({ 
