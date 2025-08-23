@@ -13,11 +13,11 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   
   console.log('PDF Generator - Received jobCard data:', jobCard);
   
-  // Handle field name inconsistencies by checking both formats
-  const customerName = jobCard.customerName || jobCard.customer_name || 'N/A';
-  const bikeNumber = jobCard.bikeNumber || jobCard.bike_number || 'N/A';
+  // Database returns snake_case field names, handle both formats
+  const customerName = (jobCard as any).customer_name || jobCard.customerName || 'N/A';
+  const bikeNumber = (jobCard as any).bike_number || jobCard.bikeNumber || 'N/A';
   const phone = jobCard.phone || 'N/A';
-  const spareParts = jobCard.spareParts || jobCard.spare_parts || [];
+  const spareParts = (jobCard as any).spare_parts || jobCard.spareParts || [];
   
   const pdf = new jsPDF();
   const pageWidth = pdf.internal.pageSize.width;
@@ -154,6 +154,7 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   formData.append('file', pdfBlob);
   formData.append('upload_preset', uploadPreset);
   formData.append('resource_type', 'raw');
+  formData.append('access_mode', 'public');  // Make file publicly accessible
   if (filename) {
     // Ensure filename has .pdf extension for Cloudinary
     const pdfFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
