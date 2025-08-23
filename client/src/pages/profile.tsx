@@ -208,7 +208,7 @@ export default function Profile() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between py-2">
               <span className="text-muted-foreground">Owner Name</span>
-              <span className="font-medium">{garage?.ownerName || "N/A"}</span>
+              <span className="font-medium">{garage?.owner_name || "N/A"}</span>
             </div>
             <div className="flex items-center justify-between py-2">
               <span className="text-muted-foreground">Phone</span>
@@ -221,7 +221,7 @@ export default function Profile() {
             <div className="flex items-center justify-between py-2">
               <span className="text-muted-foreground">Joined</span>
               <span className="font-medium">
-                {garage?.createdAt ? new Date(garage.createdAt).toLocaleDateString() : "N/A"}
+                {garage?.created_at ? new Date(garage.created_at).toLocaleDateString() : "N/A"}
               </span>
             </div>
           </CardContent>
