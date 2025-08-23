@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { insertUserSchema, insertGarageSchema, insertCustomerSchema, insertSparePartSchema, insertJobCardSchema, insertInvoiceSchema } from "../shared/schema";
 import { z } from "zod";
-import { EmailService } from "./emailService";
 import { GmailEmailService } from "./gmailEmailService";
 import { pool } from "./db";
 
@@ -212,21 +211,12 @@ export async function registerRoutes(app: Express): Promise<void> {
         timestamp: new Date().toLocaleString()
       };
 
-      // Send email notification to super admin (try Gmail first, fallback to SendGrid)
+      // Send email notification to super admin via Gmail
       const gmailService = GmailEmailService.getInstance();
-      let emailSent = await gmailService.sendAccessRequestNotification(
+      const emailSent = await gmailService.sendAccessRequestNotification(
         SUPER_ADMIN_EMAIL,
         requestData
       );
-      
-      // Fallback to SendGrid if Gmail fails
-      if (!emailSent) {
-        const sendGridService = EmailService.getInstance();
-        emailSent = await sendGridService.sendAccessRequestNotification(
-          SUPER_ADMIN_EMAIL,
-          requestData
-        );
-      }
       
       const responseMessage = emailSent 
         ? `Access request sent to super admin (${SUPER_ADMIN_EMAIL}). You will receive activation code via email if approved.`

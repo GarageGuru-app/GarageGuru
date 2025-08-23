@@ -33,7 +33,7 @@ Preferred communication style: Simple, everyday language.
 - **Invoice Generation**: PDF creation with custom filenames and WhatsApp integration. Includes garage logo customization on invoices.
 - **Sales Analytics**: Revenue and profit tracking (service charges, parts revenue, parts cost) for administrators, including daily and cumulative statistics.
 - **Code Scanning**: HybridScanner with dual detection (BarcodeDetector API & ZXing), multi-format support, mobile optimization (torch, back camera), and automatic part lookup/field population. Includes smart price and quantity parsing from scanned codes.
-- **Super Admin Access Control**: Environment-based activation codes, access request system with email notifications (Gmail SMTP primary, SendGrid fallback).
+- **Super Admin Access Control**: Environment-based activation codes, access request system with email notifications via Gmail SMTP.
 
 ### Database Schema
 - **Garages**: Multi-tenant architecture.
@@ -66,7 +66,6 @@ Preferred communication style: Simple, everyday language.
 - **jsPDF**: Client-side PDF generation.
 - **WhatsApp Business API**: Message sending integration.
 - **Cloudinary**: Image and file storage.
-- **SendGrid**: Email delivery service (as fallback).
 
 ### Development Tools
 - **Vite**: Fast build tool.

@@ -32,8 +32,6 @@ In your Vercel dashboard, add these environment variables:
 - `GMAIL_USER` - ananthautomotivegarage@gmail.com
 - `GMAIL_APP_PASSWORD` - Your Gmail app-specific password
 
-### SendGrid (Fallback)
-- `SENDGRID_API_KEY` - Your SendGrid API key (optional fallback)
 
 ### Super Admin
 - `SUPER_ADMIN_EMAIL` - ananthautomotivegarage@gmail.com
