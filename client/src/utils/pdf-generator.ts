@@ -154,7 +154,7 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   formData.append('file', pdfBlob);
   formData.append('upload_preset', uploadPreset);
   formData.append('resource_type', 'raw');
-  formData.append('access_mode', 'public');  // Make file publicly accessible
+  // Note: access_mode not allowed for unsigned uploads
   if (filename) {
     // Ensure filename has .pdf extension for Cloudinary
     const pdfFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
