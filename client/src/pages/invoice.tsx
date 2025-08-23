@@ -272,11 +272,11 @@ export default function Invoice() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Customer:</span>
-                <span>{jobCard.customer_name}</span>
+                <span>{jobCard.customerName}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Bike Number:</span>
-                <span>{jobCard.bike_number}</span>
+                <span>{jobCard.bikeNumber}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Complaint:</span>
