@@ -622,6 +622,18 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Update invoice
+  app.put("/api/garages/:garageId/invoices/:id", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      const invoice = await storage.updateInvoice(id, updateData);
+      res.json(invoice);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to update invoice' });
+    }
+  });
+
   // Spare parts routes
   app.get("/api/garages/:garageId/spare-parts", authenticateToken, requireGarageAccess, async (req, res) => {
     try {

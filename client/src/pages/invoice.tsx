@@ -198,7 +198,10 @@ export default function Invoice() {
       // Upload with final filename
       const finalPdfUrl = await uploadPDFToCloudinary(finalPdfBlob, finalFilename);
       
-      // Update the invoice record with the final PDF URL (optional step for tracking)
+      // Update the invoice record with the final PDF URL
+      await apiRequest("PUT", `/api/garages/${garage.id}/invoices/${createdInvoice.id}`, {
+        pdfUrl: finalPdfUrl
+      });
       
       if (sendWhatsApp) {
         // Send WhatsApp message
