@@ -92,22 +92,19 @@ export default function Invoice() {
     );
   }
 
-  const partsTotal = Array.isArray(jobCard.spare_parts) 
-    ? jobCard.spare_parts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0)
+  const partsTotal = Array.isArray(jobCard.spareParts) 
+    ? jobCard.spareParts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0)
     : 0;
   
   const totalAmount = partsTotal + serviceCharge;
   
-  // Create invoice filename in format: INV-{yyyyMMdd}-{HHmmss}-{garageId}-{customerNameSlug}-{bikeNo}-{invoiceId}
+  // Create short, simple invoice filename
   const createInvoiceFilename = (invoiceId: string) => {
     const now = new Date();
-    const yyyyMMdd = now.toISOString().slice(0, 10).replace(/-/g, '');
-    const HHmmss = now.toTimeString().slice(0, 8).replace(/:/g, '');
-    const customerNameSlug = (jobCard.customer_name || 'customer').toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-    const bikeNoSlug = (jobCard.bike_number || 'bike').replace(/[^a-zA-Z0-9]/g, '');
-    const garageIdShort = garage?.id?.slice(0, 8) || 'garage';
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+    const invoiceIdShort = invoiceId.slice(0, 8); // First 8 chars of invoice ID
     
-    return `INV-${yyyyMMdd}-${HHmmss}-${garageIdShort}-${customerNameSlug}-${bikeNoSlug}-${invoiceId}`;
+    return `INV-${dateStr}-${invoiceIdShort}`;
   };
   
   const invoiceNumber = `INV-${Date.now()}`;
@@ -153,11 +150,11 @@ export default function Invoice() {
       console.log('Creating invoice with data:', {
         jobCardId: jobCard.id,
         invoiceNumber,
-        customerName: jobCard.customer_name,
-        bikeNumber: jobCard.bike_number,
+        customerName: jobCard.customerName,
+        bikeNumber: jobCard.bikeNumber,
         phone: jobCard.phone,
         complaint: jobCard.complaint,
-        spareParts: jobCard.spare_parts,
+        spareParts: jobCard.spareParts,
         serviceCharge,
         partsTotal,
         totalAmount,
@@ -292,10 +289,10 @@ export default function Invoice() {
               <h4 className="font-semibold mb-3">Services & Parts</h4>
               
               <div className="space-y-2">
-                {Array.isArray(jobCard.spare_parts) && jobCard.spare_parts.map((part: any, index: number) => (
+                {Array.isArray(jobCard.spareParts) && jobCard.spareParts.map((part: any, index: number) => (
                   <div key={index} className="flex justify-between text-sm">
                     <span>
-                      {part.part_number ? `PN: ${part.part_number} — ${part.name}` : part.name} — Qty {part.quantity} x ₹{part.price}
+                      {part.partNumber ? `PN: ${part.partNumber} — ${part.name}` : part.name} — Qty {part.quantity} x ₹{part.price}
                     </span>
                     <span>₹{(part.price * part.quantity).toFixed(2)}</span>
                   </div>
