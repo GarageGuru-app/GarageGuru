@@ -349,25 +349,18 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       
       // Check for activation codes (if not set, use simple registration)
-      const ADMIN_CODE = process.env.ADMIN_ACTIVATION_CODE;
-      const STAFF_CODE = process.env.STAFF_ACTIVATION_CODE;
+      // Validate OTP-style activation codes (6-digit number + 'a' for admin or 's' for staff)
+      const otpPattern = /^(\d{6})([as])$/;
+      const match = activationCode.match(otpPattern);
       
-      if (!ADMIN_CODE || !STAFF_CODE) {
-        return res.status(500).json({ 
-          message: 'Server configuration error: Activation codes not configured. Use /api/auth/register-simple instead.' 
+      if (!match) {
+        return res.status(400).json({ 
+          message: 'Invalid activation code format. Use 6-digit OTP + letter (a for admin, s for staff). Contact super admin for access.' 
         });
       }
       
-      const validCodes = {
-        [ADMIN_CODE]: 'garage_admin',
-        [STAFF_CODE]: 'mechanic_staff'
-      };
-      
-      if (!validCodes[activationCode as keyof typeof validCodes]) {
-        return res.status(400).json({ message: 'Invalid activation code. Contact super admin for access.' });
-      }
-      
-      const role = validCodes[activationCode as keyof typeof validCodes];
+      const [, otp, roleLetter] = match;
+      const role = roleLetter === 'a' ? 'garage_admin' : 'mechanic_staff';
       
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);

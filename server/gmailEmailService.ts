@@ -156,10 +156,15 @@ export class GmailEmailService {
             </div>
 
             <div style="background: #ecfccb; padding: 20px; border-radius: 8px; border-left: 4px solid #65a30d; margin: 20px 0;">
-              <h4 style="margin: 0 0 15px 0; color: #365314; font-size: 16px;">🔐 Current Activation Codes</h4>
-              <div style="background: white; padding: 15px; border-radius: 6px; font-family: monospace;">
-                <p style="margin: 0 0 10px 0;"><strong style="color: #dc2626;">🔴 Admin Code:</strong> <span style="background: #fee2e2; padding: 4px 8px; border-radius: 4px; color: #991b1b;">${process.env.ADMIN_ACTIVATION_CODE || 'Not configured'}</span></p>
-                <p style="margin: 0;"><strong style="color: #2563eb;">🔵 Staff Code:</strong> <span style="background: #dbeafe; padding: 4px 8px; border-radius: 4px; color: #1d4ed8;">${process.env.STAFF_ACTIVATION_CODE || 'Not configured'}</span></p>
+              <h4 style="margin: 0 0 15px 0; color: #365314; font-size: 16px;">🔐 Generate Activation Code</h4>
+              <div style="background: white; padding: 15px; border-radius: 6px;">
+                <p style="margin: 0 0 15px 0; color: #374151;"><strong>Step 1:</strong> Generate 6-digit OTP (e.g., ${Math.floor(100000 + Math.random() * 900000)})</p>
+                <p style="margin: 0 0 10px 0; color: #374151;"><strong>Step 2:</strong> Add letter based on request type:</p>
+                <div style="margin-left: 20px; margin-bottom: 15px;">
+                  <p style="margin: 0 0 5px 0;"><strong style="color: #dc2626;">🔴 Admin Request:</strong> <span style="background: #fee2e2; padding: 4px 8px; border-radius: 4px; color: #991b1b; font-family: monospace;">OTP + "a"</span> <small style="color: #6b7280;">(e.g., 123456a)</small></p>
+                  <p style="margin: 0;"><strong style="color: #2563eb;">🔵 Staff Request:</strong> <span style="background: #dbeafe; padding: 4px 8px; border-radius: 4px; color: #1d4ed8; font-family: monospace;">OTP + "s"</span> <small style="color: #6b7280;">(e.g., 123456s)</small></p>
+                </div>
+                <p style="margin: 0; font-size: 12px; color: #6b7280; font-style: italic;">Send the complete code (6 digits + letter) to the requester</p>
               </div>
             </div>
 
@@ -227,14 +232,17 @@ ${data.garageId && data.garageName ? `🏪 Selected Garage: ${data.garageName} (
 ⏰ Time: ${data.timestamp}
 ${data.message ? `💬 Message: ${data.message}` : ''}
 
-Current Activation Codes:
-🔴 Admin Code: ${process.env.ADMIN_ACTIVATION_CODE || 'Not configured'}
-🔵 Staff Code: ${process.env.STAFF_ACTIVATION_CODE || 'Not configured'}
+Generate Activation Code:
+1. Create 6-digit OTP (e.g., ${Math.floor(100000 + Math.random() * 900000)})
+2. Add letter: 'a' for admin, 's' for staff
+3. Examples: 
+   🔴 Admin: 123456a
+   🔵 Staff: 789012s
 
 To Approve Access:
 1. Review the request details above
-2. Reply to ${data.email} with the appropriate activation code
-3. Or generate new codes if needed
+2. Generate OTP + letter (a/s) based on requested role
+3. Reply to ${data.email} with the activation code
 
 ---
 GarageGuru Management System

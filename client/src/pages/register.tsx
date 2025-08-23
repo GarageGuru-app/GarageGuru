@@ -181,14 +181,14 @@ export default function Register() {
             <Input
               id="activationCode"
               type="text"
-              placeholder="Enter activation code"
+              placeholder="Enter 6-digit OTP + letter (e.g., 123456a for admin, 789012s for staff)"
               value={formData.activationCode}
               onChange={(e) => handleInputChange("activationCode", e.target.value)}
               className="bg-white/10 border-white/20 placeholder-white/70 text-white focus:border-white/50"
               required
             />
             <p className="text-xs text-blue-200 mt-1">
-              Enter the activation code provided by the super admin
+              Format: 6-digit number + letter (a=admin, s=staff)
             </p>
           </div>
 
