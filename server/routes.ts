@@ -190,10 +190,20 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Super admin email for access control
   const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'ananthautomotivegarage@gmail.com';
 
+  // Get all garages for staff access request
+  app.get("/api/garages", async (req, res) => {
+    try {
+      const garages = await storage.getAllGarages();
+      res.json(garages);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch garages' });
+    }
+  });
+
   // Request activation code route
   app.post("/api/auth/request-access", async (req, res) => {
     try {
-      const { email, name, requestType, message } = req.body;
+      const { email, name, requestType, message, garageId } = req.body;
       
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
@@ -203,11 +213,25 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
       
+      // Get garage information if garageId is provided
+      let garageName = '';
+      let garageOwner = '';
+      if (garageId) {
+        const garage = await storage.getGarage(garageId);
+        if (garage) {
+          garageName = garage.name;
+          garageOwner = garage.owner_name;
+        }
+      }
+
       const requestData = {
         email,
         name,
         requestType: requestType || 'staff',
         message,
+        garageId,
+        garageName,
+        garageOwner,
         timestamp: new Date().toLocaleString()
       };
 
@@ -355,7 +379,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       let garageId = null;
       
-      // Create garage for admin users
+      // Create garage for admin users or use selected garage for staff
       if (role === 'garage_admin') {
         const garage = await storage.createGarage({
           name: garageName,
@@ -364,6 +388,9 @@ export async function registerRoutes(app: Express): Promise<void> {
           email
         });
         garageId = garage.id;
+      } else if (role === 'mechanic_staff' && req.body.selectedGarageId) {
+        // For staff, use the garage they selected during access request
+        garageId = req.body.selectedGarageId;
       }
       
       const user = await storage.createUser({

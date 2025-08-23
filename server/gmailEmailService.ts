@@ -6,6 +6,9 @@ interface AccessRequestData {
   requestType: string;
   message?: string;
   timestamp: string;
+  garageId?: string;
+  garageName?: string;
+  garageOwner?: string;
 }
 
 export class GmailEmailService {
@@ -133,6 +136,12 @@ export class GmailEmailService {
                   <td style="padding: 8px 0; font-weight: bold; color: #374151;">🎯 Role:</td>
                   <td style="padding: 8px 0; color: #1f2937; text-transform: uppercase; font-weight: bold;">${data.requestType}</td>
                 </tr>
+                ${data.garageId && data.garageName ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">🏪 Garage:</td>
+                  <td style="padding: 8px 0; color: #1f2937;"><strong>${data.garageName}</strong><br><small style="color: #6b7280;">Owner: ${data.garageOwner}</small></td>
+                </tr>
+                ` : ''}
                 <tr>
                   <td style="padding: 8px 0; font-weight: bold; color: #374151;">⏰ Time:</td>
                   <td style="padding: 8px 0; color: #1f2937;">${data.timestamp}</td>
@@ -214,6 +223,7 @@ Request Details:
 👤 Name: ${data.name}
 📧 Email: ${data.email}
 🎯 Requested Role: ${data.requestType.toUpperCase()}
+${data.garageId && data.garageName ? `🏪 Selected Garage: ${data.garageName} (Owner: ${data.garageOwner})` : ''}
 ⏰ Time: ${data.timestamp}
 ${data.message ? `💬 Message: ${data.message}` : ''}
 

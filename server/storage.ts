@@ -183,6 +183,16 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getAllGarages(): Promise<Garage[]> {
+    try {
+      const result = await pool.query('SELECT * FROM garages ORDER BY name');
+      return result.rows;
+    } catch (error) {
+      console.error('getAllGarages error:', error);
+      return [];
+    }
+  }
+
   async updateGarage(id: string, garage: Partial<Garage>): Promise<Garage> {
     const result = await pool.query(
       'UPDATE garages SET name = COALESCE($2, name), owner_name = COALESCE($3, owner_name), phone = COALESCE($4, phone), email = COALESCE($5, email), logo = COALESCE($6, logo) WHERE id = $1 RETURNING *',

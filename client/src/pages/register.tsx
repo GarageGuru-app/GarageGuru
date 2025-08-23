@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
@@ -23,15 +23,19 @@ export default function Register() {
     garageName: "",
     ownerName: "",
     phone: "",
+    selectedGarageId: "",
   });
+  const [availableGaragesForStaff, setAvailableGaragesForStaff] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showAccessRequest, setShowAccessRequest] = useState(false);
   const [accessRequest, setAccessRequest] = useState({
     email: "",
     name: "",
     requestType: "staff",
-    message: ""
+    message: "",
+    garageId: ""
   });
+  const [availableGarages, setAvailableGarages] = useState<any[]>([]);
 
   // Check if it's an admin code by the word "ADMIN" in the code
   const isAdmin = formData.activationCode.toUpperCase().includes("ADMIN");
@@ -57,6 +61,41 @@ export default function Register() {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  useEffect(() => {
+    // Fetch available garages for staff access request
+    const fetchGarages = async () => {
+      try {
+        const response = await fetch("/api/garages");
+        const garages = await response.json();
+        setAvailableGarages(garages);
+      } catch (error) {
+        console.error("Failed to fetch garages:", error);
+      }
+    };
+
+    if (showAccessRequest) {
+      fetchGarages();
+    }
+  }, [showAccessRequest]);
+
+  useEffect(() => {
+    // Fetch available garages for staff registration
+    const fetchGaragesForStaff = async () => {
+      try {
+        const response = await fetch("/api/garages");
+        const garages = await response.json();
+        setAvailableGaragesForStaff(garages);
+      } catch (error) {
+        console.error("Failed to fetch garages for staff:", error);
+      }
+    };
+
+    // Only fetch when it's a staff activation code (not admin)
+    if (formData.activationCode && !isAdmin && formData.activationCode.toUpperCase().includes("STAFF")) {
+      fetchGaragesForStaff();
+    }
+  }, [formData.activationCode, isAdmin]);
 
   const handleAccessRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -247,6 +286,39 @@ export default function Register() {
             </>
           )}
 
+          {!isAdmin && formData.activationCode.toUpperCase().includes("STAFF") && (
+            <div>
+              <Label htmlFor="garageSelection" className="block text-sm font-medium mb-2">
+                Select Garage to Join
+              </Label>
+              <Select 
+                value={formData.selectedGarageId} 
+                onValueChange={(value) => handleInputChange("selectedGarageId", value)}
+              >
+                <SelectTrigger className="bg-white/10 border-white/20 text-white focus:border-white/50">
+                  <SelectValue placeholder="Choose garage to work with" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableGaragesForStaff.map((garage) => (
+                    <SelectItem key={garage.id} value={garage.id}>
+                      {garage.name} - {garage.owner_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {availableGaragesForStaff.length === 0 && (
+                <p className="text-yellow-400 text-xs mt-1">
+                  Loading available garages...
+                </p>
+              )}
+              {formData.activationCode && availableGaragesForStaff.length > 0 && !formData.selectedGarageId && (
+                <p className="text-orange-400 text-xs mt-1">
+                  Please select a garage to join
+                </p>
+              )}
+            </div>
+          )}
+
           <Button
             type="submit"
             disabled={isLoading}
@@ -311,7 +383,7 @@ export default function Register() {
                 </Label>
                 <Select 
                   value={accessRequest.requestType} 
-                  onValueChange={(value) => setAccessRequest(prev => ({ ...prev, requestType: value }))}
+                  onValueChange={(value) => setAccessRequest(prev => ({ ...prev, requestType: value, garageId: "" }))}
                 >
                   <SelectTrigger className="bg-white/10 border-white/20 text-white focus:border-white/50">
                     <SelectValue placeholder="Select access type" />
@@ -322,6 +394,34 @@ export default function Register() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {accessRequest.requestType === "staff" && (
+                <div>
+                  <Label htmlFor="garageSelection" className="block text-sm font-medium mb-2">
+                    Select Garage to Join
+                  </Label>
+                  <Select 
+                    value={accessRequest.garageId} 
+                    onValueChange={(value) => setAccessRequest(prev => ({ ...prev, garageId: value }))}
+                  >
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white focus:border-white/50">
+                      <SelectValue placeholder="Choose garage to work with" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableGarages.map((garage) => (
+                        <SelectItem key={garage.id} value={garage.id}>
+                          {garage.name} - {garage.owner_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {availableGarages.length === 0 && (
+                    <p className="text-yellow-400 text-xs mt-1">
+                      No garages available. Contact admin to create a garage first.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="requestMessage" className="block text-sm font-medium mb-2">

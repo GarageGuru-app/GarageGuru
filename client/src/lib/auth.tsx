@@ -19,6 +19,7 @@ interface RegisterData {
   garageName?: string;
   ownerName?: string;
   phone?: string;
+  selectedGarageId?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
