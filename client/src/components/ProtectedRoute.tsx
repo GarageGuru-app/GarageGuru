@@ -8,16 +8,19 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth();
-  const [, navigate] = useLocation();
+  const { user, garage, isLoading } = useAuth();
+  const [location, navigate] = useLocation();
 
   useEffect(() => {
     if (!isLoading && !user) {
       navigate("/login");
     } else if (user && roles && !roles.includes(user.role)) {
       navigate("/dashboard");
+    } else if (user && user.role === 'garage_admin' && !garage && location !== '/garage-setup') {
+      // Redirect garage admins without garage to setup page
+      navigate("/garage-setup");
     }
-  }, [user, isLoading, roles, navigate]);
+  }, [user, garage, isLoading, roles, navigate, location]);
 
   if (isLoading) {
     return (
@@ -37,6 +40,11 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
         <div className="text-destructive">Access denied</div>
       </div>
     );
+  }
+
+  // Allow garage setup page for admins without garage
+  if (user.role === 'garage_admin' && !garage && location !== '/garage-setup') {
+    return null;
   }
 
   return <>{children}</>;

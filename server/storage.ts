@@ -132,6 +132,8 @@ export interface IStorage {
     serviceCharges: number;
     invoiceCount: number;
   }>>;
+
+  updateUserGarage(userId: string, garageId: string): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -237,6 +239,14 @@ export class DatabaseStorage implements IStorage {
     const result = await pool.query(
       'UPDATE customers SET name = COALESCE($2, name), phone = COALESCE($3, phone), bike_number = COALESCE($4, bike_number), total_jobs = COALESCE($5, total_jobs), total_spent = COALESCE($6, total_spent), last_visit = COALESCE($7, last_visit), notes = COALESCE($8, notes) WHERE id = $1 RETURNING *',
       [id, customer.name, customer.phone, customer.bike_number, customer.total_jobs, customer.total_spent, customer.last_visit, customer.notes]
+    );
+    return result.rows[0];
+  }
+
+  async updateUserGarage(userId: string, garageId: string): Promise<User> {
+    const result = await pool.query(
+      'UPDATE users SET garage_id = $2 WHERE id = $1 RETURNING *',
+      [userId, garageId]
     );
     return result.rows[0];
   }

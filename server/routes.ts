@@ -190,13 +190,58 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Super admin email for access control
   const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'ananthautomotivegarage@gmail.com';
 
-  // Get all garages for staff access request
+  // Get garages for staff access request (filtered)
   app.get("/api/garages", async (req, res) => {
     try {
+      const { purpose } = req.query;
       const garages = await storage.getAllGarages();
-      res.json(garages);
+      
+      // If it's for staff access request, filter out garages that shouldn't be available
+      if (purpose === 'staff_access') {
+        // For now, return empty array to prevent staff from seeing any garages
+        // until proper garage creation flow is completed by admins
+        const availableGarages = garages.filter(garage => {
+          // Only show garages that are actually operational
+          // For now, no garages should be shown since we want admins to create their own
+          return false;
+        });
+        res.json(availableGarages);
+      } else {
+        // For other purposes (like admin management), return all garages
+        res.json(garages);
+      }
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch garages' });
+    }
+  });
+
+  app.post("/api/garages", authenticateToken, async (req, res) => {
+    try {
+      const { name, ownerName, phone, email } = req.body;
+      
+      if (!req.user || req.user.role !== 'garage_admin') {
+        return res.status(403).json({ message: 'Only garage admins can create garages' });
+      }
+
+      if (!name || !ownerName || !phone) {
+        return res.status(400).json({ message: 'Name, owner name, and phone are required' });
+      }
+
+      // Create the garage
+      const garage = await storage.createGarage({
+        name,
+        owner_name: ownerName,
+        phone,
+        email: email || req.user.email
+      });
+
+      // Update user's garage_id
+      await storage.updateUserGarage(req.user.id, garage.id);
+
+      res.json(garage);
+    } catch (error) {
+      console.error('Create garage error:', error);
+      res.status(500).json({ message: 'Failed to create garage' });
     }
   });
 

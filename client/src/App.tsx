@@ -11,6 +11,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 // Pages
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import GarageSetup from "@/pages/garage-setup";
 import Dashboard from "@/pages/dashboard";
 import JobCard from "@/pages/job-card";
 import PendingServices from "@/pages/pending-services";
@@ -28,6 +29,12 @@ function Router() {
       <Switch>
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        
+        <Route path="/garage-setup">
+          <ProtectedRoute roles={["garage_admin"]}>
+            <GarageSetup />
+          </ProtectedRoute>
+        </Route>
         
         <Route path="/">
           <ProtectedRoute>

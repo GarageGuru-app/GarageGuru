@@ -66,7 +66,7 @@ export default function Register() {
     // Fetch available garages for staff access request
     const fetchGarages = async () => {
       try {
-        const response = await fetch("/api/garages");
+        const response = await fetch("/api/garages?purpose=staff_access");
         const garages = await response.json();
         setAvailableGarages(garages);
       } catch (error) {
@@ -83,7 +83,7 @@ export default function Register() {
     // Fetch available garages for staff registration
     const fetchGaragesForStaff = async () => {
       try {
-        const response = await fetch("/api/garages");
+        const response = await fetch("/api/garages?purpose=staff_access");
         const garages = await response.json();
         setAvailableGaragesForStaff(garages);
       } catch (error) {
