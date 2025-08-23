@@ -25,13 +25,15 @@ export default function Invoices() {
   });
 
   const filteredInvoices = invoices.filter((invoice: any) =>
-    invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.jobCard?.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.jobCard?.bikeNumber?.toLowerCase().includes(searchTerm.toLowerCase())
+    invoice.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    invoice.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    invoice.bike_number?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'No date';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid date';
     const today = new Date();
     
     if (date.toDateString() === today.toDateString()) {
@@ -164,8 +166,8 @@ export default function Invoices() {
                         <FileText className="text-success w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="font-semibold">{invoice.invoiceNumber}</h3>
-                        <p className="text-sm text-muted-foreground">₹{Number(invoice.totalAmount || 0).toLocaleString()}</p>
+                        <h3 className="font-semibold">{invoice.invoice_number}</h3>
+                        <p className="text-sm text-muted-foreground">₹{Number(invoice.total_amount || 0).toLocaleString()}</p>
                       </div>
                     </div>
                     <Badge variant="secondary" className="success-bg success-text">
@@ -176,44 +178,44 @@ export default function Invoices() {
                   <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground mb-3">
                     <div className="flex items-center space-x-2">
                       <User className="w-4 h-4" />
-                      <span>{invoice.jobCard?.customerName || 'N/A'}</span>
+                      <span>{invoice.customer_name || 'N/A'}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Bike className="w-4 h-4" />
-                      <span>{invoice.jobCard?.bikeNumber || 'N/A'}</span>
+                      <span>{invoice.bike_number || 'N/A'}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Calendar className="w-4 h-4" />
-                      <span>{formatDate(invoice.createdAt)}</span>
+                      <span>{formatDate(invoice.created_at)}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <MessageCircle className="w-4 h-4" />
-                      <span>{invoice.whatsappSent ? 'Sent' : 'Not sent'}</span>
+                      <span>{invoice.whatsapp_sent ? 'Sent' : 'Not sent'}</span>
                     </div>
                   </div>
 
                   <div className="text-sm bg-muted/30 p-2 rounded mb-3">
                     <div className="flex justify-between">
                       <span>Parts Total:</span>
-                      <span>₹{Number(invoice.partsTotal).toFixed(2)}</span>
+                      <span>₹{Number(invoice.parts_total).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Service Charge:</span>
-                      <span>₹{Number(invoice.serviceCharge).toFixed(2)}</span>
+                      <span>₹{Number(invoice.service_charge).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between font-semibold border-t pt-1 mt-1">
                       <span>Total:</span>
-                      <span>₹{Number(invoice.totalAmount).toFixed(2)}</span>
+                      <span>₹{Number(invoice.total_amount).toFixed(2)}</span>
                     </div>
                   </div>
 
                   <div className="flex justify-end space-x-2">
-                    {invoice.pdfUrl && (
+                    {invoice.pdf_url && (
                       <>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => downloadPDF(invoice.pdfUrl, invoice.invoiceNumber)}
+                          onClick={() => downloadPDF(invoice.pdf_url, invoice.invoice_number)}
                           className="px-3 py-1 text-xs"
                         >
                           <Download className="w-3 h-3 mr-1" />
@@ -222,7 +224,7 @@ export default function Invoices() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => sendWhatsApp(invoice.jobCard?.phone || '', invoice.pdfUrl)}
+                          onClick={() => sendWhatsApp(invoice.phone || '', invoice.pdf_url)}
                           className="px-3 py-1 text-xs"
                         >
                           <MessageCircle className="w-3 h-3 mr-1" />

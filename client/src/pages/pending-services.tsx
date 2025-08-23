@@ -34,8 +34,10 @@ export default function PendingServices() {
     job.phone?.includes(searchTerm)
   );
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'No date';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid date';
     const today = new Date();
     
     if (date.toDateString() === today.toDateString()) {
@@ -148,7 +150,7 @@ export default function PendingServices() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Calendar className="w-4 h-4" />
-                      <span>{formatDate(job.createdAt)}</span>
+                      <span>{formatDate(job.created_at)}</span>
                     </div>
                   </div>
 
@@ -218,7 +220,7 @@ export default function PendingServices() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Date:</span>
-                    <span>{formatDate(selectedJob.createdAt)}</span>
+                    <span>{formatDate(selectedJob.created_at)}</span>
                   </div>
                 </div>
               </div>
@@ -250,11 +252,11 @@ export default function PendingServices() {
               <div className="space-y-2 border-t pt-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Service Charge:</span>
-                  <span>₹{selectedJob.serviceCharge}</span>
+                  <span>₹{selectedJob.service_charge || 0}</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Total Amount:</span>
-                  <span>₹{selectedJob.totalAmount}</span>
+                  <span>₹{selectedJob.total_amount || 0}</span>
                 </div>
               </div>
 
