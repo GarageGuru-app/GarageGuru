@@ -414,9 +414,11 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
       
-      // For now, we'll determine role based on registration form data
-      // Admin users provide garage info, staff users provide selectedGarageId
-      const role = (req.body.garageName && req.body.ownerName) ? 'garage_admin' : 'mechanic_staff';
+      // Determine role based on access request intent and activation code usage
+      // Check if this registration is from an admin access request
+      const role = req.body.requestedRole === 'admin' || req.body.isAdminRequest === true 
+        ? 'garage_admin' 
+        : 'mechanic_staff';
       
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);

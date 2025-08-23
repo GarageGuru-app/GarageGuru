@@ -45,7 +45,13 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      await register(formData);
+      // Include role information based on activation code type
+      const registrationData = {
+        ...formData,
+        isAdminRequest: isAdmin,
+        requestedRole: isAdmin ? 'admin' : 'staff'
+      };
+      await register(registrationData);
       navigate("/dashboard");
     } catch (error) {
       toast({
