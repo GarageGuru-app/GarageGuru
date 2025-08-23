@@ -59,7 +59,7 @@ const requireGarageAccess = (req: any, res: any, next: any) => {
   }
   
   const garageId = req.params.garageId || req.params.id || req.body.garageId;
-  if (!garageId || garageId !== req.user.garageId) {
+  if (!garageId || garageId !== req.user.garage_id) {
     return res.status(403).json({ message: 'Access denied to this garage' });
   }
   next();
@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         email,
         name,
         role: 'garage_admin',
-        garageId: garage.id,
+        garage_id: garage.id,
         password
       });
 
@@ -393,7 +393,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           email,
           name,
           role: 'super_admin',
-          garageId: null,
+          garage_id: null,
           password
         });
         
@@ -449,7 +449,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         password: hashedPassword,
         name,
         role,
-        garageId
+        garage_id: garageId
       });
       
       const token = jwt.sign({ email: user.email, id: user.id }, JWT_SECRET);
@@ -492,8 +492,8 @@ export async function registerRoutes(app: Express): Promise<void> {
       console.log('JWT token generated successfully');
       
       let garage = null;
-      if (user.garageId) {
-        garage = await storage.getGarage(user.garageId);
+      if (user.garage_id) {
+        garage = await storage.getGarage(user.garage_id);
         console.log('Garage found:', garage ? 'Yes' : 'No');
       }
       
@@ -981,7 +981,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { logo } = req.body;
       
       // Verify user has access to this garage
-      const userGarageId = (req as any).user.garageId;
+      const userGarageId = (req as any).user.garage_id;
       if (userGarageId !== id) {
         return res.status(403).json({ message: 'Access denied' });
       }
