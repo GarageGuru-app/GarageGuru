@@ -121,8 +121,8 @@ export default function Invoice() {
         invoiceNumber,
       });
       
-      // Open PDF in new tab for preview
-      const pdfUrl = URL.createObjectURL(pdfBlob);
+      // Open PDF in new tab for preview with proper MIME type
+      const pdfUrl = URL.createObjectURL(new Blob([pdfBlob], { type: 'application/pdf' }));
       window.open(pdfUrl, '_blank');
       
       // Clean up the URL after a delay
@@ -208,12 +208,14 @@ export default function Invoice() {
           description: "Invoice generated and WhatsApp opened",
         });
       } else {
-        // Just download PDF with proper filename
+        // Just download PDF with proper filename and extension
         const url = URL.createObjectURL(finalPdfBlob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `${finalFilename}.pdf`;
+        document.body.appendChild(a); // Ensure element is in DOM
         a.click();
+        document.body.removeChild(a); // Clean up
         URL.revokeObjectURL(url);
         
         toast({
