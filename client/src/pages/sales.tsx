@@ -8,11 +8,56 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SalesChart } from "@/components/SalesChart";
 import { Analytics3DChart } from "@/components/Analytics3DChart";
 import { NotificationPanel } from "@/components/NotificationPanel";
-import { ArrowLeft, Filter, FileText, Settings, TrendingUp, IndianRupee, Bell, BarChart, Wrench, DollarSign } from "lucide-react";
+import { ArrowLeft, Filter, FileText, Settings, TrendingUp, IndianRupee, Bell, BarChart, Wrench, DollarSign, Lock } from "lucide-react";
 
 export default function Sales() {
   const [, navigate] = useLocation();
-  const { garage } = useAuth();
+  const { garage, user } = useAuth();
+  
+  // Check if user is staff - restrict access to financial data
+  const isStaff = user?.role === 'mechanic_staff';
+  
+  // Show access denied page for staff
+  if (isStaff) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="screen-header">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/dashboard")}
+              className="text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h2 className="text-lg font-semibold">Sales & Analytics</h2>
+          </div>
+        </div>
+        <div className="screen-content flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 mx-auto bg-destructive/10 rounded-full flex items-center justify-center">
+              <Lock className="w-8 h-8 text-destructive" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Access Restricted</h3>
+              <p className="text-muted-foreground max-w-md">
+                Sales and financial data are only available to garage administrators. 
+                Please contact your garage admin for access to this information.
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/dashboard")}
+              className="mt-4"
+            >
+              Return to Dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const [showNotifications, setShowNotifications] = useState(false);
   const [activeChart, setActiveChart] = useState<'service' | 'parts' | 'profit' | null>(null);
   const [analyticsData, setAnalyticsData] = useState<Array<any>>([]);

@@ -137,13 +137,13 @@ export default function Dashboard() {
       bgColor: "bg-orange-100 dark:bg-orange-900/20",
       iconColor: "text-orange-600",
     },
-    ...(user?.role === "garage_admin" ? [{
+    {
       title: "Spare Parts",
       icon: Cog,
       path: "/spare-parts",
       bgColor: "bg-purple-100 dark:bg-purple-900/20",
       iconColor: "text-purple-600",
-    }] : []),
+    },
   ];
 
   return (

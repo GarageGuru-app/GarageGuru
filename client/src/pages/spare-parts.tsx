@@ -52,9 +52,12 @@ interface SparePartForm {
 
 export default function SpareParts() {
   const [, navigate] = useLocation();
-  const { garage } = useAuth();
+  const { garage, user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Check if user is staff - restrict delete functionality
+  const isStaff = user?.role === 'mechanic_staff';
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
@@ -886,16 +889,18 @@ export default function SpareParts() {
                         <Edit className="w-3 h-3 mr-1" />
                         Edit
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(part)}
-                        className="px-3 py-1 text-xs text-destructive border-destructive hover:bg-destructive/10"
-                        disabled={deletePartMutation.isPending}
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Delete
-                      </Button>
+                      {!isStaff && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(part)}
+                          className="px-3 py-1 text-xs text-destructive border-destructive hover:bg-destructive/10"
+                          disabled={deletePartMutation.isPending}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Delete
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
