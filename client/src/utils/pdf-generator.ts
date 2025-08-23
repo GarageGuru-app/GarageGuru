@@ -11,6 +11,14 @@ interface InvoiceData {
 export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   const { jobCard, garage, serviceCharge, invoiceNumber } = data;
   
+  console.log('PDF Generator - Received jobCard data:', jobCard);
+  
+  // Handle field name inconsistencies by checking both formats
+  const customerName = jobCard.customerName || jobCard.customer_name || 'N/A';
+  const bikeNumber = jobCard.bikeNumber || jobCard.bike_number || 'N/A';
+  const phone = jobCard.phone || 'N/A';
+  const spareParts = jobCard.spareParts || jobCard.spare_parts || [];
+  
   const pdf = new jsPDF();
   const pageWidth = pdf.internal.pageSize.width;
   
@@ -74,9 +82,9 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   yPos += 50;
   pdf.text(`Invoice Number: ${invoiceNumber}`, 20, yPos);
   pdf.text(`Date: ${new Date().toLocaleDateString()}`, 20, yPos + 10);
-  pdf.text(`Customer: ${jobCard.customerName}`, 20, yPos + 20);
-  pdf.text(`Phone: ${jobCard.phone}`, 20, yPos + 30);
-  pdf.text(`Bike Number: ${jobCard.bikeNumber}`, 20, yPos + 40);
+  pdf.text(`Customer: ${customerName}`, 20, yPos + 20);
+  pdf.text(`Phone: ${phone}`, 20, yPos + 30);
+  pdf.text(`Bike Number: ${bikeNumber}`, 20, yPos + 40);
   
   // Services & Parts
   yPos += 60;
@@ -88,17 +96,24 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   
   let partsTotal = 0;
   
-  if (jobCard.spareParts && Array.isArray(jobCard.spareParts)) {
-    jobCard.spareParts.forEach((part: any) => {
+  if (spareParts && Array.isArray(spareParts) && spareParts.length > 0) {
+    spareParts.forEach((part: any) => {
       const lineTotal = part.price * part.quantity;
       partsTotal += lineTotal;
       
       // Display both part number and name
-      const partDisplay = part.partNumber ? `PN: ${part.partNumber} — ${part.name}` : part.name;
+      // Handle part number field name variations  
+      const partNumber = part.partNumber || part.part_number || '';
+      const partName = part.name || 'Unnamed Part';
+      const partDisplay = partNumber ? `PN: ${partNumber} — ${partName}` : partName;
       pdf.text(`${partDisplay} — Qty ${part.quantity} x ₹${part.price}`, 20, yPos);
       pdf.text(`₹${lineTotal.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
       yPos += 10;
     });
+  } else {
+    // Add a line for service only (no parts)
+    pdf.text('Service Only', 20, yPos);
+    yPos += 10;
   }
   
   // Totals
