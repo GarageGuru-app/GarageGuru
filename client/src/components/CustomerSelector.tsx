@@ -49,7 +49,7 @@ export default function CustomerSelector({ onCustomerSelect, selectedCustomer }:
 
   const handleCustomerSelect = (customer: Customer) => {
     onCustomerSelect(customer);
-    setSearchQuery(`${customer.name} - ${customer.bikeNumber}`);
+    setSearchQuery(`${customer.name} - ${customer.bike_number}`);
     setShowResults(false);
   };
 
@@ -96,7 +96,7 @@ export default function CustomerSelector({ onCustomerSelect, selectedCustomer }:
                       >
                         <div className="font-medium">{customer.name}</div>
                         <div className="text-sm text-muted-foreground">
-                          {customer.phone} • {customer.bikeNumber}
+                          {customer.phone} • {customer.bike_number}
                         </div>
                       </button>
                     ))}
@@ -132,7 +132,7 @@ export default function CustomerSelector({ onCustomerSelect, selectedCustomer }:
               <div className="text-sm space-y-1">
                 <div><strong>Name:</strong> {selectedCustomer.name}</div>
                 <div><strong>Phone:</strong> {selectedCustomer.phone}</div>
-                <div><strong>Bike:</strong> {selectedCustomer.bikeNumber}</div>
+                <div><strong>Bike:</strong> {selectedCustomer.bike_number}</div>
                 {selectedCustomer.notes && (
                   <div><strong>Notes:</strong> {selectedCustomer.notes}</div>
                 )}

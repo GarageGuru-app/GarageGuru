@@ -83,7 +83,7 @@ export default function JobCard() {
       ...prev,
       customerName: customer.name,
       phone: customer.phone,
-      bikeNumber: customer.bikeNumber
+      bikeNumber: customer.bike_number
     }));
   };
 
@@ -170,7 +170,7 @@ export default function JobCard() {
     const submitData = {
       customerName: selectedCustomer.name,
       phone: selectedCustomer.phone,
-      bikeNumber: selectedCustomer.bikeNumber,
+      bikeNumber: selectedCustomer.bike_number,
       complaint: formData.complaint,
       spareParts: selectedParts,
       serviceCharge: serviceCharge.toString(),

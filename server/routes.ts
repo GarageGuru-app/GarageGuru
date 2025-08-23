@@ -709,9 +709,9 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { garageId } = req.params;
       const jobCardData = insertJobCardSchema.parse({ ...req.body, garageId });
       
-      // Create or find customer
+      // Create or find customer  
       let customer = await storage.getCustomers(garageId).then(customers => 
-        customers.find(c => c.phone === jobCardData.phone && c.bikeNumber === jobCardData.bikeNumber)
+        customers.find(c => c.phone === jobCardData.phone && c.bike_number === jobCardData.bikeNumber)
       );
       
       if (!customer) {
