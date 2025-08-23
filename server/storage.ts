@@ -230,7 +230,7 @@ export class DatabaseStorage implements IStorage {
     const id = customer.id || crypto.randomUUID();
     const result = await pool.query(
       'INSERT INTO customers (id, garage_id, name, phone, bike_number, total_jobs, total_spent, last_visit, created_at, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
-      [id, customer.garage_id, customer.name, customer.phone, customer.bike_number, customer.total_jobs || 0, customer.total_spent || 0, customer.last_visit, new Date(), customer.notes]
+      [id, customer.garageId, customer.name, customer.phone, customer.bikeNumber, customer.totalJobs || 0, customer.totalSpent || 0, customer.lastVisit, new Date(), customer.notes]
     );
     return result.rows[0];
   }

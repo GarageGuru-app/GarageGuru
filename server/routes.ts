@@ -559,9 +559,6 @@ export async function registerRoutes(app: Express): Promise<void> {
   app.post("/api/garages/:garageId/customers", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
-      console.log('Customer creation - garageId from params:', garageId);
-      console.log('Customer creation - req.body:', req.body);
-      console.log('Customer creation - combined data:', { ...req.body, garageId });
       
       const customerData = insertCustomerSchema.parse({ ...req.body, garageId });
       
