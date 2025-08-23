@@ -392,6 +392,37 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async getTodaySalesStats(garageId: string): Promise<{
+    todayProfit: number;
+    todayInvoices: number;
+    todayService: number;
+    todayParts: number;
+  }> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const result = await pool.query(
+      `SELECT 
+        COUNT(*) as today_invoices,
+        COALESCE(SUM(parts_total), 0) as today_parts,
+        COALESCE(SUM(service_charge), 0) as today_service,
+        COALESCE(SUM(total_amount), 0) as today_profit
+       FROM invoices 
+       WHERE garage_id = $1 AND created_at >= $2 AND created_at < $3`,
+      [garageId, today.toISOString(), tomorrow.toISOString()]
+    );
+    
+    const row = result.rows[0];
+    return {
+      todayProfit: parseFloat(row.today_profit || 0),
+      todayInvoices: parseInt(row.today_invoices || 0),
+      todayService: parseFloat(row.today_service || 0),
+      todayParts: parseFloat(row.today_parts || 0)
+    };
+  }
+
   async getMonthlySalesData(garageId: string): Promise<Array<{
     month: string;
     year: number;

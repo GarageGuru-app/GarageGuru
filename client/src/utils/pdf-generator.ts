@@ -171,13 +171,16 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
     );
     
     if (!response.ok) {
-      throw new Error('Failed to upload PDF');
+      const errorText = await response.text();
+      console.error('Cloudinary response error:', response.status, errorText);
+      throw new Error(`Failed to upload PDF: ${response.status} ${errorText}`);
     }
     
     const data = await response.json();
     return data.secure_url;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
     throw new Error('Failed to upload PDF to cloud storage');
   }
 }
