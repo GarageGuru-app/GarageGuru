@@ -58,9 +58,9 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   yPos += 50;
   pdf.text(`Invoice Number: ${invoiceNumber}`, 20, yPos);
   pdf.text(`Date: ${new Date().toLocaleDateString()}`, 20, yPos + 10);
-  pdf.text(`Customer: ${jobCard.customerName}`, 20, yPos + 20);
+  pdf.text(`Customer: ${jobCard.customer_name}`, 20, yPos + 20);
   pdf.text(`Phone: ${jobCard.phone}`, 20, yPos + 30);
-  pdf.text(`Bike Number: ${jobCard.bikeNumber}`, 20, yPos + 40);
+  pdf.text(`Bike Number: ${jobCard.bike_number}`, 20, yPos + 40);
   
   // Services & Parts
   yPos += 60;
@@ -72,13 +72,13 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   
   let partsTotal = 0;
   
-  if (jobCard.spareParts && Array.isArray(jobCard.spareParts)) {
-    jobCard.spareParts.forEach((part: any) => {
+  if (jobCard.spare_parts && Array.isArray(jobCard.spare_parts)) {
+    jobCard.spare_parts.forEach((part: any) => {
       const lineTotal = part.price * part.quantity;
       partsTotal += lineTotal;
       
       // Display both part number and name
-      const partDisplay = part.partNumber ? `PN: ${part.partNumber} — ${part.name}` : part.name;
+      const partDisplay = part.part_number ? `PN: ${part.part_number} — ${part.name}` : part.name;
       pdf.text(`${partDisplay} — Qty ${part.quantity} x ₹${part.price}`, 20, yPos);
       pdf.text(`₹${lineTotal.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
       yPos += 10;

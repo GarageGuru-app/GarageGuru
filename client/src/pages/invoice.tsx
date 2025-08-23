@@ -92,8 +92,8 @@ export default function Invoice() {
     );
   }
 
-  const partsTotal = Array.isArray(jobCard.spareParts) 
-    ? jobCard.spareParts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0)
+  const partsTotal = Array.isArray(jobCard.spare_parts) 
+    ? jobCard.spare_parts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0)
     : 0;
   
   const totalAmount = partsTotal + serviceCharge;
@@ -122,7 +122,7 @@ export default function Invoice() {
         customerName: jobCard.customer_name,
         bikeNumber: jobCard.bike_number,
         complaint: jobCard.complaint,
-        spareParts: jobCard.spareParts,
+        spareParts: jobCard.spare_parts,
         serviceCharge,
         partsTotal,
         totalAmount,
@@ -257,10 +257,10 @@ export default function Invoice() {
               <h4 className="font-semibold mb-3">Services & Parts</h4>
               
               <div className="space-y-2">
-                {Array.isArray(jobCard.spareParts) && jobCard.spareParts.map((part: any, index: number) => (
+                {Array.isArray(jobCard.spare_parts) && jobCard.spare_parts.map((part: any, index: number) => (
                   <div key={index} className="flex justify-between text-sm">
                     <span>
-                      {part.partNumber ? `PN: ${part.partNumber} — ${part.name}` : part.name} — Qty {part.quantity} x ₹{part.price}
+                      {part.part_number ? `PN: ${part.part_number} — ${part.name}` : part.name} — Qty {part.quantity} x ₹{part.price}
                     </span>
                     <span>₹{(part.price * part.quantity).toFixed(2)}</span>
                   </div>
