@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings, Moon, Sun, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
@@ -74,11 +75,7 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch("/api/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: forgotEmail }),
-      });
+      const response = await apiRequest("POST", "/api/forgot-password", { email: forgotEmail });
 
       if (response.ok) {
         toast({
@@ -101,13 +98,9 @@ export default function Login() {
 
   const handleMfaRequest = async () => {
     try {
-      const response = await fetch('/api/mfa/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: 'gorla.ananthkalyan@gmail.com',
-          purpose: 'password_change' 
-        }),
+      const response = await apiRequest('POST', '/api/mfa/request', { 
+        email: 'gorla.ananthkalyan@gmail.com',
+        purpose: 'password_change' 
       });
 
       if (response.ok) {
@@ -139,14 +132,10 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch('/api/mfa/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: 'gorla.ananthkalyan@gmail.com',
-          code: mfaOtp,
-          purpose: 'password_change' 
-        }),
+      const response = await apiRequest('POST', '/api/mfa/verify', { 
+        email: 'gorla.ananthkalyan@gmail.com',
+        code: mfaOtp,
+        purpose: 'password_change' 
       });
 
       if (response.ok) {
@@ -189,14 +178,10 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch('/api/mfa/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: 'gorla.ananthkalyan@gmail.com',
-          newPassword,
-          purpose: 'password_change' 
-        }),
+      const response = await apiRequest('POST', '/api/mfa/change-password', { 
+        email: 'gorla.ananthkalyan@gmail.com',
+        newPassword,
+        purpose: 'password_change' 
       });
 
       if (response.ok) {
