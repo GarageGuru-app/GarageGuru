@@ -55,6 +55,7 @@ interface User {
   name: string;
   role: string;
   garage_id?: string;
+  status?: string;
   created_at: string;
 }
 
@@ -340,19 +341,19 @@ export default function SuperAdminPage() {
   // Fetch garages and stats
   const { data: garageData, isLoading: loadingGarages, refetch: refetchGarages } = useQuery({
     queryKey: ['/api/super-admin/garages'],
-    enabled: currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || '')
+    enabled: !!(currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || ''))
   });
 
   // Fetch access requests
   const { data: accessRequests, refetch: refetchAccessRequests } = useQuery({
     queryKey: ['/api/access-requests'],
-    enabled: currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || '')
+    enabled: !!(currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || ''))
   });
 
   // Fetch audit logs
   const { data: auditLogs, refetch: refetchAuditLogs } = useQuery({
     queryKey: ['/api/super-admin/audit-logs'],
-    enabled: currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || '')
+    enabled: !!(currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || ''))
   });
 
   // Process access request mutation

@@ -420,7 +420,6 @@ export default function AdminDashboard() {
       <NotificationPanel
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
-        lowStockParts={lowStockParts || []}
       />
 
       {/* Low Stock Alert Dialog */}
