@@ -294,7 +294,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       // Create access request in database
       const accessRequest = await storage.createAccessRequest({
-        garage_id: garageId,
+        garage_id: garageId || null, // Handle empty strings properly
         user_id: null, // Will be set when user is created after approval
         email,
         name,
