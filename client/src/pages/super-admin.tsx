@@ -327,6 +327,7 @@ export default function SuperAdminPage() {
   const [selectedGarage, setSelectedGarage] = useState<Garage | null>(null);
   const [showMFA, setShowMFA] = useState(false);
   const [processingAction, setProcessingAction] = useState<{ requestId: string; action: 'approve' | 'deny' } | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -448,6 +449,29 @@ export default function SuperAdminPage() {
     updateUserStatusMutation.mutate({ userId, status: newStatus });
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refetchGarages(),
+        refetchAccessRequests(),
+        refetchAuditLogs()
+      ]);
+      toast({
+        title: 'Success',
+        description: 'Data refreshed successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to refresh data',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleApproveRequest = (requestId: string, requestedRole: string) => {
     setProcessingAction({ requestId, action: 'approve' });
     // Convert requested role to actual system role
@@ -477,17 +501,12 @@ export default function SuperAdminPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  // Invalidate all cached data to force fresh fetch from database
-                  queryClient.invalidateQueries({ queryKey: ['/api/super-admin/garages'] });
-                  queryClient.invalidateQueries({ queryKey: ['/api/access-requests'] });
-                  queryClient.invalidateQueries({ queryKey: ['/api/super-admin/audit-logs'] });
-                }}
-                disabled={loadingGarages}
+                onClick={handleRefresh}
+                disabled={isRefreshing || loadingGarages}
                 data-testid="button-refresh"
               >
-                <RefreshCw className={`w-4 h-4 ${loadingGarages ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline ml-2">Refresh</span>
+                <RefreshCw className={`w-4 h-4 ${isRefreshing || loadingGarages ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline ml-2">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
               </Button>
               <Button
                 size="sm"
