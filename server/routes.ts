@@ -365,6 +365,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         // Check if user already exists
         const existingUser = await storage.getUserByEmail(request.email);
         let newUser;
+        let defaultPassword = null; // Only set for new users
         
         if (existingUser) {
           // User already exists, just update their role if needed
@@ -381,7 +382,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           }
         } else {
           // Create new user account
-          const defaultPassword = 'ChangeMe123!'; // User will need to change this on first login
+          defaultPassword = 'ChangeMe123!'; // User will need to change this on first login
           const hashedPassword = await bcrypt.hash(defaultPassword, 10);
           
           const userData = {
@@ -405,13 +406,14 @@ export async function registerRoutes(app: Express): Promise<void> {
         
         // Send approval email notification
         const gmailService = GmailEmailService.getInstance();
+        
         await gmailService.sendAccessApprovalNotification(
           request.email,
           {
             name: request.name,
-            role: userData.role,
+            role: newUser.role,
             email: request.email,
-            temporaryPassword: defaultPassword
+            temporaryPassword: defaultPassword // Will be null for existing users
           }
         );
         
