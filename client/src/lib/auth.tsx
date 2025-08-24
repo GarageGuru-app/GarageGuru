@@ -97,19 +97,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const response = await apiRequest("POST", "/api/auth/login", { email, password });
-
-      if (!response.ok) {
-        let errorMessage = "Login failed";
-        try {
-          const error = await response.json();
-          errorMessage = error.message || errorMessage;
-        } catch {
-          // If response is not JSON, use status text
-          errorMessage = response.statusText || errorMessage;
-        }
-        throw new Error(errorMessage);
-      }
-
       const data = await response.json();
       
       // Set auth data from login response
@@ -124,33 +111,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return null;
     } catch (error) {
-      // Handle network errors or JSON parsing errors
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error("Network error - please check your connection");
+      // apiRequest already throws descriptive errors
+      throw error;
     }
   };
 
   const register = async (registerData: RegisterData) => {
-    const response = await apiRequest("POST", "/api/auth/register", registerData);
+    try {
+      const response = await apiRequest("POST", "/api/auth/register", registerData);
+      const data = await response.json();
+      localStorage.setItem("auth-token", data.token);
+      setToken(data.token);
+      setUser(data.user);
+      setGarage(data.garage);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
+      // Return route path for navigation after registration
+      if (data.user) {
+        return routeUserBasedOnRole(data.user, data.garage);
+      }
+      return null;
+    } catch (error) {
+      // apiRequest already throws descriptive errors
+      throw error;
     }
-
-    const data = await response.json();
-    localStorage.setItem("auth-token", data.token);
-    setToken(data.token);
-    setUser(data.user);
-    setGarage(data.garage);
-
-    // Return route path for navigation after registration
-    if (data.user) {
-      return routeUserBasedOnRole(data.user, data.garage);
-    }
-    return null;
   };
 
   const logout = () => {

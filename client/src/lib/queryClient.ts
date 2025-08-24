@@ -17,7 +17,7 @@ export async function apiRequest(
 ): Promise<Response> {
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
   
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('auth-token');
   const headers: HeadersInit = data ? { "Content-Type": "application/json" } : {};
   
   if (token) {
@@ -44,7 +44,7 @@ export const getQueryFn: <T>(options: {
     const url = queryKey.join("/") as string;
     const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
     
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth-token');
     const headers: HeadersInit = {};
     
     if (token) {
