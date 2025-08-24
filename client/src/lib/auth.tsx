@@ -75,9 +75,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('🔥 [AUTH] useEffect triggered - token exists:', !!token, 'user exists:', !!user, 'isLoading:', isLoading);
     
     if (token) {
-      // Only verify token if we don't already have user data
-      if (!user) {
+      // Only verify token if we don't already have user data AND we're not currently loading
+      if (!user && !isLoading) {
         console.log('🔥 [AUTH] Token exists but no user, fetching profile');
+        setIsLoading(true); // Set loading to prevent multiple concurrent requests
+        
         apiRequest("GET", "/api/user/profile")
           .then(res => res.json())
           .then(data => {
@@ -92,15 +94,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           })
           .catch((error) => {
-            console.log("🔥 [AUTH] Token validation failed, clearing auth:", error.message);
-            localStorage.removeItem("auth-token");
-            setToken(null);
+            console.log("🔥 [AUTH] Token validation failed:", error.message);
+            // Only clear token if it's actually invalid (401), not for network errors
+            if (error.message.includes('Invalid email or password') || error.message.includes('401')) {
+              console.log("🔥 [AUTH] Token is invalid, clearing auth");
+              localStorage.removeItem("auth-token");
+              setToken(null);
+            } else {
+              console.log("🔥 [AUTH] Network/temporary error, keeping token:", error.message);
+              // Don't clear valid tokens for temporary network issues
+            }
           })
           .finally(() => {
             console.log('🔥 [AUTH] Setting isLoading to false after profile fetch');
             setIsLoading(false);
           });
-      } else {
+      } else if (user) {
         // User data already exists, just stop loading
         console.log('🔥 [AUTH] User data already exists, stopping loading');
         setIsLoading(false);
@@ -112,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setGarage(null);
       setIsLoading(false);
     }
-  }, [token]); // Remove 'user' from dependencies to prevent unnecessary re-runs
+  }, [token, user]); // Include user in dependencies but guard against infinite loops
 
   const login = async (email: string, password: string) => {
     try {

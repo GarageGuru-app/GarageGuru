@@ -185,7 +185,7 @@ export default function Login() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Invalid or expired OTP",
+        description: error instanceof Error ? error.message : "Invalid or expired OTP",
         variant: "destructive",
       });
     }
@@ -235,7 +235,7 @@ export default function Login() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to change password",
+        description: error instanceof Error ? error.message : "Failed to change password",
         variant: "destructive",
       });
     }
