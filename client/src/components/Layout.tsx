@@ -40,7 +40,9 @@ export default function Layout({ children, showFab = true }: LayoutProps) {
     );
   }
 
-  // Use desktop layout for screens >= 1024px
+  // DESKTOP LAYOUT DISABLED - Using mobile-first design for all screen sizes
+  // Uncomment below to re-enable desktop layout
+  /*
   if (isDesktop) {
     return (
       <DesktopLayout showFab={showFab}>
@@ -48,6 +50,7 @@ export default function Layout({ children, showFab = true }: LayoutProps) {
       </DesktopLayout>
     );
   }
+  */
 
   // Use mobile layout for smaller screens
   return (

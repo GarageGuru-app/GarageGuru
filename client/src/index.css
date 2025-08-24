@@ -198,7 +198,8 @@
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Desktop Layout Styles */
+/* DESKTOP LAYOUT STYLES - PRESERVED FOR FUTURE USE */
+/* Uncomment the styles below to re-enable desktop layout 
 .desktop-container {
   @apply flex h-screen bg-background;
 }
@@ -289,7 +290,6 @@
   @apply flex-1 overflow-auto p-8;
 }
 
-/* Desktop-specific dashboard layouts */
 .desktop-dashboard-grid {
   @apply space-y-8;
 }
@@ -310,7 +310,6 @@
   @apply space-y-8;
 }
 
-/* Enhanced card styles for desktop */
 .desktop-stat-card {
   @apply bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300;
   background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted) / 0.1) 100%);
@@ -324,7 +323,6 @@
   @apply bg-card border border-border rounded-2xl shadow-sm;
 }
 
-/* Responsive behavior */
 @media (max-width: 1280px) {
   .desktop-content-grid {
     @apply grid-cols-1;
@@ -340,6 +338,7 @@
     @apply hidden;
   }
 }
+End of desktop styles */
 
 /* Mobile-specific styles */
 @media (max-width: 1024px) {
