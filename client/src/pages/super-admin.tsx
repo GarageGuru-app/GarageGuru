@@ -657,11 +657,31 @@ export default function SuperAdminPage() {
                           </Badge>
                           {request.status === 'pending' && (
                             <div className="flex gap-1">
-                              <Button size="sm" variant="default" data-testid={`button-approve-${request.id}`}>
-                                <CheckCircle className="w-3 h-3" />
+                              <Button 
+                                size="sm" 
+                                variant="default" 
+                                onClick={() => handleApproveRequest(request.id, request.requested_role)}
+                                disabled={processRequestMutation.isPending}
+                                data-testid={`button-approve-${request.id}`}
+                              >
+                                {processRequestMutation.isPending ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="w-3 h-3" />
+                                )}
                               </Button>
-                              <Button size="sm" variant="destructive" data-testid={`button-deny-${request.id}`}>
-                                <XCircle className="w-3 h-3" />
+                              <Button 
+                                size="sm" 
+                                variant="destructive" 
+                                onClick={() => handleDenyRequest(request.id)}
+                                disabled={processRequestMutation.isPending}
+                                data-testid={`button-deny-${request.id}`}
+                              >
+                                {processRequestMutation.isPending ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <XCircle className="w-3 h-3" />
+                                )}
                               </Button>
                             </div>
                           )}
