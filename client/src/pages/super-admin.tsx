@@ -24,7 +24,9 @@ import {
   Search,
   Filter,
   RefreshCw,
-  LogOut
+  LogOut,
+  UserX,
+  UserCheck
 } from 'lucide-react';
 
 // Super Admin emails that can access this page
@@ -385,13 +387,35 @@ export default function SuperAdminPage() {
         title: 'Success',
         description: 'User role updated successfully',
       });
-      refetchGarages();
-      refetchAuditLogs();
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/garages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/audit-logs'] });
     },
     onError: (error: any) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to update role',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Update user status mutation
+  const updateUserStatusMutation = useMutation({
+    mutationFn: ({ userId, status }: { userId: string; status: string }) => {
+      return apiRequest('PATCH', `/api/users/${userId}/status`, { status });
+    },
+    onSuccess: (_, { status }) => {
+      toast({
+        title: 'Success',
+        description: `User ${status === 'suspended' ? 'suspended' : 'activated'} successfully`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/garages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/audit-logs'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update user status',
         variant: 'destructive',
       });
     },
@@ -417,6 +441,11 @@ export default function SuperAdminPage() {
 
   const handleToggleRole = (userId: string) => {
     toggleRoleMutation.mutate({ userId });
+  };
+
+  const handleToggleUserStatus = (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+    updateUserStatusMutation.mutate({ userId, status: newStatus });
   };
 
   const handleApproveRequest = (requestId: string, requestedRole: string) => {
@@ -449,9 +478,10 @@ export default function SuperAdminPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  refetchGarages();
-                  refetchAccessRequests();
-                  refetchAuditLogs();
+                  // Invalidate all cached data to force fresh fetch from database
+                  queryClient.invalidateQueries({ queryKey: ['/api/super-admin/garages'] });
+                  queryClient.invalidateQueries({ queryKey: ['/api/access-requests'] });
+                  queryClient.invalidateQueries({ queryKey: ['/api/super-admin/audit-logs'] });
                 }}
                 disabled={loadingGarages}
                 data-testid="button-refresh"
@@ -603,7 +633,16 @@ export default function SuperAdminPage() {
                           {garage.users.map((user) => (
                             <div key={user.id} className="flex items-center justify-between p-2 rounded bg-accent/20" data-testid={`user-row-${user.id}`}>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate" data-testid={`user-name-${user.id}`}>{user.name}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium truncate" data-testid={`user-name-${user.id}`}>{user.name}</p>
+                                  <Badge 
+                                    variant={user.status === 'active' ? 'default' : 'destructive'}
+                                    className="text-xs"
+                                    data-testid={`user-status-badge-${user.id}`}
+                                  >
+                                    {user.status === 'active' ? 'Active' : 'Suspended'}
+                                  </Badge>
+                                </div>
                                 <p className="text-xs text-muted-foreground truncate" data-testid={`user-email-${user.id}`}>{user.email}</p>
                               </div>
                               <div className="flex items-center gap-2">
@@ -614,19 +653,36 @@ export default function SuperAdminPage() {
                                   {user.role === 'garage_admin' ? 'Admin' : 'Staff'}
                                 </Badge>
                                 {user.role !== 'super_admin' && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleToggleRole(user.id)}
-                                    disabled={toggleRoleMutation.isPending}
-                                    data-testid={`button-toggle-role-${user.id}`}
-                                  >
-                                    {toggleRoleMutation.isPending ? (
-                                      <RefreshCw className="w-3 h-3 animate-spin" />
-                                    ) : (
-                                      <>↔ Toggle</>
-                                    )}
-                                  </Button>
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleToggleRole(user.id)}
+                                      disabled={toggleRoleMutation.isPending}
+                                      data-testid={`button-toggle-role-${user.id}`}
+                                    >
+                                      {toggleRoleMutation.isPending ? (
+                                        <RefreshCw className="w-3 h-3 animate-spin" />
+                                      ) : (
+                                        <>↔ Toggle</>
+                                      )}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant={user.status === 'active' ? 'destructive' : 'default'}
+                                      onClick={() => handleToggleUserStatus(user.id, user.status || 'active')}
+                                      disabled={updateUserStatusMutation.isPending}
+                                      data-testid={`button-toggle-status-${user.id}`}
+                                    >
+                                      {updateUserStatusMutation.isPending ? (
+                                        <RefreshCw className="w-3 h-3 animate-spin" />
+                                      ) : user.status === 'active' ? (
+                                        <><UserX className="w-3 h-3" /> Suspend</>
+                                      ) : (
+                                        <><UserCheck className="w-3 h-3" /> Activate</>
+                                      )}
+                                    </Button>
+                                  </>
                                 )}
                               </div>
                             </div>

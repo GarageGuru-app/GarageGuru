@@ -1019,6 +1019,18 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Get garage staff members (admin)
+  app.get("/api/garages/:garageId/staff", authenticateToken, requireRole(['garage_admin']), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const staff = await storage.getGarageStaff(garageId);
+      res.json(staff);
+    } catch (error) {
+      console.error('Error fetching garage staff:', error);
+      res.status(500).json({ message: 'Failed to fetch garage staff' });
+    }
+  });
+
   // Sales analytics routes
   app.get("/api/garages/:garageId/sales/stats", authenticateToken, requireRole(['garage_admin']), requireGarageAccess, async (req, res) => {
     try {
@@ -1599,6 +1611,55 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error: any) {
       console.error('Get audit logs error:', error);
       res.status(500).json({ message: 'Failed to fetch audit logs' });
+    }
+  });
+
+  // Update user status endpoint (for hold/suspend functionality)
+  app.patch("/api/users/:id/status", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body; // 'active' or 'suspended'
+      
+      if (!['active', 'suspended'].includes(status)) {
+        return res.status(400).json({ message: 'Invalid status. Must be "active" or "suspended"' });
+      }
+
+      // Get the target user to check permissions
+      const targetUser = await storage.getUserById(id);
+      if (!targetUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Permission checks:
+      // - Super admin can change status of garage_admin and mechanic_staff
+      // - Garage admin can only change status of mechanic_staff in their garage
+      if (req.user.role === 'super_admin') {
+        // Super admin can manage garage_admin and mechanic_staff
+        if (!['garage_admin', 'mechanic_staff'].includes(targetUser.role)) {
+          return res.status(403).json({ message: 'Cannot change status of super admin users' });
+        }
+      } else if (req.user.role === 'garage_admin') {
+        // Garage admin can only manage mechanic_staff in their garage
+        if (targetUser.role !== 'mechanic_staff') {
+          return res.status(403).json({ message: 'Garage admin can only manage mechanic staff' });
+        }
+        if (targetUser.garage_id !== req.user.garage_id) {
+          return res.status(403).json({ message: 'Can only manage staff in your own garage' });
+        }
+      } else {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+
+      // Update user status
+      const updatedUser = await storage.updateUser(id, { status });
+      
+      res.json({ 
+        message: `User ${status === 'suspended' ? 'suspended' : 'activated'} successfully`,
+        user: updatedUser 
+      });
+    } catch (error) {
+      console.error('Update user status error:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 

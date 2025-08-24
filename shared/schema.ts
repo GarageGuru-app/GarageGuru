@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   firstLogin: boolean("first_login").default(true),
   mustChangePassword: boolean("must_change_password").default(false),
+  status: text("status").notNull().default("active"), // 'active', 'suspended'
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -88,8 +88,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         apiRequest("GET", "/api/user/profile")
           .then(res => res.json())
           .then(data => {
-            console.log('🔥 [AUTH] Profile fetch successful, user role:', data.user?.role);
+            console.log('🔥 [AUTH] Profile fetch successful, user role:', data.user?.role, 'status:', data.user?.status);
             if (data.user) {
+              // Check if user is suspended
+              if (data.user.status === 'suspended') {
+                console.log('🔥 [AUTH] User is suspended, logging out');
+                localStorage.removeItem("auth-token");
+                setToken(null);
+                setUser(null);
+                setGarage(null);
+                throw new Error('Your account has been suspended. Please contact an administrator.');
+              }
               setUser(data.user);
               setGarage(data.garage);
             } else {
@@ -132,7 +141,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔥 [AUTH] Login function called for:', email);
       const response = await apiRequest("POST", "/api/auth/login", { email, password });
       const data = await response.json();
-      console.log('🔥 [AUTH] Login API response received, token exists:', !!data.token);
+      console.log('🔥 [AUTH] Login API response received, token exists:', !!data.token, 'user status:', data.user?.status);
+      
+      // Check if user is suspended
+      if (data.user?.status === 'suspended') {
+        console.log('🔥 [AUTH] User is suspended, blocking login');
+        throw new Error('Your account has been suspended. Please contact an administrator.');
+      }
       
       // Set auth data from login response - do this synchronously to avoid race conditions
       localStorage.setItem("auth-token", data.token);

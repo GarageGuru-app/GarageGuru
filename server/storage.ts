@@ -249,6 +249,22 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getGarageStaff(garageId: string): Promise<User[]> {
+    try {
+      const result = await pool.query(
+        `SELECT id, email, name, role, status, garage_id, created_at 
+         FROM users 
+         WHERE garage_id = $1 AND role = 'mechanic_staff'
+         ORDER BY created_at DESC`,
+        [garageId]
+      );
+      return result.rows;
+    } catch (error) {
+      console.error('getGarageStaff error:', error);
+      return [];
+    }
+  }
+
   async getAllGarages(): Promise<Garage[]> {
     try {
       const result = await pool.query('SELECT * FROM garages ORDER BY name');

@@ -614,4 +614,112 @@ GarageGuru Management System
     console.log(`⏰ Time: ${data.timestamp}`);
     console.log('================================\n');
   }
+
+  // Send temporary password email to new users
+  async sendTemporaryPasswordEmail(email: string, name: string, temporaryPassword: string): Promise<boolean> {
+    if (!this.isConfigured) {
+      console.log('📧 Gmail SMTP not configured - logging temporary password instead');
+      console.log(`📧 Temporary password for ${email}: ${temporaryPassword}`);
+      return false;
+    }
+
+    try {
+      const mailOptions = {
+        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: 'GarageGuru - Your Account Access Approved',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #007bff;">Account Access Approved!</h2>
+            <p>Hello ${name},</p>
+            <p>Great news! Your access request to GarageGuru has been <strong>approved</strong>.</p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #333;">Your Login Credentials:</h3>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Temporary Password:</strong> <code style="background: #e9ecef; padding: 4px 8px; border-radius: 4px;">${temporaryPassword}</code></p>
+            </div>
+
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h4 style="margin-top: 0; color: #856404;">⚠️ Important Security Notice:</h4>
+              <ul style="margin-bottom: 0; color: #856404;">
+                <li>This is a temporary password that you <strong>must change</strong> on first login</li>
+                <li>You will be automatically redirected to change your password</li>
+                <li>Choose a strong password with at least 8 characters, including uppercase, lowercase, and numbers</li>
+              </ul>
+            </div>
+
+            <p style="margin-top: 30px;">
+              <a href="${process.env.FRONTEND_URL || 'https://garageguru.app'}/login" 
+                 style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Login to GarageGuru
+              </a>
+            </p>
+
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              If you have any questions or need assistance, please contact your system administrator.
+            </p>
+          </div>
+        `
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      console.log('📧 Temporary password email sent successfully to:', email);
+      return true;
+    } catch (error) {
+      console.error('📧 Failed to send temporary password email:', error);
+      return false;
+    }
+  }
+
+  // Send approval email to existing users  
+  async sendApprovalEmail(email: string, name: string, role: string): Promise<boolean> {
+    if (!this.isConfigured) {
+      console.log('📧 Gmail SMTP not configured - logging approval instead');
+      console.log(`📧 Approval notification for ${email}: role ${role}`);
+      return false;
+    }
+
+    try {
+      const roleDisplay = role === 'garage_admin' ? 'Garage Administrator' : 'Mechanic Staff';
+      
+      const mailOptions = {
+        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: 'GarageGuru - Your Access Request Approved',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #28a745;">Access Request Approved!</h2>
+            <p>Hello ${name},</p>
+            <p>Great news! Your access request to GarageGuru has been <strong>approved</strong>.</p>
+            
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #155724;">Your Account Details:</h3>
+              <p style="margin-bottom: 0; color: #155724;"><strong>Role:</strong> ${roleDisplay}</p>
+            </div>
+
+            <p>You can now access GarageGuru using your existing login credentials.</p>
+
+            <p style="margin-top: 30px;">
+              <a href="${process.env.FRONTEND_URL || 'https://garageguru.app'}/login" 
+                 style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Login to GarageGuru
+              </a>
+            </p>
+
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              If you have any questions or need assistance, please contact your system administrator.
+            </p>
+          </div>
+        `
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      console.log('📧 Approval email sent successfully to:', email);
+      return true;
+    } catch (error) {
+      console.error('📧 Failed to send approval email:', error);
+      return false;
+    }
+  }
 }

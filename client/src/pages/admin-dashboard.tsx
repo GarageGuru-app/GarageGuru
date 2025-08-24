@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NotificationPanel } from "@/components/NotificationPanel";
@@ -31,12 +32,18 @@ import {
   FileText,
   Plus,
   Car,
-  Wrench
+  Wrench,
+  UserX,
+  UserCheck,
+  RefreshCw
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminDashboard() {
   const { user, garage } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLowStockAlert, setShowLowStockAlert] = useState(false);
@@ -80,6 +87,43 @@ export default function AdminDashboard() {
     },
     enabled: !!garage?.id,
   });
+
+  // Fetch staff members for the garage
+  const { data: staffMembers } = useQuery({
+    queryKey: ["/api/garages", garage?.id, "staff"],
+    queryFn: async () => {
+      if (!garage?.id) return [];
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/staff`);
+      return response.json();
+    },
+    enabled: !!garage?.id,
+  });
+
+  // Update user status mutation
+  const updateUserStatusMutation = useMutation({
+    mutationFn: ({ userId, status }: { userId: string; status: string }) => {
+      return apiRequest('PATCH', `/api/users/${userId}/status`, { status });
+    },
+    onSuccess: (_, { status }) => {
+      toast({
+        title: 'Success',
+        description: `Staff member ${status === 'suspended' ? 'suspended' : 'activated'} successfully`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "staff"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update staff status',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleToggleStaffStatus = (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+    updateUserStatusMutation.mutate({ userId, status: newStatus });
+  };
 
   // Show low stock alert if there are items
   useEffect(() => {
@@ -238,6 +282,63 @@ export default function AdminDashboard() {
                 <span>Sales Reports</span>
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Staff Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Staff Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {staffMembers && staffMembers.length > 0 ? (
+              <div className="space-y-3">
+                {staffMembers.map((staff: any) => (
+                  <div 
+                    key={staff.id}
+                    className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                    data-testid={`staff-row-${staff.id}`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium" data-testid={`staff-name-${staff.id}`}>{staff.name}</p>
+                        <Badge 
+                          variant={staff.status === 'active' ? 'default' : 'destructive'}
+                          className="text-xs"
+                          data-testid={`staff-status-badge-${staff.id}`}
+                        >
+                          {staff.status === 'active' ? 'Active' : 'Suspended'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground" data-testid={`staff-email-${staff.id}`}>{staff.email}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={staff.status === 'active' ? 'destructive' : 'default'}
+                      onClick={() => handleToggleStaffStatus(staff.id, staff.status || 'active')}
+                      disabled={updateUserStatusMutation.isPending}
+                      data-testid={`button-toggle-staff-status-${staff.id}`}
+                    >
+                      {updateUserStatusMutation.isPending ? (
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                      ) : staff.status === 'active' ? (
+                        <><UserX className="w-3 h-3" /> Suspend</>
+                      ) : (
+                        <><UserCheck className="w-3 h-3" /> Activate</>
+                      )}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No staff members found</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
