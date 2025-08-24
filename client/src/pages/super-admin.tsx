@@ -23,7 +23,8 @@ import {
   XCircle,
   Search,
   Filter,
-  RefreshCw
+  RefreshCw,
+  LogOut
 } from 'lucide-react';
 
 // Super Admin emails that can access this page
@@ -291,7 +292,7 @@ export default function SuperAdminPage() {
   const queryClient = useQueryClient();
 
   // Check if current user has super admin email access
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, logout } = useAuth();
   
   // Remove this useEffect - let ProtectedRoute handle auth
 
@@ -386,6 +387,14 @@ export default function SuperAdminPage() {
               >
                 <Key className="w-4 h-4 mr-2" />
                 Change Password
+              </Button>
+              <Button
+                variant="outline"
+                onClick={logout}
+                data-testid="button-logout"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
               </Button>
             </div>
           </div>
