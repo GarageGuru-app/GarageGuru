@@ -258,6 +258,20 @@ export async function registerRoutes(app: Express): Promise<void> {
     try {
       const { email, name, requestType, message, garageId } = req.body;
       
+      // Validate required fields
+      if (!email || !name) {
+        return res.status(400).json({ 
+          message: 'Email and name are required.' 
+        });
+      }
+
+      // Garage selection is mandatory for staff requests
+      if (requestType === 'staff' && !garageId) {
+        return res.status(400).json({ 
+          message: 'Garage selection is required for staff access requests. Please select a garage to continue.' 
+        });
+      }
+      
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
@@ -280,7 +294,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       // Create access request in database
       const accessRequest = await storage.createAccessRequest({
-        garage_id: garageId || null,
+        garage_id: garageId,
         user_id: null, // Will be set when user is created after approval
         email,
         name,

@@ -47,8 +47,8 @@ export default function AccessRequest() {
   const handleSubmitRequest = async () => {
     if (!selectedGarageId) {
       toast({
-        title: "Error",
-        description: "Please select a garage to request access to",
+        title: "Garage Selection Required",
+        description: "Please select a garage to request access to. Garage selection is mandatory for staff access requests.",
         variant: "destructive",
       });
       return;
@@ -76,12 +76,13 @@ export default function AccessRequest() {
         setSelectedGarageId("");
         setMessage("");
       } else {
-        throw new Error("Failed to send request");
+        const errorResult = await response.json();
+        throw new Error(errorResult.message || "Failed to send request");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to send access request. Please try again.",
+        description: error.message || "Failed to send access request. Please try again.",
         variant: "destructive",
       });
     } finally {
