@@ -35,11 +35,11 @@ export default function AccessRequest() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch available garages
+  // Fetch available garages for staff access
   const { data: garages, isLoading } = useQuery({
-    queryKey: ["/api/garages"],
+    queryKey: ["/api/garages", "staff_access"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/garages");
+      const response = await apiRequest("GET", "/api/garages?purpose=staff_access");
       return response.json();
     },
   });

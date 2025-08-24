@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -686,21 +687,21 @@ export default function SuperAdminPage() {
                                         <>↔ Toggle</>
                                       )}
                                     </Button>
-                                    <Button
-                                      size="sm"
-                                      variant={user.status === 'active' ? 'destructive' : 'default'}
-                                      onClick={() => handleToggleUserStatus(user.id, user.status || 'active')}
-                                      disabled={updateUserStatusMutation.isPending}
-                                      data-testid={`button-toggle-status-${user.id}`}
-                                    >
-                                      {updateUserStatusMutation.isPending ? (
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-xs text-muted-foreground">
+                                        {user.status === 'active' ? 'Active' : 'Suspended'}
+                                      </span>
+                                      <Switch
+                                        checked={user.status === 'active'}
+                                        onCheckedChange={() => handleToggleUserStatus(user.id, user.status || 'active')}
+                                        disabled={updateUserStatusMutation.isPending}
+                                        data-testid={`switch-toggle-status-${user.id}`}
+                                        className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+                                      />
+                                      {updateUserStatusMutation.isPending && (
                                         <RefreshCw className="w-3 h-3 animate-spin" />
-                                      ) : user.status === 'active' ? (
-                                        <><UserX className="w-3 h-3" /> Suspend</>
-                                      ) : (
-                                        <><UserCheck className="w-3 h-3" /> Activate</>
                                       )}
-                                    </Button>
+                                    </div>
                                   </>
                                 )}
                               </div>

@@ -206,14 +206,12 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { purpose } = req.query;
       const garages = await storage.getAllGarages();
       
-      // If it's for staff access request, filter out garages that shouldn't be available
+      // If it's for staff access request, show all operational garages
       if (purpose === 'staff_access') {
-        // For now, return empty array to prevent staff from seeing any garages
-        // until proper garage creation flow is completed by admins
+        // Show all garages that have been properly set up
         const availableGarages = garages.filter(garage => {
-          // Only show garages that are actually operational
-          // For now, no garages should be shown since we want admins to create their own
-          return false;
+          // Only show garages that have basic info completed
+          return garage.name && garage.owner_name;
         });
         res.json(availableGarages);
       } else {
@@ -1652,6 +1650,28 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       // Update user status
       const updatedUser = await storage.updateUser(id, { status });
+      
+      // Send email notification about status change
+      try {
+        const emailService = (await import('./gmailEmailService.js')).default;
+        const statusText = status === 'active' ? 'activated' : 'suspended';
+        const subject = `Account Status Update - ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}`;
+        const message = `
+          <h2>Account Status Update</h2>
+          <p>Hello ${targetUser.name || targetUser.email},</p>
+          <p>Your account status has been <strong>${statusText}</strong>.</p>
+          ${status === 'suspended' ? 
+            '<p>If you believe this is an error, please contact your administrator.</p>' : 
+            '<p>You can now access your account normally.</p>'
+          }
+          <p>Best regards,<br>Garage Management Team</p>
+        `;
+        
+        await emailService.sendEmail(targetUser.email, subject, message);
+        console.log(`Status change notification sent to ${targetUser.email}`);
+      } catch (emailError) {
+        console.error('Failed to send status change notification:', emailError);
+      }
       
       res.json({ 
         message: `User ${status === 'suspended' ? 'suspended' : 'activated'} successfully`,

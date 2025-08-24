@@ -221,6 +221,16 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getUserById(id: string): Promise<User | undefined> {
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE id = $1 LIMIT 1', [id]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('getUserById error:', error);
+      return undefined;
+    }
+  }
+
   async createUser(user: Partial<User>): Promise<User> {
     const id = user.id || crypto.randomUUID();
     const result = await pool.query(

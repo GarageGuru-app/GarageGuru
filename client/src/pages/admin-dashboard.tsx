@@ -38,6 +38,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 
 export default function AdminDashboard() {
   const { user, garage } = useAuth();
@@ -136,32 +137,32 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="gradient-header text-primary-foreground">
-        <div className="flex items-center justify-between px-4 py-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-              <Settings className="text-primary w-6 h-6" />
+        <div className="flex items-center justify-between px-2 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center">
+              <Settings className="text-primary w-4 h-4 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold" data-testid="title-admin-dashboard">
+              <h1 className="text-base sm:text-lg font-semibold" data-testid="title-admin-dashboard">
                 Admin Dashboard
               </h1>
-              <p className="text-sm text-blue-100">
+              <p className="text-xs sm:text-sm text-blue-100">
                 {garage?.name || "Admin Portal"}
               </p>
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setShowNotifications(true)}
-              className="text-primary-foreground hover:bg-white/10 relative"
+              className="text-primary-foreground hover:bg-white/10 relative p-1 sm:p-2"
               data-testid="button-notifications"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
               {(lowStockParts?.length || 0) > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs">
                   {lowStockParts?.length}
                 </span>
               )}
@@ -171,26 +172,26 @@ export default function AdminDashboard() {
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="text-primary-foreground hover:bg-white/10"
+              className="text-primary-foreground hover:bg-white/10 p-1 sm:p-2"
               data-testid="button-theme-toggle"
             >
-              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {theme === "dark" ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
             </Button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card data-testid="card-pending-jobs">
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center space-x-2">
-                <Clock className="w-5 h-5 text-orange-600" />
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Pending Jobs</p>
-                  <p className="text-2xl font-bold">{pendingJobs?.length || 0}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Pending Jobs</p>
+                  <p className="text-lg sm:text-2xl font-bold">{pendingJobs?.length || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -315,21 +316,21 @@ export default function AdminDashboard() {
                       </div>
                       <p className="text-sm text-muted-foreground" data-testid={`staff-email-${staff.id}`}>{staff.email}</p>
                     </div>
-                    <Button
-                      size="sm"
-                      variant={staff.status === 'active' ? 'destructive' : 'default'}
-                      onClick={() => handleToggleStaffStatus(staff.id, staff.status || 'active')}
-                      disabled={updateUserStatusMutation.isPending}
-                      data-testid={`button-toggle-staff-status-${staff.id}`}
-                    >
-                      {updateUserStatusMutation.isPending ? (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-muted-foreground">
+                        {staff.status === 'active' ? 'Active' : 'Suspended'}
+                      </span>
+                      <Switch
+                        checked={staff.status === 'active'}
+                        onCheckedChange={() => handleToggleStaffStatus(staff.id, staff.status || 'active')}
+                        disabled={updateUserStatusMutation.isPending}
+                        data-testid={`switch-toggle-staff-status-${staff.id}`}
+                        className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+                      />
+                      {updateUserStatusMutation.isPending && (
                         <RefreshCw className="w-3 h-3 animate-spin" />
-                      ) : staff.status === 'active' ? (
-                        <><UserX className="w-3 h-3" /> Suspend</>
-                      ) : (
-                        <><UserCheck className="w-3 h-3" /> Activate</>
                       )}
-                    </Button>
+                    </div>
                   </div>
                 ))}
               </div>
