@@ -72,32 +72,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    console.log('🔥 [AUTH] useEffect triggered - token exists:', !!token, 'user exists:', !!user, 'isLoading:', isLoading);
+    
     if (token) {
       // Only verify token if we don't already have user data
       if (!user) {
+        console.log('🔥 [AUTH] Token exists but no user, fetching profile');
         apiRequest("GET", "/api/user/profile")
           .then(res => res.json())
           .then(data => {
+            console.log('🔥 [AUTH] Profile fetch successful, user role:', data.user?.role);
             if (data.user) {
               setUser(data.user);
               setGarage(data.garage);
             } else {
+              console.log('🔥 [AUTH] No user in profile response, clearing token');
               localStorage.removeItem("auth-token");
               setToken(null);
             }
           })
           .catch((error) => {
-            console.log("Token validation failed, clearing auth:", error.message);
+            console.log("🔥 [AUTH] Token validation failed, clearing auth:", error.message);
             localStorage.removeItem("auth-token");
             setToken(null);
           })
-          .finally(() => setIsLoading(false));
+          .finally(() => {
+            console.log('🔥 [AUTH] Setting isLoading to false after profile fetch');
+            setIsLoading(false);
+          });
       } else {
         // User data already exists, just stop loading
+        console.log('🔥 [AUTH] User data already exists, stopping loading');
         setIsLoading(false);
       }
     } else {
       // No token, clear user data and stop loading
+      console.log('🔥 [AUTH] No token, clearing user data');
       setUser(null);
       setGarage(null);
       setIsLoading(false);
@@ -111,12 +121,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       console.log('🔥 [AUTH] Login API response received, token exists:', !!data.token);
       
-      // Set auth data from login response
+      // Set auth data from login response - do this synchronously to avoid race conditions
       localStorage.setItem("auth-token", data.token);
+      console.log('🔥 [AUTH] Setting token, user, and garage state');
       setToken(data.token);
       setUser(data.user);
       setGarage(data.garage);
-      console.log('🔥 [AUTH] Auth state updated - user role:', data.user?.role);
+      setIsLoading(false); // Ensure loading is false after successful login
+      console.log('🔥 [AUTH] Auth state updated - user role:', data.user?.role, 'isLoading set to false');
 
       // Return route path for navigation
       if (data.user) {
