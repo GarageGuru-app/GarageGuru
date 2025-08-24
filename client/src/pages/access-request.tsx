@@ -72,14 +72,38 @@ export default function AccessRequest() {
         setMessage("");
       } else {
         const errorResult = await response.json();
-        throw new Error(errorResult.message || "Failed to send request");
+        
+        // Handle specific garage selection error
+        if (errorResult.message && errorResult.message.includes("Garage selection is required")) {
+          toast({
+            title: "Garage Selection Required",
+            description: "Please select a garage from the dropdown above to continue with your access request.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: errorResult.message || "Failed to send access request. Please try again.",
+            variant: "destructive",
+          });
+        }
+        return;
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send access request. Please try again.",
-        variant: "destructive",
-      });
+      // Handle network or other errors
+      if (error.message && error.message.includes("Garage selection is required")) {
+        toast({
+          title: "Garage Selection Required", 
+          description: "Please select a garage from the dropdown above to continue with your access request.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to send access request. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
