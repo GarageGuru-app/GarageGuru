@@ -8,7 +8,7 @@ async function throwIfResNotOk(res: Response) {
 }
 
 // API base URL - will be set to your deployed backend URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export async function apiRequest(
   method: string,
