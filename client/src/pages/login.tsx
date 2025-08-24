@@ -71,7 +71,10 @@ export default function Login() {
       // Navigate to the appropriate route based on user role
       if (redirectPath) {
         console.log('🔥 [LOGIN] Navigating to:', redirectPath);
-        navigate(redirectPath);
+        // Use setTimeout to ensure React state updates are flushed before navigation
+        setTimeout(() => {
+          navigate(redirectPath);
+        }, 10);
       }
     } catch (error) {
       console.log('🔥 [LOGIN] Login failed with error:', error);

@@ -137,6 +137,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false); // Ensure loading is false after successful login
       console.log('🔥 [AUTH] Auth state updated - user role:', data.user?.role, 'isLoading set to false');
 
+      // Wait for React to flush state updates before returning route
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
       // Return route path for navigation
       if (data.user) {
         const route = routeUserBasedOnRole(data.user, data.garage);
