@@ -34,6 +34,7 @@ export default function AccessRequest() {
   const [selectedGarageId, setSelectedGarageId] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
 
   // Fetch available garages for staff access
   const { data: garages, isLoading } = useQuery({
@@ -44,11 +45,36 @@ export default function AccessRequest() {
     },
   });
 
-  const handleSubmitRequest = async () => {
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {};
+
+    // Validate user email and name (should exist from auth)
+    if (!user?.email) {
+      errors.email = "Email is required";
+    }
+    
+    if (!user?.name) {
+      errors.name = "Name is required";
+    }
+
+    // Validate garage selection (mandatory)
     if (!selectedGarageId) {
+      errors.garage = "Please select a garage to request access";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmitRequest = async () => {
+    // Clear previous validation errors
+    setValidationErrors({});
+    
+    // Validate form before submission
+    if (!validateForm()) {
       toast({
-        title: "Garage Selection Required",
-        description: "Please select a garage to request access to. Garage selection is mandatory for staff access requests.",
+        title: "Please Complete Required Fields",
+        description: "All fields except message are required. Please fill in the missing information.",
         variant: "destructive",
       });
       return;
@@ -75,6 +101,7 @@ export default function AccessRequest() {
         // Clear form
         setSelectedGarageId("");
         setMessage("");
+        setValidationErrors({});
       } else {
         const errorResult = await response.json();
         throw new Error(errorResult.message || "Failed to send request");
@@ -159,12 +186,28 @@ export default function AccessRequest() {
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm text-muted-foreground">Name</Label>
-                <p className="font-medium" data-testid="text-user-name">{user?.name}</p>
+                <Label className="text-sm text-muted-foreground">Name *</Label>
+                <p className={`font-medium ${!user?.name ? 'text-red-600 dark:text-red-400' : ''}`} data-testid="text-user-name">
+                  {user?.name || "Name not provided"}
+                </p>
+                {validationErrors.name && (
+                  <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {validationErrors.name}
+                  </p>
+                )}
               </div>
               <div>
-                <Label className="text-sm text-muted-foreground">Email</Label>
-                <p className="font-medium" data-testid="text-user-email">{user?.email}</p>
+                <Label className="text-sm text-muted-foreground">Email *</Label>
+                <p className={`font-medium ${!user?.email ? 'text-red-600 dark:text-red-400' : ''}`} data-testid="text-user-email">
+                  {user?.email || "Email not provided"}
+                </p>
+                {validationErrors.email && (
+                  <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {validationErrors.email}
+                  </p>
+                )}
               </div>
             </div>
             <div>
@@ -192,10 +235,19 @@ export default function AccessRequest() {
               </Label>
               <Select 
                 value={selectedGarageId} 
-                onValueChange={setSelectedGarageId}
+                onValueChange={(value) => {
+                  setSelectedGarageId(value);
+                  // Clear garage validation error when user selects a garage
+                  if (validationErrors.garage) {
+                    setValidationErrors(prev => ({ ...prev, garage: '' }));
+                  }
+                }}
                 disabled={isLoading}
               >
-                <SelectTrigger data-testid="select-garage" className={!selectedGarageId ? "border-red-300 dark:border-red-700" : ""}>
+                <SelectTrigger 
+                  data-testid="select-garage" 
+                  className={validationErrors.garage ? "border-red-300 dark:border-red-700" : ""}
+                >
                   <SelectValue placeholder={isLoading ? "Loading garages..." : "Choose a garage to request access"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -211,10 +263,10 @@ export default function AccessRequest() {
                   ))}
                 </SelectContent>
               </Select>
-              {!selectedGarageId && (
+              {validationErrors.garage && (
                 <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
                   <AlertCircle className="w-4 h-4" />
-                  Garage selection is required for staff access requests
+                  {validationErrors.garage}
                 </p>
               )}
             </div>
