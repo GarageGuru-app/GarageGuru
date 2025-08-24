@@ -262,7 +262,10 @@ app.post('/api/auth/login', async (req, res) => {
         email: user.email,
         role: user.role,
         name: user.name,
-        garageId: user.garage_id
+        garageId: user.garage_id,
+        mustChangePassword: user.must_change_password || false,
+        firstLogin: user.first_login || false,
+        status: user.status || 'active'
       }
     });
 

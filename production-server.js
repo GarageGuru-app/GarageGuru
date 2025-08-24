@@ -110,6 +110,9 @@ app.post('/api/auth/login', async (req, res) => {
         role: user.role,
         garageId: user.garage_id,
         name: user.name,
+        mustChangePassword: user.must_change_password || false,
+        firstLogin: user.first_login || false,
+        status: user.status || 'active',
         createdAt: user.created_at
       },
       garage: garage ? {

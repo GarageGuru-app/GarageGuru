@@ -234,8 +234,19 @@ export class DatabaseStorage implements IStorage {
   async createUser(user: Partial<User>): Promise<User> {
     const id = user.id || crypto.randomUUID();
     const result = await pool.query(
-      'INSERT INTO users (id, email, password, role, garage_id, name, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [id, user.email, user.password, user.role, user.garage_id, user.name, new Date()]
+      'INSERT INTO users (id, email, password, role, garage_id, name, must_change_password, first_login, status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+      [
+        id, 
+        user.email, 
+        user.password, 
+        user.role, 
+        user.garage_id, 
+        user.name, 
+        user.must_change_password || false,
+        user.first_login !== false, // Default to true unless explicitly set to false
+        user.status || 'active',
+        new Date()
+      ]
     );
     return result.rows[0];
   }

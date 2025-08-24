@@ -85,7 +85,10 @@ export default async function handler(req, res) {
           name: user.name,
           role: user.role,
           garage_id: user.garage_id,
-          garage_name: user.garage_name
+          garage_name: user.garage_name,
+          mustChangePassword: user.must_change_password || false,
+          firstLogin: user.first_login || false,
+          status: user.status || 'active'
         }
       });
 
@@ -131,7 +134,10 @@ export default async function handler(req, res) {
           name: user.name,
           role: user.role,
           garage_id: user.garage_id,
-          garage_name: user.garage_name
+          garage_name: user.garage_name,
+          mustChangePassword: user.must_change_password || false,
+          firstLogin: user.first_login || false,
+          status: user.status || 'active'
         }
       });
 
