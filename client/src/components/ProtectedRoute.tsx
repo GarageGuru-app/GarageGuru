@@ -60,7 +60,7 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
       // Auto-redirect users to appropriate dashboards if they're on generic routes
       if (location === '/dashboard' || location === '/') {
         const correctRoute = routeUserBasedOnRole(user, garage);
-        if (correctRoute && correctRoute !== location) {
+        if (correctRoute && correctRoute !== location && correctRoute !== '/dashboard') {
           navigate(correctRoute);
           return;
         }

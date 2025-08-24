@@ -72,28 +72,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (token) {
-      // Verify token and get user profile
-      apiRequest("GET", "/api/user/profile")
-        .then(res => res.json())
-        .then(data => {
-          if (data.user) {
-            setUser(data.user);
-            setGarage(data.garage);
-          } else {
+      // Only verify token if we don't already have user data
+      if (!user) {
+        apiRequest("GET", "/api/user/profile")
+          .then(res => res.json())
+          .then(data => {
+            if (data.user) {
+              setUser(data.user);
+              setGarage(data.garage);
+            } else {
+              localStorage.removeItem("auth-token");
+              setToken(null);
+            }
+          })
+          .catch((error) => {
+            console.log("Token validation failed, clearing auth:", error.message);
             localStorage.removeItem("auth-token");
             setToken(null);
-          }
-        })
-        .catch((error) => {
-          console.log("Token validation failed, clearing auth:", error.message);
-          localStorage.removeItem("auth-token");
-          setToken(null);
-        })
-        .finally(() => setIsLoading(false));
+          })
+          .finally(() => setIsLoading(false));
+      } else {
+        // User data already exists from login, just stop loading
+        setIsLoading(false);
+      }
     } else {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [token, user]);
 
   const login = async (email: string, password: string) => {
     try {
