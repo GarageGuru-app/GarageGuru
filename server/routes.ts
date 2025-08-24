@@ -312,16 +312,48 @@ export async function registerRoutes(app: Express): Promise<void> {
         timestamp: new Date().toLocaleString()
       };
 
-      // Send email notification to super admin via Gmail
+      // Send email notification - to garage admin for staff requests, super admin for admin requests
       const gmailService = GmailEmailService.getInstance();
-      const emailSent = await gmailService.sendAccessRequestNotification(
-        SUPER_ADMIN_EMAIL,
-        requestData
-      );
+      let emailSent = false;
+      let responseMessage = '';
       
-      const responseMessage = emailSent 
-        ? `Access request sent to super admin. You will receive an email notification once your request is reviewed.`
-        : `Access request saved for super admin review. You will receive an email notification once your request is reviewed.`;
+      if (requestType === 'staff' && garageId) {
+        // For staff requests, send to garage admin
+        const garage = await storage.getGarage(garageId);
+        if (garage) {
+          // Get garage admin email
+          const garageUsers = await storage.getGarageUsers(garageId);
+          const garageAdmin = garageUsers.find(user => user.role === 'garage_admin');
+          
+          if (garageAdmin) {
+            emailSent = await gmailService.sendAccessRequestNotification(
+              garageAdmin.email,
+              requestData
+            );
+            responseMessage = emailSent 
+              ? `Access request sent to garage admin (${garageAdmin.email}). You will receive an email notification once your request is reviewed.`
+              : `Access request saved for garage admin review. You will receive an email notification once your request is reviewed.`;
+          } else {
+            // Fallback to super admin if no garage admin found
+            emailSent = await gmailService.sendAccessRequestNotification(
+              SUPER_ADMIN_EMAIL,
+              requestData
+            );
+            responseMessage = emailSent 
+              ? `Access request sent to super admin (no garage admin found). You will receive an email notification once your request is reviewed.`
+              : `Access request saved for super admin review. You will receive an email notification once your request is reviewed.`;
+          }
+        }
+      } else {
+        // For admin requests, send to super admin
+        emailSent = await gmailService.sendAccessRequestNotification(
+          SUPER_ADMIN_EMAIL,
+          requestData
+        );
+        responseMessage = emailSent 
+          ? `Access request sent to super admin. You will receive an email notification once your request is reviewed.`
+          : `Access request saved for super admin review. You will receive an email notification once your request is reviewed.`;
+      }
       
       res.json({ message: responseMessage });
     } catch (error) {

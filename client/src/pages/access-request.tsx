@@ -66,9 +66,10 @@ export default function AccessRequest() {
       });
 
       if (response.ok) {
+        const result = await response.json();
         toast({
-          title: "Request Sent",
-          description: "Your access request has been sent to the garage admin. You'll receive an email once it's reviewed.",
+          title: "Request Sent", 
+          description: result.message || "Your access request has been sent successfully.",
         });
         
         // Clear form

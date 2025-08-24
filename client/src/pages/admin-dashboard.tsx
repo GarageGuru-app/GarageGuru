@@ -35,7 +35,10 @@ import {
   Wrench,
   UserX,
   UserCheck,
-  RefreshCw
+  RefreshCw,
+  Home,
+  BarChart3,
+  UserCircle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -428,6 +431,55 @@ export default function AdminDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 md:hidden">
+        <div className="grid grid-cols-5 py-2">
+          <button 
+            onClick={() => navigate('/admin-dashboard')}
+            className="flex flex-col items-center justify-center p-2 text-blue-600"
+            data-testid="bottom-nav-dashboard"
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-xs mt-1">Dashboard</span>
+          </button>
+          <button 
+            onClick={() => navigate('/pending-services')}
+            className="flex flex-col items-center justify-center p-2 text-gray-600 dark:text-gray-400"
+            data-testid="bottom-nav-services"
+          >
+            <Wrench className="w-5 h-5" />
+            <span className="text-xs mt-1">Services</span>
+          </button>
+          <button 
+            onClick={() => navigate('/customers')}
+            className="flex flex-col items-center justify-center p-2 text-gray-600 dark:text-gray-400"
+            data-testid="bottom-nav-customers"
+          >
+            <Users className="w-5 h-5" />
+            <span className="text-xs mt-1">Customers</span>
+          </button>
+          <button 
+            onClick={() => navigate('/sales-analytics')}
+            className="flex flex-col items-center justify-center p-2 text-gray-600 dark:text-gray-400"
+            data-testid="bottom-nav-sales"
+          >
+            <BarChart3 className="w-5 h-5" />
+            <span className="text-xs mt-1">Sales</span>
+          </button>
+          <button 
+            onClick={() => navigate('/profile')}
+            className="flex flex-col items-center justify-center p-2 text-gray-600 dark:text-gray-400"
+            data-testid="bottom-nav-profile"
+          >
+            <UserCircle className="w-5 h-5" />
+            <span className="text-xs mt-1">Profile</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Add bottom padding for mobile to prevent overlap */}
+      <div className="h-16 md:hidden"></div>
     </div>
   );
 }
