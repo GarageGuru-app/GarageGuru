@@ -116,7 +116,7 @@ export default function Register() {
       if (response.ok) {
         toast({
           title: "Access Request Sent",
-          description: data.message || "Your request has been sent to the super admin. You'll receive an activation code if approved.",
+          description: "Your request has been sent to the super admin. You'll receive an activation code if approved.",
         });
         setShowAccessRequest(false);
         setAccessRequest({ email: "", name: "", requestType: "staff", message: "", garageId: "" });
