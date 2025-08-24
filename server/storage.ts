@@ -311,6 +311,18 @@ export class DatabaseStorage implements IStorage {
     return result.rows[0];
   }
 
+  async updateUser(userId: string, updates: Partial<User>): Promise<User> {
+    const fields = Object.keys(updates).filter(key => key !== 'id');
+    const values = fields.map(field => (updates as any)[field]);
+    const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
+    
+    const result = await pool.query(
+      `UPDATE users SET ${setClause} WHERE id = $1 RETURNING *`,
+      [userId, ...values]
+    );
+    return result.rows[0];
+  }
+
   // Spare Parts methods
   async getSpareParts(garageId: string): Promise<SparePart[]> {
     const result = await pool.query('SELECT * FROM spare_parts WHERE garage_id = $1 ORDER BY created_at DESC', [garageId]);

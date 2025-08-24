@@ -324,6 +324,7 @@ export default function SuperAdminPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGarage, setSelectedGarage] = useState<Garage | null>(null);
   const [showMFA, setShowMFA] = useState(false);
+  const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -360,6 +361,7 @@ export default function SuperAdminPage() {
         title: 'Success',
         description: 'Access request processed successfully',
       });
+      setProcessingRequestId(null);
       refetchAccessRequests();
       refetchGarages();
     },
@@ -369,6 +371,7 @@ export default function SuperAdminPage() {
         description: error.message || 'Failed to process request',
         variant: 'destructive',
       });
+      setProcessingRequestId(null);
     },
   });
 
@@ -417,12 +420,14 @@ export default function SuperAdminPage() {
   };
 
   const handleApproveRequest = (requestId: string, requestedRole: string) => {
+    setProcessingRequestId(requestId);
     // Convert requested role to actual system role
     const role = requestedRole === 'admin' ? 'garage_admin' : 'mechanic_staff';
     processRequestMutation.mutate({ requestId, action: 'approve', role });
   };
 
   const handleDenyRequest = (requestId: string) => {
+    setProcessingRequestId(requestId);
     processRequestMutation.mutate({ requestId, action: 'deny' });
   };
 
@@ -661,10 +666,10 @@ export default function SuperAdminPage() {
                                 size="sm" 
                                 variant="default" 
                                 onClick={() => handleApproveRequest(request.id, request.requested_role)}
-                                disabled={processRequestMutation.isPending}
+                                disabled={processingRequestId === request.id}
                                 data-testid={`button-approve-${request.id}`}
                               >
-                                {processRequestMutation.isPending ? (
+                                {processingRequestId === request.id ? (
                                   <RefreshCw className="w-3 h-3 animate-spin" />
                                 ) : (
                                   <CheckCircle className="w-3 h-3" />
@@ -674,10 +679,10 @@ export default function SuperAdminPage() {
                                 size="sm" 
                                 variant="destructive" 
                                 onClick={() => handleDenyRequest(request.id)}
-                                disabled={processRequestMutation.isPending}
+                                disabled={processingRequestId === request.id}
                                 data-testid={`button-deny-${request.id}`}
                               >
-                                {processRequestMutation.isPending ? (
+                                {processingRequestId === request.id ? (
                                   <RefreshCw className="w-3 h-3 animate-spin" />
                                 ) : (
                                   <XCircle className="w-3 h-3" />

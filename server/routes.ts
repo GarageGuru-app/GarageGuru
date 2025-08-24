@@ -362,19 +362,38 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       
       if (action === 'approve') {
-        // Create user account
-        const defaultPassword = 'ChangeMe123!'; // User will need to change this on first login
-        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+        // Check if user already exists
+        const existingUser = await storage.getUserByEmail(request.email);
+        let newUser;
         
-        const userData = {
-          email: request.email,
-          password: hashedPassword,
-          name: request.name,
-          role: role || (request.requested_role === 'admin' ? 'garage_admin' : 'mechanic_staff'),
-          garage_id: request.garage_id
-        };
-        
-        const newUser = await storage.createUser(userData);
+        if (existingUser) {
+          // User already exists, just update their role if needed
+          const desiredRole = role || (request.requested_role === 'admin' ? 'garage_admin' : 'mechanic_staff');
+          if (existingUser.role !== desiredRole) {
+            // Update user role and garage
+            const updatedUser = await storage.updateUser(existingUser.id, {
+              role: desiredRole,
+              garage_id: request.garage_id || existingUser.garage_id
+            });
+            newUser = updatedUser;
+          } else {
+            newUser = existingUser;
+          }
+        } else {
+          // Create new user account
+          const defaultPassword = 'ChangeMe123!'; // User will need to change this on first login
+          const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+          
+          const userData = {
+            email: request.email,
+            password: hashedPassword,
+            name: request.name,
+            role: role || (request.requested_role === 'admin' ? 'garage_admin' : 'mechanic_staff'),
+            garage_id: request.garage_id
+          };
+          
+          newUser = await storage.createUser(userData);
+        }
         
         // Update access request status
         await storage.updateAccessRequest(id, {

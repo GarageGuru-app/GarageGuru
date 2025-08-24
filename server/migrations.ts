@@ -125,6 +125,8 @@ export async function runMigrations() {
         requested_role TEXT NOT NULL,
         status TEXT DEFAULT 'pending',
         note TEXT,
+        processed_by TEXT,
+        processed_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
