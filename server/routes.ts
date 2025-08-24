@@ -11,6 +11,32 @@ import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
 
+// Generate random temporary password
+function generateRandomPassword(): string {
+  const length = 12;
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
+  let password = "";
+  
+  // Ensure at least one character from each category
+  const lowercase = "abcdefghijklmnopqrstuvwxyz";
+  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numbers = "0123456789";
+  const symbols = "!@#$%";
+  
+  password += lowercase[Math.floor(Math.random() * lowercase.length)];
+  password += uppercase[Math.floor(Math.random() * uppercase.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += symbols[Math.floor(Math.random() * symbols.length)];
+  
+  // Fill the rest with random characters
+  for (let i = 4; i < length; i++) {
+    password += charset[Math.floor(Math.random() * charset.length)];
+  }
+  
+  // Shuffle the password to avoid predictable patterns
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+}
+
 // Super Admin emails that can access /super-admin
 const SUPER_ADMIN_EMAILS = [
   'gorla.ananthkalyan@gmail.com',
@@ -446,8 +472,8 @@ export async function registerRoutes(app: Express): Promise<void> {
             newUser = existingUser;
           }
         } else {
-          // Create new user account
-          defaultPassword = 'ChangeMe123!'; // User will need to change this on first login
+          // Create new user account with random temporary password
+          defaultPassword = generateRandomPassword(); // Generate unique password each time
           const hashedPassword = await bcrypt.hash(defaultPassword, 10);
           
           const userData = {
