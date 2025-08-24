@@ -793,7 +793,11 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       
       res.json({ 
-        user: { ...req.user, password: undefined },
+        user: { 
+          ...req.user, 
+          password: undefined,
+          garageId: req.user.garage_id  // Map garage_id to garageId for frontend
+        },
         garage
       });
     } catch (error) {
