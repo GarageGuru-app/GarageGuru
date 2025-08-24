@@ -362,19 +362,30 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Get pending access requests (super admin only)
-  app.get("/api/access-requests", authenticateToken, requireRole(['super_admin']), async (req, res) => {
+  // Get pending access requests (super admin and garage admin)
+  app.get("/api/access-requests", authenticateToken, async (req, res) => {
     try {
-      const requests = await storage.getAccessRequests();
-      res.json(requests);
+      const { garageId } = req.query;
+      
+      if (req.user?.role === 'super_admin') {
+        // Super admin can see all requests or filter by garage
+        const requests = await storage.getAccessRequests(garageId as string);
+        res.json(requests);
+      } else if (req.user?.role === 'garage_admin' && req.user.garage_id) {
+        // Garage admin can only see requests for their garage
+        const requests = await storage.getAccessRequests(req.user.garage_id);
+        res.json(requests.filter(r => r.requested_role === 'staff')); // Only staff requests
+      } else {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
     } catch (error) {
       console.error('Get access requests error:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
 
-  // Approve or deny access request (super admin only)
-  app.post("/api/access-requests/:id/process", authenticateToken, requireRole(['super_admin']), async (req, res) => {
+  // Approve or deny access request (super admin and garage admin for staff requests)
+  app.post("/api/access-requests/:id/process", authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
       const { action, role } = req.body; // action: 'approve' or 'deny', role: 'garage_admin' or 'mechanic_staff'

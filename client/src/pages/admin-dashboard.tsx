@@ -103,6 +103,17 @@ export default function AdminDashboard() {
     enabled: !!garage?.id,
   });
 
+  // Get access requests for this garage
+  const { data: accessRequests } = useQuery({
+    queryKey: ["/api/access-requests", garage?.id],
+    queryFn: async () => {
+      if (!garage?.id) return [];
+      const response = await apiRequest("GET", `/api/access-requests?garageId=${garage.id}`);
+      return response.json();
+    },
+    enabled: !!garage?.id,
+  });
+
   // Update user status mutation
   const updateUserStatusMutation = useMutation({
     mutationFn: ({ userId, status }: { userId: string; status: string }) => {
@@ -135,6 +146,10 @@ export default function AdminDashboard() {
       setShowLowStockAlert(true);
     }
   }, [lowStockParts]);
+
+  // Calculate derived data
+  const activeStaffCount = staffMembers?.filter((staff: any) => staff.status === 'active').length || 0;
+  const pendingRequestsCount = accessRequests?.filter((req: any) => req.status === 'pending').length || 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -433,7 +448,7 @@ export default function AdminDashboard() {
       </AlertDialog>
 
       {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 lg:hidden">
         <div className="grid grid-cols-5 py-2">
           <button 
             onClick={() => navigate('/admin-dashboard')}
@@ -479,7 +494,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Add bottom padding for mobile to prevent overlap */}
-      <div className="h-16 md:hidden"></div>
+      <div className="h-16 lg:hidden"></div>
     </div>
   );
 }
