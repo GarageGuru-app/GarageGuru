@@ -67,21 +67,20 @@ export default function AccessRequest() {
   };
 
   const handleSubmitRequest = async () => {
-    // Clear previous validation errors
-    setValidationErrors({});
+    console.log("🔍 Form submission started", { selectedGarageId, userEmail: user?.email, userName: user?.name });
     
-    // Validate form before submission
-    if (!validateForm()) {
+    // Immediate validation checks
+    if (!user?.email || !user?.name) {
       toast({
-        title: "Please Complete Required Fields",
-        description: "All fields except message are required. Please fill in the missing information.",
+        title: "User Information Missing",
+        description: "Email and name are required. Please log in again.",
         variant: "destructive",
       });
       return;
     }
 
-    // Additional safety check - prevent API call if garage not selected
     if (!selectedGarageId || selectedGarageId.trim() === '') {
+      console.log("❌ Garage validation failed", { selectedGarageId });
       toast({
         title: "Garage Selection Required",
         description: "Please select a garage to request access to.",
@@ -90,6 +89,19 @@ export default function AccessRequest() {
       return;
     }
 
+    // Run full validation
+    setValidationErrors({});
+    if (!validateForm()) {
+      console.log("❌ Form validation failed");
+      toast({
+        title: "Please Complete Required Fields",
+        description: "All fields except message are required. Please fill in the missing information.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log("✅ All validations passed, making API call");
     setIsSubmitting(true);
 
     try {
@@ -246,6 +258,7 @@ export default function AccessRequest() {
               <Select 
                 value={selectedGarageId} 
                 onValueChange={(value) => {
+                  console.log("🏪 Garage selected:", value);
                   setSelectedGarageId(value);
                   // Clear garage validation error when user selects a garage
                   if (validationErrors.garage) {
