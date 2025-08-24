@@ -340,36 +340,26 @@
 }
 End of desktop styles */
 
-/* Mobile-specific styles */
-@media (max-width: 1024px) {
-  .mobile-container {
-    max-width: 100%;
-  }
-  
-  .bottom-nav {
-    max-width: 100%;
-  }
-  
-  .fab {
-    right: 16px;
-    bottom: 76px;
-  }
-
-  /* Hide desktop layout on mobile */
-  .desktop-container {
-    @apply hidden;
-  }
+/* Mobile-first styles that work on all screen sizes */
+.mobile-container {
+  @apply relative min-h-screen pb-20;
+  max-width: 100%;
 }
 
-@media (min-width: 1024px) {
-  /* Hide mobile layout on desktop */
-  .mobile-container {
-    @apply hidden;
-  }
-  
-  .desktop-container {
-    @apply flex;
-  }
+.bottom-nav {
+  max-width: 100%;
+}
+
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: 76px;
+  z-index: 50;
+}
+
+/* Hide desktop layout (disabled) */
+.desktop-container {
+  @apply hidden;
 }
 
 /* PWA styles */
