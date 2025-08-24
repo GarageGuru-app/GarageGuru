@@ -155,16 +155,16 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="gradient-header text-primary-foreground">
-        <div className="flex items-center justify-between px-2 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center">
-              <Settings className="text-primary w-4 h-4 sm:w-6 sm:h-6" />
+        <div className="flex items-center justify-between px-4 lg:px-8 py-4 lg:py-6">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-white rounded-full flex items-center justify-center">
+              <Settings className="text-primary w-5 h-5 lg:w-7 lg:h-7" />
             </div>
             <div>
-              <h1 className="text-base sm:text-lg font-semibold" data-testid="title-admin-dashboard">
+              <h1 className="text-lg lg:text-2xl font-semibold" data-testid="title-admin-dashboard">
                 Admin Dashboard
               </h1>
-              <p className="text-xs sm:text-sm text-blue-100">
+              <p className="text-sm lg:text-base text-blue-100">
                 {garage?.name || "Admin Portal"}
               </p>
             </div>
@@ -200,11 +200,11 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <div className="px-4 lg:px-8 py-6 lg:py-8 space-y-6 lg:space-y-8">
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <Card data-testid="card-pending-jobs">
-            <CardContent className="p-3 sm:p-4">
+            <CardContent className="p-4 lg:p-6">
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                 <div>
