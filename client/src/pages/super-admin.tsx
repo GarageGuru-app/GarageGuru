@@ -293,29 +293,24 @@ export default function SuperAdminPage() {
   // Check if current user has super admin email access
   const { user: currentUser } = useAuth();
   
-  useEffect(() => {
-    if (!SUPER_ADMIN_EMAILS.includes(currentUser?.email)) {
-      window.location.href = '/unauthorized';
-      return;
-    }
-  }, [currentUser?.email]);
+  // Remove this useEffect - let ProtectedRoute handle auth
 
   // Fetch garages and stats
   const { data: garageData, isLoading: loadingGarages, refetch: refetchGarages } = useQuery({
     queryKey: ['/api/super-admin/garages'],
-    enabled: SUPER_ADMIN_EMAILS.includes(currentUser?.email)
+    enabled: currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || '')
   });
 
   // Fetch access requests
   const { data: accessRequests, refetch: refetchAccessRequests } = useQuery({
     queryKey: ['/api/super-admin/access-requests'],
-    enabled: SUPER_ADMIN_EMAILS.includes(currentUser?.email)
+    enabled: currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || '')
   });
 
   // Fetch audit logs
   const { data: auditLogs, refetch: refetchAuditLogs } = useQuery({
     queryKey: ['/api/super-admin/audit-logs'],
-    enabled: SUPER_ADMIN_EMAILS.includes(currentUser?.email)
+    enabled: currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || '')
   });
 
   // Role toggle mutation
@@ -340,23 +335,17 @@ export default function SuperAdminPage() {
     },
   });
 
-  if (!SUPER_ADMIN_EMAILS.includes(currentUser?.email)) {
+  // Show loading while waiting for auth data
+  if (!currentUser) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-destructive">Access Denied</CardTitle>
-            <CardDescription>
-              Super admin access required. Contact support if you believe this is an error.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
-  const garages: Garage[] = garageData?.garages || [];
-  const stats: Stats = garageData?.stats || { totalGarages: 0, totalUsers: 0, newUsers7Days: 0, newUsers30Days: 0 };
+  const garages: Garage[] = (garageData as any)?.garages || [];
+  const stats: Stats = (garageData as any)?.stats || { totalGarages: 0, totalUsers: 0, newUsers7Days: 0, newUsers30Days: 0 };
 
   const filteredGarages = garages.filter(garage => 
     garage.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -570,9 +559,9 @@ export default function SuperAdminPage() {
                 <CardDescription>Pending requests for garage access</CardDescription>
               </CardHeader>
               <CardContent>
-                {accessRequests?.length ? (
+                {(accessRequests as any)?.length ? (
                   <div className="space-y-4">
-                    {accessRequests.map((request: AccessRequest) => (
+                    {(accessRequests as any[])?.map((request: AccessRequest) => (
                       <div key={request.id} className="flex items-center justify-between p-4 border rounded" data-testid={`access-request-${request.id}`}>
                         <div>
                           <p className="font-medium" data-testid={`request-name-${request.id}`}>{request.name}</p>
@@ -615,9 +604,9 @@ export default function SuperAdminPage() {
                 <CardDescription>Recent system activities and changes</CardDescription>
               </CardHeader>
               <CardContent>
-                {auditLogs?.length ? (
+                {(auditLogs as any)?.length ? (
                   <div className="space-y-2">
-                    {auditLogs.slice(0, 20).map((log: AuditLog) => (
+                    {(auditLogs as any[])?.slice(0, 20).map((log: AuditLog) => (
                       <div key={log.id} className="flex items-start gap-3 p-3 border rounded text-sm" data-testid={`audit-log-${log.id}`}>
                         <Clock className="w-4 h-4 mt-0.5 text-muted-foreground" />
                         <div className="flex-1">
