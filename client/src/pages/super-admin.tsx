@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/lib/auth';
 import { 
   Users, 
   Building2, 
@@ -290,7 +291,7 @@ export default function SuperAdminPage() {
   const queryClient = useQueryClient();
 
   // Check if current user has super admin email access
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const { user: currentUser } = useAuth();
   
   useEffect(() => {
     if (!SUPER_ADMIN_EMAILS.includes(currentUser?.email)) {
