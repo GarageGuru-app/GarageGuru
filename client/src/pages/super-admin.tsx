@@ -87,6 +87,7 @@ const MFAPasswordChange: React.FC = () => {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [otpToken, setOtpToken] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -142,6 +143,16 @@ const MFAPasswordChange: React.FC = () => {
   };
 
   const changePassword = async () => {
+    // Validate passwords match
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: 'Error',
+        description: 'Passwords do not match. Please try again.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await apiRequest('POST', '/api/password/change', {
@@ -164,6 +175,7 @@ const MFAPasswordChange: React.FC = () => {
       setEmail('');
       setOtp('');
       setNewPassword('');
+      setConfirmPassword('');
       setOtpToken('');
     } catch (error: any) {
       toast({
@@ -258,15 +270,30 @@ const MFAPasswordChange: React.FC = () => {
                 OTP verified! Set your new password (minimum 8 characters).
               </AlertDescription>
             </Alert>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">New Password</label>
-              <Input
-                type="password"
-                placeholder="Enter new password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                data-testid="input-new-password"
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">New Password</label>
+                <Input
+                  type="password"
+                  placeholder="Enter new password (min 8 characters)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  data-testid="input-new-password"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Confirm New Password</label>
+                <Input
+                  type="password"
+                  placeholder="Re-enter new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  data-testid="input-confirm-password"
+                />
+                {newPassword && confirmPassword && newPassword !== confirmPassword && (
+                  <p className="text-sm text-red-500">Passwords do not match</p>
+                )}
+              </div>
             </div>
             <div className="flex gap-2">
               <Button 
@@ -278,7 +305,7 @@ const MFAPasswordChange: React.FC = () => {
               </Button>
               <Button 
                 onClick={changePassword} 
-                disabled={newPassword.length < 8 || loading}
+                disabled={newPassword.length < 8 || confirmPassword.length < 8 || newPassword !== confirmPassword || loading}
                 className="flex-1"
                 data-testid="button-change-password"
               >

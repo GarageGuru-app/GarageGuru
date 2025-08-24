@@ -93,13 +93,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           })
           .finally(() => setIsLoading(false));
       } else {
-        // User data already exists from login, just stop loading
+        // User data already exists, just stop loading
         setIsLoading(false);
       }
     } else {
+      // No token, clear user data and stop loading
+      setUser(null);
+      setGarage(null);
       setIsLoading(false);
     }
-  }, [token, user]);
+  }, [token]); // Remove 'user' from dependencies to prevent unnecessary re-runs
 
   const login = async (email: string, password: string) => {
     try {
@@ -153,6 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateToken = (newToken: string) => {
     localStorage.setItem("auth-token", newToken);
     setToken(newToken);
+    // Don't clear user data - keep existing session seamless
   };
 
   return (
