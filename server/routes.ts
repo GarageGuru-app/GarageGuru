@@ -415,6 +415,16 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (request.status !== 'pending') {
         return res.status(400).json({ message: 'Request has already been processed' });
       }
+
+      // Authorization check
+      if (req.user?.role === 'garage_admin') {
+        // Garage admin can only process staff requests for their own garage
+        if (request.requested_role !== 'staff' || request.garage_id !== req.user.garage_id) {
+          return res.status(403).json({ message: 'Insufficient permissions to process this request' });
+        }
+      } else if (req.user?.role !== 'super_admin') {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
       
       if (action === 'approve') {
         // Check if user already exists

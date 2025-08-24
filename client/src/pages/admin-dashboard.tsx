@@ -127,6 +127,28 @@ export default function AdminDashboard() {
     enabled: !!garage?.id,
   });
 
+  // Process access request mutation
+  const processRequestMutation = useMutation({
+    mutationFn: async ({ requestId, action }: { requestId: string, action: 'approve' | 'deny' }) => {
+      return apiRequest('POST', `/api/access-requests/${requestId}/process`, { action, role: 'mechanic_staff' });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Access request processed successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/access-requests", garage?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "staff"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to process request',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Update user status mutation
   const updateUserStatusMutation = useMutation({
     mutationFn: ({ userId, status }: { userId: string; status: string }) => {
@@ -236,6 +258,18 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-xs sm:text-sm text-muted-foreground">Pending Jobs</p>
                   <p className="text-lg sm:text-2xl font-bold">{pendingJobs?.length || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-access-requests">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center space-x-2">
+                <UserCheck className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Access Requests</p>
+                  <p className="text-lg sm:text-2xl font-bold">{pendingRequestsCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -386,6 +420,83 @@ export default function AdminDashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Access Requests */}
+        {accessRequests && accessRequests.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserCheck className="w-5 h-5" />
+                Pending Access Requests
+                <Badge variant="secondary" className="ml-2">
+                  {accessRequests.filter((req: any) => req.status === 'pending').length}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {accessRequests
+                  .filter((req: any) => req.status === 'pending')
+                  .map((request: any) => (
+                    <div 
+                      key={request.id}
+                      className="flex items-center justify-between p-4 bg-muted rounded-lg"
+                      data-testid={`access-request-${request.id}`}
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium" data-testid={`request-name-${request.id}`}>
+                            {request.name}
+                          </p>
+                          <Badge variant="outline" data-testid={`request-role-${request.id}`}>
+                            Staff Request
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground" data-testid={`request-email-${request.id}`}>
+                          {request.email}
+                        </p>
+                        {request.note && (
+                          <p className="text-sm text-muted-foreground mt-1" data-testid={`request-note-${request.id}`}>
+                            Note: {request.note}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          Requested: {new Date(request.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="default" 
+                          onClick={() => processRequestMutation.mutate({ requestId: request.id, action: 'approve' })}
+                          disabled={processRequestMutation.isPending}
+                          data-testid={`button-approve-${request.id}`}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {processRequestMutation.isPending ? (
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <UserCheck className="w-3 h-3" />
+                          )}
+                          Approve
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          onClick={() => processRequestMutation.mutate({ requestId: request.id, action: 'deny' })}
+                          disabled={processRequestMutation.isPending}
+                          data-testid={`button-deny-${request.id}`}
+                        >
+                          <UserX className="w-3 h-3" />
+                          Deny
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Recent Activity */}
         <Card>
