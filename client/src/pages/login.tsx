@@ -22,6 +22,12 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+
+  // Super admin emails
+  const SUPER_ADMIN_EMAILS = [
+    'gorla.ananthkalyan@gmail.com',
+    'ananthautomotivegarage@gmail.com'
+  ];
   const [showMfaDialog, setShowMfaDialog] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [mfaOtp, setMfaOtp] = useState("");
@@ -74,32 +80,42 @@ export default function Login() {
       return;
     }
 
-    try {
-      const response = await apiRequest("POST", "/api/forgot-password", { email: forgotEmail });
-
-      if (response.ok) {
-        toast({
-          title: "Reset Link Sent",
-          description: "If an account exists with this email, you'll receive password reset instructions.",
-        });
-        setShowForgotPassword(false);
-        setForgotEmail("");
-      } else {
-        throw new Error("Failed to send reset email");
-      }
-    } catch (error) {
+    // Check if email is a super admin email
+    if (!SUPER_ADMIN_EMAILS.includes(forgotEmail)) {
       toast({
-        title: "Error",
-        description: "Failed to send reset email",
+        title: "Access Restricted",
+        description: "Password reset is only available for super admin accounts. Please use the Super Admin Password Reset (MFA) option above.",
         variant: "destructive",
       });
+      return;
     }
+
+    // Redirect to MFA process for super admin
+    toast({
+      title: "Super Admin Detected",
+      description: "Please use the Super Admin Password Reset (MFA) option for secure password reset.",
+    });
+    setShowForgotPassword(false);
+    setShowMfaDialog(true);
+    setForgotEmail("");
   };
 
   const handleMfaRequest = async () => {
+    // Validate email input
+    const currentEmail = forgotEmail || 'gorla.ananthkalyan@gmail.com';
+    
+    if (!SUPER_ADMIN_EMAILS.includes(currentEmail)) {
+      toast({
+        title: "Access Denied",
+        description: "This feature is only available for super admin emails: gorla.ananthkalyan@gmail.com or ananthautomotivegarage@gmail.com",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await apiRequest('POST', '/api/mfa/request', { 
-        email: 'gorla.ananthkalyan@gmail.com',
+        email: currentEmail,
         purpose: 'password_change' 
       });
 
@@ -132,8 +148,9 @@ export default function Login() {
     }
 
     try {
+      const currentEmail = forgotEmail || 'gorla.ananthkalyan@gmail.com';
       const response = await apiRequest('POST', '/api/mfa/verify', { 
-        email: 'gorla.ananthkalyan@gmail.com',
+        email: currentEmail,
         code: mfaOtp,
         purpose: 'password_change' 
       });
@@ -178,8 +195,9 @@ export default function Login() {
     }
 
     try {
+      const currentEmail = forgotEmail || 'gorla.ananthkalyan@gmail.com';
       const response = await apiRequest('POST', '/api/mfa/change-password', { 
-        email: 'gorla.ananthkalyan@gmail.com',
+        email: currentEmail,
         newPassword,
         purpose: 'password_change' 
       });
