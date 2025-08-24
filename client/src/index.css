@@ -205,8 +205,9 @@
 
 .desktop-sidebar {
   @apply flex flex-col bg-card border-r border-border transition-all duration-300;
-  width: 280px;
-  min-width: 280px;
+  width: 320px;
+  min-width: 320px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
 }
 
 .desktop-sidebar.collapsed {
@@ -215,19 +216,23 @@
 }
 
 .sidebar-header {
-  @apply flex items-center justify-between p-4 border-b border-border;
+  @apply flex items-center justify-between p-6 border-b border-border;
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+  color: hsl(var(--primary-foreground));
 }
 
 .sidebar-nav {
-  @apply flex-1 p-3 space-y-1;
+  @apply flex-1 p-4 space-y-2;
 }
 
 .nav-item {
-  @apply w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-accent;
+  @apply w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 hover:bg-accent hover:shadow-sm;
+  font-weight: 500;
 }
 
 .nav-item.active {
-  @apply bg-primary text-primary-foreground;
+  @apply bg-primary text-primary-foreground shadow-lg;
+  transform: translateX(4px);
 }
 
 .nav-item.active:hover {
@@ -239,7 +244,7 @@
 }
 
 .nav-badge {
-  @apply absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center;
+  @apply absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-sm;
   font-size: 10px;
   font-weight: 600;
 }
@@ -249,68 +254,90 @@
 }
 
 .sidebar-footer {
-  @apply p-3 border-t border-border;
+  @apply p-4 border-t border-border;
 }
 
 .desktop-main {
   @apply flex-1 flex flex-col overflow-hidden;
+  background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.3) 100%);
 }
 
 .desktop-header {
-  @apply flex items-center justify-between px-6 py-4 border-b border-border backdrop-blur-sm;
-  background-color: hsl(var(--card) / 0.5);
+  @apply flex items-center justify-between px-8 py-6 border-b border-border;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
+}
+
+.dark .desktop-header {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .header-left {
-  @apply flex items-center gap-4;
+  @apply flex items-center gap-6;
 }
 
 .breadcrumbs {
-  @apply flex items-center gap-2 text-sm;
+  @apply flex items-center gap-3 text-sm font-medium;
 }
 
 .header-right {
-  @apply flex items-center gap-2;
+  @apply flex items-center gap-3;
 }
 
 .desktop-content {
-  @apply flex-1 overflow-auto p-6;
+  @apply flex-1 overflow-auto p-8;
 }
 
 /* Desktop-specific dashboard layouts */
 .desktop-dashboard-grid {
-  @apply grid gap-6;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  @apply space-y-8;
 }
 
 .desktop-stats-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6;
+  @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8;
 }
 
 .desktop-content-grid {
-  @apply grid grid-cols-1 lg:grid-cols-3 gap-6;
+  @apply grid grid-cols-1 xl:grid-cols-3 gap-8;
 }
 
 .desktop-main-content {
-  @apply lg:col-span-2 space-y-6;
+  @apply xl:col-span-2 space-y-8;
 }
 
 .desktop-sidebar-content {
-  @apply space-y-6;
+  @apply space-y-8;
+}
+
+/* Enhanced card styles for desktop */
+.desktop-stat-card {
+  @apply bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300;
+  background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted) / 0.1) 100%);
+}
+
+.desktop-action-card {
+  @apply bg-card border border-border rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105;
+}
+
+.desktop-main-card {
+  @apply bg-card border border-border rounded-2xl shadow-sm;
 }
 
 /* Responsive behavior */
+@media (max-width: 1280px) {
+  .desktop-content-grid {
+    @apply grid-cols-1;
+  }
+  
+  .desktop-main-content {
+    @apply col-span-1;
+  }
+}
+
 @media (max-width: 1024px) {
   .desktop-container {
-    @apply block;
-  }
-  
-  .desktop-sidebar {
     @apply hidden;
-  }
-  
-  .desktop-main {
-    @apply w-full;
   }
 }
 

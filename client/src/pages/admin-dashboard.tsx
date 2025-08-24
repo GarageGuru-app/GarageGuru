@@ -170,65 +170,69 @@ export default function AdminDashboard() {
       <div className="desktop-dashboard-grid">
         {/* Stats Grid - Full Width */}
         <div className="desktop-stats-grid">
-          <Card data-testid="card-pending-jobs">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                  <Clock className="w-6 h-6 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Pending Jobs</p>
-                  <p className="text-3xl font-bold">{pendingJobs?.length || 0}</p>
-                  <p className="text-xs text-muted-foreground">Jobs waiting</p>
-                </div>
+          <div className="desktop-stat-card" data-testid="card-pending-jobs">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-4 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg">
+                <Clock className="w-8 h-8 text-white" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-right">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Pending Jobs</p>
+                <p className="text-4xl font-bold text-orange-600 mt-1">{pendingJobs?.length || 0}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Jobs waiting</span>
+              <span className="text-orange-600 font-medium">↗ Active</span>
+            </div>
+          </div>
 
-          <Card data-testid="card-today-revenue">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
-                  <IndianRupee className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Today's Revenue</p>
-                  <p className="text-3xl font-bold">₹{todayStats?.revenue || 0}</p>
-                  <p className="text-xs text-muted-foreground">From {todayStats?.jobCount || 0} jobs</p>
-                </div>
+          <div className="desktop-stat-card" data-testid="card-today-revenue">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-4 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg">
+                <IndianRupee className="w-8 h-8 text-white" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-right">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Today's Revenue</p>
+                <p className="text-4xl font-bold text-green-600 mt-1">₹{todayStats?.revenue || 0}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">From {todayStats?.jobCount || 0} jobs</span>
+              <span className="text-green-600 font-medium">↗ +12%</span>
+            </div>
+          </div>
 
-          <Card data-testid="card-total-revenue">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Revenue</p>
-                  <p className="text-3xl font-bold">₹{salesStats?.totalRevenue || 0}</p>
-                  <p className="text-xs text-muted-foreground">All time</p>
-                </div>
+          <div className="desktop-stat-card" data-testid="card-total-revenue">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
+                <TrendingUp className="w-8 h-8 text-white" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-right">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Total Revenue</p>
+                <p className="text-4xl font-bold text-blue-600 mt-1">₹{salesStats?.totalRevenue || 0}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">All time</span>
+              <span className="text-blue-600 font-medium">↗ Growing</span>
+            </div>
+          </div>
 
-          <Card data-testid="card-low-stock-alert">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg">
-                  <TriangleAlert className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Low Stock Items</p>
-                  <p className="text-3xl font-bold text-red-600">{lowStockParts?.length || 0}</p>
-                  <p className="text-xs text-muted-foreground">Need attention</p>
-                </div>
+          <div className="desktop-stat-card" data-testid="card-low-stock-alert">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-4 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl shadow-lg">
+                <TriangleAlert className="w-8 h-8 text-white" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-right">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Low Stock</p>
+                <p className="text-4xl font-bold text-red-600 mt-1">{lowStockParts?.length || 0}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Need attention</span>
+              <span className="text-red-600 font-medium">⚠ Alert</span>
+            </div>
+          </div>
         </div>
 
         {/* Main Content Grid */}
@@ -236,89 +240,130 @@ export default function AdminDashboard() {
           {/* Left Column - Main Content */}
           <div className="desktop-main-content">
             {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wrench className="w-5 h-5" />
-                  Quick Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <Button
+            <div className="desktop-main-card">
+              <div className="p-8">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+                    <Wrench className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">Quick Actions</h2>
+                    <p className="text-muted-foreground">Common tasks and shortcuts</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-6">
+                  <div 
                     onClick={() => navigate("/job-card")}
-                    className="h-24 flex flex-col items-center justify-center space-y-2"
+                    className="desktop-action-card p-8 cursor-pointer group"
                     data-testid="button-new-job"
                   >
-                    <Plus className="w-8 h-8" />
-                    <span>New Job Card</span>
-                  </Button>
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <div className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl group-hover:scale-110 transition-transform duration-200">
+                        <Plus className="w-10 h-10 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">New Job Card</h3>
+                        <p className="text-sm text-muted-foreground">Create a new service job</p>
+                      </div>
+                    </div>
+                  </div>
                   
-                  <Button
-                    variant="outline"
+                  <div 
                     onClick={() => navigate("/customers")}
-                    className="h-24 flex flex-col items-center justify-center space-y-2"
+                    className="desktop-action-card p-8 cursor-pointer group"
                     data-testid="button-manage-customers"
                   >
-                    <Users className="w-8 h-8" />
-                    <span>Customers</span>
-                  </Button>
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <div className="p-6 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl group-hover:scale-110 transition-transform duration-200">
+                        <Users className="w-10 h-10 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Customers</h3>
+                        <p className="text-sm text-muted-foreground">Manage customer database</p>
+                      </div>
+                    </div>
+                  </div>
                   
-                  <Button
-                    variant="outline"
+                  <div 
                     onClick={() => navigate("/spare-parts")}
-                    className="h-24 flex flex-col items-center justify-center space-y-2"
+                    className="desktop-action-card p-8 cursor-pointer group"
                     data-testid="button-spare-parts"
                   >
-                    <Cog className="w-8 h-8" />
-                    <span>Spare Parts</span>
-                  </Button>
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <div className="p-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl group-hover:scale-110 transition-transform duration-200">
+                        <Cog className="w-10 h-10 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Spare Parts</h3>
+                        <p className="text-sm text-muted-foreground">Inventory management</p>
+                      </div>
+                    </div>
+                  </div>
                   
-                  <Button
-                    variant="outline"
+                  <div 
                     onClick={() => navigate("/sales")}
-                    className="h-24 flex flex-col items-center justify-center space-y-2"
+                    className="desktop-action-card p-8 cursor-pointer group"
                     data-testid="button-sales-reports"
                   >
-                    <FileText className="w-8 h-8" />
-                    <span>Sales Reports</span>
-                  </Button>
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <div className="p-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl group-hover:scale-110 transition-transform duration-200">
+                        <FileText className="w-10 h-10 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Sales Reports</h3>
+                        <p className="text-sm text-muted-foreground">Analytics and insights</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ClipboardList className="w-5 h-5" />
-                  Recent Job Cards
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className="desktop-main-card">
+              <div className="p-8">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl">
+                    <ClipboardList className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">Recent Job Cards</h2>
+                    <p className="text-muted-foreground">Latest service requests and updates</p>
+                  </div>
+                </div>
+                
+                <div>
                 {pendingJobs && pendingJobs.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {pendingJobs.slice(0, 5).map((job: any) => (
                       <div 
                         key={job.id}
-                        className="flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+                        className="bg-gradient-to-r from-card to-muted/20 border border-border rounded-2xl p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                         data-testid={`job-card-${job.id}`}
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium">{job.customerName}</p>
-                            <Badge variant="outline">{job.bikeNumber}</Badge>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                                <Car className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-lg">{job.customerName}</h3>
+                                <Badge variant="outline" className="text-xs">{job.bikeNumber}</Badge>
+                              </div>
+                            </div>
+                            <p className="text-muted-foreground mb-2">{job.complaint}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Created: {new Date(job.createdAt).toLocaleDateString()}
+                            </p>
                           </div>
-                          <p className="text-sm text-muted-foreground">{job.complaint}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Created: {new Date(job.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium text-lg">₹{job.totalAmount}</p>
-                          <Badge variant={job.status === 'pending' ? 'destructive' : 'default'}>
-                            {job.status}
-                          </Badge>
+                          <div className="text-right">
+                            <p className="font-bold text-2xl text-green-600">₹{job.totalAmount}</p>
+                            <Badge variant={job.status === 'pending' ? 'destructive' : 'default'} className="mt-2">
+                              {job.status}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -326,116 +371,145 @@ export default function AdminDashboard() {
                     <Button
                       variant="outline"
                       onClick={() => navigate("/pending-services")}
-                      className="w-full mt-4"
+                      className="w-full mt-6 h-14 text-lg font-medium rounded-xl"
                       data-testid="button-view-all-jobs"
                     >
                       View All Pending Jobs
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Car className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg mb-2">No pending job cards</p>
-                    <p className="text-sm mb-4">Create your first job card to get started</p>
+                  <div className="text-center py-16 text-muted-foreground">
+                    <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 opacity-20">
+                      <Car className="w-12 h-12 text-white" />
+                    </div>
+                    <p className="text-xl font-medium mb-2">No pending job cards</p>
+                    <p className="text-sm mb-6">Create your first job card to get started</p>
                     <Button
                       onClick={() => navigate("/job-card")}
+                      className="h-12 px-8 text-lg font-medium rounded-xl"
                       data-testid="button-create-first-job"
                     >
                       Create Your First Job Card
                     </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right Column - Sidebar Content */}
           <div className="desktop-sidebar-content">
             {/* Staff Management */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Staff Management
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className="desktop-main-card">
+              <div className="p-8">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="p-3 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Staff Management</h2>
+                    <p className="text-muted-foreground">Team members and permissions</p>
+                  </div>
+                </div>
+                
+                <div>
                 {staffMembers && staffMembers.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {staffMembers.map((staff: any) => (
                       <div 
                         key={staff.id}
-                        className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                        className="bg-gradient-to-r from-card to-muted/20 border border-border rounded-2xl p-6"
                         data-testid={`staff-row-${staff.id}`}
                       >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium truncate" data-testid={`staff-name-${staff.id}`}>
-                              {staff.name}
-                            </p>
-                            <Badge 
-                              variant={staff.status === 'active' ? 'default' : 'destructive'}
-                              className="text-xs"
-                              data-testid={`staff-status-badge-${staff.id}`}
-                            >
-                              {staff.status === 'active' ? 'Active' : 'Suspended'}
-                            </Badge>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center">
+                              <Users className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-lg" data-testid={`staff-name-${staff.id}`}>
+                                  {staff.name}
+                                </h3>
+                                <Badge 
+                                  variant={staff.status === 'active' ? 'default' : 'destructive'}
+                                  className="text-xs"
+                                  data-testid={`staff-status-badge-${staff.id}`}
+                                >
+                                  {staff.status === 'active' ? 'Active' : 'Suspended'}
+                                </Badge>
+                              </div>
+                              <p className="text-muted-foreground" data-testid={`staff-email-${staff.id}`}>
+                                {staff.email}
+                              </p>
+                            </div>
                           </div>
-                          <p className="text-sm text-muted-foreground truncate" data-testid={`staff-email-${staff.id}`}>
-                            {staff.email}
-                          </p>
+                          <Switch
+                            checked={staff.status === 'active'}
+                            onCheckedChange={() => handleToggleStaffStatus(staff.id, staff.status || 'active')}
+                            disabled={updateUserStatusMutation.isPending}
+                            data-testid={`switch-toggle-staff-status-${staff.id}`}
+                            className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+                          />
                         </div>
-                        <Switch
-                          checked={staff.status === 'active'}
-                          onCheckedChange={() => handleToggleStaffStatus(staff.id, staff.status || 'active')}
-                          disabled={updateUserStatusMutation.isPending}
-                          data-testid={`switch-toggle-staff-status-${staff.id}`}
-                          className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
-                        />
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No staff members found</p>
+                  <div className="text-center py-12 text-muted-foreground">
+                    <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 opacity-20">
+                      <Users className="w-8 h-8 text-white" />
+                    </div>
+                    <p className="text-lg">No staff members found</p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+                </div>
+              </div>
+            </div>
 
             {/* Access Requests */}
             {accessRequests && accessRequests.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <UserCheck className="w-5 h-5" />
-                    Pending Requests
-                    <Badge variant="destructive">{pendingRequestsCount}</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
+              <div className="desktop-main-card">
+                <div className="p-8">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="p-3 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl">
+                      <UserCheck className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold">Pending Requests</h2>
+                      <p className="text-muted-foreground">Staff access requests</p>
+                    </div>
+                    <Badge variant="destructive" className="text-lg px-3 py-1">{pendingRequestsCount}</Badge>
+                  </div>
+                  
+                  <div className="space-y-4">
                     {accessRequests.filter((req: any) => req.status === 'pending').slice(0, 3).map((request: any) => (
-                      <div key={request.id} className="p-3 bg-muted rounded-lg">
-                        <p className="font-medium">{request.name}</p>
-                        <p className="text-sm text-muted-foreground">{request.email}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Requesting: {request.requestedRole}
-                        </p>
+                      <div key={request.id} className="bg-gradient-to-r from-card to-muted/20 border border-border rounded-2xl p-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center">
+                            <UserCheck className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{request.name}</h3>
+                            <p className="text-muted-foreground">{request.email}</p>
+                            <p className="text-sm text-amber-600 font-medium mt-1">
+                              Requesting: {request.requestedRole}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     ))}
                     <Button
                       variant="outline"
                       onClick={() => navigate("/access-requests")}
-                      className="w-full"
-                      size="sm"
+                      className="w-full h-12 text-lg font-medium rounded-xl"
                     >
                       View All Requests
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
         </div>
