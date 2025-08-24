@@ -126,7 +126,7 @@ export default function Login() {
     if (!SUPER_ADMIN_EMAILS.includes(currentEmail)) {
       toast({
         title: "Access Denied",
-        description: "This feature is only available for super admin emails: gorla.ananthkalyan@gmail.com or ananthautomotivegarage@gmail.com",
+        description: "This feature is only available for super admin accounts.",
         variant: "destructive",
       });
       return;
@@ -430,7 +430,7 @@ export default function Login() {
             {mfaStep === 'request' && (
               <div className="text-center space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  An OTP will be sent to both super admin email addresses for verification.
+                  An OTP will be sent to super admin for verification.
                 </p>
                 <div className="flex gap-2">
                   <Button

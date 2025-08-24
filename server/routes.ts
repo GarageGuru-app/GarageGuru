@@ -310,7 +310,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       );
       
       const responseMessage = emailSent 
-        ? `Access request sent to super admin (${SUPER_ADMIN_EMAIL}). You will receive activation code via email if approved.`
+        ? `Access request sent to super admin. You will receive activation code via email if approved.`
         : `Access request logged for super admin review. Check server logs or configure email delivery.`;
       
       res.json({ message: responseMessage });
