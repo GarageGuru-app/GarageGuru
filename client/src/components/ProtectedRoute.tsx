@@ -19,7 +19,10 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
 
   useEffect(() => {
     if (!isLoading && !user) {
-      navigate("/login");
+      // Only navigate if we're not already on login page
+      if (location !== '/login') {
+        navigate("/login");
+      }
       return;
     }
 

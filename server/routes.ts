@@ -1228,6 +1228,15 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(400).json({ message: 'Password must be at least 8 characters long' });
       }
 
+      // Check if new password is same as current password
+      const currentUser = await pool.query('SELECT password FROM users WHERE email = $1', [email]);
+      if (currentUser.rows.length > 0) {
+        const isSamePassword = await bcrypt.compare(new_password, currentUser.rows[0].password);
+        if (isSamePassword) {
+          return res.status(400).json({ message: 'New password cannot be the same as your current password' });
+        }
+      }
+
       // Update password
       const hashedPassword = await bcrypt.hash(new_password, 12);
       await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashedPassword, email]);
