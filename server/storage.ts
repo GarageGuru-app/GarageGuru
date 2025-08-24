@@ -1,4 +1,6 @@
 import { pool } from "./db.js";
+import crypto from 'crypto';
+import bcrypt from 'bcrypt';
 
 // Type definitions (keeping the same interface types)
 export interface User {
@@ -77,6 +79,44 @@ export interface Invoice {
   created_at: Date;
 }
 
+export interface OtpRecord {
+  id: string;
+  email: string;
+  hashed_otp: string;
+  salt: string;
+  purpose: string;
+  attempts: number;
+  used: boolean;
+  expires_at: Date;
+  created_at: Date;
+}
+
+export interface AuditLog {
+  id: string;
+  actor_id: string;
+  actor_email: string;
+  target_user_id?: string;
+  target_email?: string;
+  action: string;
+  details?: any;
+  garage_id?: string;
+  created_at: Date;
+}
+
+export interface AccessRequest {
+  id: string;
+  garage_id: string;
+  user_id: string;
+  email: string;
+  name: string;
+  requested_role: string;
+  status: string;
+  note?: string;
+  processed_by?: string;
+  processed_at?: Date;
+  created_at: Date;
+}
+
 export interface IStorage {
   // Database health
   ping(): Promise<boolean>;
@@ -134,6 +174,26 @@ export interface IStorage {
   }>>;
 
   updateUserGarage(userId: string, garageId: string): Promise<User>;
+  
+  // Super Admin functionality
+  getAllGarages(): Promise<Garage[]>;
+  getAllUsers(): Promise<User[]>;
+  getUsersByGarage(garageId: string): Promise<User[]>;
+  updateUserRole(userId: string, role: string, actorId: string): Promise<User>;
+  
+  // OTP Management
+  createOtpRecord(record: Partial<OtpRecord>): Promise<OtpRecord>;
+  getOtpRecord(email: string, purpose: string): Promise<OtpRecord | undefined>;
+  updateOtpRecord(id: string, record: Partial<OtpRecord>): Promise<OtpRecord>;
+  
+  // Audit Logs
+  createAuditLog(log: Partial<AuditLog>): Promise<AuditLog>;
+  getAuditLogs(garageId?: string): Promise<AuditLog[]>;
+  
+  // Access Requests
+  createAccessRequest(request: Partial<AccessRequest>): Promise<AccessRequest>;
+  getAccessRequests(garageId?: string): Promise<AccessRequest[]>;
+  updateAccessRequest(id: string, request: Partial<AccessRequest>): Promise<AccessRequest>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -491,6 +551,158 @@ export class DatabaseStorage implements IStorage {
       serviceCharges: parseFloat(row.service_charges),
       invoiceCount: parseInt(row.invoice_count)
     }));
+  }
+
+  // Super Admin functionality implementations
+  async getAllGarages(): Promise<Garage[]> {
+    const result = await pool.query('SELECT * FROM garages ORDER BY created_at DESC');
+    return result.rows;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    const result = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
+    return result.rows;
+  }
+
+  async getUsersByGarage(garageId: string): Promise<User[]> {
+    const result = await pool.query('SELECT * FROM users WHERE garage_id = $1 ORDER BY created_at DESC', [garageId]);
+    return result.rows;
+  }
+
+  async updateUserRole(userId: string, role: string, actorId: string): Promise<User> {
+    // First, check if this would demote the last admin
+    if (role === 'mechanic_staff') {
+      const user = await pool.query('SELECT garage_id FROM users WHERE id = $1', [userId]);
+      if (user.rows[0]?.garage_id) {
+        const adminCount = await pool.query(
+          'SELECT COUNT(*) as count FROM users WHERE garage_id = $1 AND role = $2',
+          [user.rows[0].garage_id, 'garage_admin']
+        );
+        if (parseInt(adminCount.rows[0].count) <= 1) {
+          throw new Error('Cannot demote the last admin in the garage');
+        }
+      }
+    }
+
+    // Update the user role
+    const result = await pool.query(
+      'UPDATE users SET role = $1 WHERE id = $2 RETURNING *',
+      [role, userId]
+    );
+
+    // Create audit log
+    const actor = await pool.query('SELECT email, garage_id FROM users WHERE id = $1', [actorId]);
+    const targetUser = result.rows[0];
+    
+    await this.createAuditLog({
+      actor_id: actorId,
+      actor_email: actor.rows[0]?.email || 'system',
+      target_user_id: userId,
+      target_email: targetUser.email,
+      action: 'role_change',
+      details: { new_role: role, previous_role: targetUser.role },
+      garage_id: targetUser.garage_id || actor.rows[0]?.garage_id
+    });
+
+    return result.rows[0];
+  }
+
+  // OTP Management implementations
+  async createOtpRecord(record: Partial<OtpRecord>): Promise<OtpRecord> {
+    const id = crypto.randomUUID();
+    const result = await pool.query(
+      'INSERT INTO otp_records (id, email, hashed_otp, salt, purpose, attempts, used, expires_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [id, record.email, record.hashed_otp, record.salt, record.purpose, record.attempts || 0, record.used || false, record.expires_at]
+    );
+    return result.rows[0];
+  }
+
+  async getOtpRecord(email: string, purpose: string): Promise<OtpRecord | undefined> {
+    const result = await pool.query(
+      'SELECT * FROM otp_records WHERE email = $1 AND purpose = $2 AND used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
+      [email, purpose]
+    );
+    return result.rows[0];
+  }
+
+  async updateOtpRecord(id: string, record: Partial<OtpRecord>): Promise<OtpRecord> {
+    const fields = Object.keys(record).filter(key => key !== 'id');
+    const values = fields.map(field => (record as any)[field]);
+    const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
+    
+    const result = await pool.query(
+      `UPDATE otp_records SET ${setClause} WHERE id = $1 RETURNING *`,
+      [id, ...values]
+    );
+    return result.rows[0];
+  }
+
+  // Audit Logs implementations  
+  async createAuditLog(log: Partial<AuditLog>): Promise<AuditLog> {
+    const id = crypto.randomUUID();
+    const result = await pool.query(
+      'INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, target_email, action, details, garage_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [id, log.actor_id, log.actor_email, log.target_user_id, log.target_email, log.action, JSON.stringify(log.details), log.garage_id]
+    );
+    return result.rows[0];
+  }
+
+  async getAuditLogs(garageId?: string): Promise<AuditLog[]> {
+    let query = 'SELECT * FROM audit_logs';
+    let params: any[] = [];
+    
+    if (garageId) {
+      query += ' WHERE garage_id = $1';
+      params = [garageId];
+    }
+    
+    query += ' ORDER BY created_at DESC LIMIT 100';
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  // Access Requests implementations
+  async createAccessRequest(request: Partial<AccessRequest>): Promise<AccessRequest> {
+    const id = crypto.randomUUID();
+    const result = await pool.query(
+      'INSERT INTO access_requests (id, garage_id, user_id, email, name, requested_role, status, note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [id, request.garage_id, request.user_id, request.email, request.name, request.requested_role, request.status || 'pending', request.note]
+    );
+    return result.rows[0];
+  }
+
+  async getAccessRequests(garageId?: string): Promise<AccessRequest[]> {
+    let query = 'SELECT * FROM access_requests';
+    let params: any[] = [];
+    
+    if (garageId) {
+      query += ' WHERE garage_id = $1';
+      params = [garageId];
+    }
+    
+    query += ' ORDER BY created_at DESC';
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  async updateAccessRequest(id: string, request: Partial<AccessRequest>): Promise<AccessRequest> {
+    const fields = Object.keys(request).filter(key => key !== 'id');
+    const values = fields.map(field => (request as any)[field]);
+    const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
+    
+    if (fields.includes('status') && (request.status === 'approved' || request.status === 'denied')) {
+      fields.push('processed_at');
+      values.push(new Date());
+      setClause.replace(/processed_at = \$\d+/, 'processed_at = NOW()');
+    }
+    
+    const result = await pool.query(
+      `UPDATE access_requests SET ${setClause} WHERE id = $1 RETURNING *`,
+      [id, ...values]
+    );
+    return result.rows[0];
   }
 }
 

@@ -21,6 +21,8 @@ import Customers from "@/pages/customers";
 import SpareParts from "@/pages/spare-parts";
 import Sales from "@/pages/sales";
 import Profile from "@/pages/profile";
+import SuperAdmin from "@/pages/super-admin";
+import Unauthorized from "@/pages/unauthorized";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -115,6 +117,14 @@ function Router() {
           </Layout>
         </ProtectedRoute>
       </Route>
+      
+      <Route path="/super-admin">
+        <ProtectedRoute roles={["super_admin"]}>
+          <SuperAdmin />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/unauthorized" component={Unauthorized} />
       
       <Route component={NotFound} />
     </Switch>

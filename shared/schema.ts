@@ -188,3 +188,68 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 });
 export type SelectNotification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// OTP Management table for MFA
+export const otpRecords = pgTable("otp_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull(),
+  hashedOtp: text("hashed_otp").notNull(),
+  salt: text("salt").notNull(),
+  purpose: text("purpose").notNull(), // 'password_change'
+  attempts: integer("attempts").default(0),
+  used: boolean("used").default(false),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Audit logs for role changes and security events
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  actorId: varchar("actor_id").notNull(), // Who performed the action
+  actorEmail: text("actor_email").notNull(),
+  targetUserId: varchar("target_user_id"), // Who was affected
+  targetEmail: text("target_email"),
+  action: text("action").notNull(), // 'role_change', 'password_change', 'login', etc.
+  details: jsonb("details"), // Additional context
+  garageId: varchar("garage_id").references(() => garages.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Access requests table (for staff requesting access to garages)
+export const accessRequests = pgTable("access_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  garageId: varchar("garage_id").notNull().references(() => garages.id),
+  userId: varchar("user_id").notNull(),
+  email: text("email").notNull(),
+  name: text("name").notNull(),
+  requestedRole: text("requested_role").notNull(), // 'admin', 'staff'
+  status: text("status").notNull().default("pending"), // 'pending', 'approved', 'denied'
+  note: text("note"),
+  processedBy: varchar("processed_by"),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert schemas for new tables
+export const insertOtpRecordSchema = createInsertSchema(otpRecords).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAccessRequestSchema = createInsertSchema(accessRequests).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for new tables
+export type OtpRecord = typeof otpRecords.$inferSelect;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type AccessRequest = typeof accessRequests.$inferSelect;
+export type InsertOtpRecord = z.infer<typeof insertOtpRecordSchema>;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type InsertAccessRequest = z.infer<typeof insertAccessRequestSchema>;

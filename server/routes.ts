@@ -7,8 +7,24 @@ import { insertUserSchema, insertGarageSchema, insertCustomerSchema, insertSpare
 import { z } from "zod";
 import { GmailEmailService } from "./gmailEmailService";
 import { pool } from "./db";
+import { MailService } from '@sendgrid/mail';
+import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+
+// Super Admin emails that can access /super-admin
+const SUPER_ADMIN_EMAILS = [
+  'gorla.ananthkalyan@gmail.com',
+  'ananthautomotivegarage@gmail.com'
+];
+
+// Initialize SendGrid if API key is available
+let mailService: MailService | null = null;
+if (SENDGRID_API_KEY) {
+  mailService = new MailService();
+  mailService.setApiKey(SENDGRID_API_KEY);
+}
 
 // Extend Express Request type
 declare global {
@@ -1004,6 +1020,399 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error) {
       console.error('Garage update error:', error);
       res.status(500).json({ message: 'Failed to update garage' });
+    }
+  });
+
+  // ============================================
+  // MFA Email-OTP Endpoints for Super Admin
+  // ============================================
+
+  // Helper function to generate and hash OTP
+  const generateOtp = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  const hashOtp = (otp: string, salt: string) => {
+    return bcrypt.hashSync(otp + salt, 10);
+  };
+
+  // Helper function to send OTP email
+  const sendOtpEmail = async (otp: string) => {
+    if (!mailService) {
+      throw new Error('Email service not configured');
+    }
+
+    const emailPromises = SUPER_ADMIN_EMAILS.map(email => 
+      mailService!.send({
+        to: email,
+        from: 'noreply@garageguru.com',
+        subject: 'GarageGuru Super Admin Password Reset Code',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">GarageGuru Password Reset</h2>
+            <p>Your password reset verification code is:</p>
+            <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
+              ${otp}
+            </div>
+            <p><strong>⚠️ Security Notice:</strong></p>
+            <ul>
+              <li>This code expires in 10 minutes</li>
+              <li>Only use this code if you requested a password reset</li>
+              <li>Never share this code with anyone</li>
+            </ul>
+            <p>If you didn't request this reset, please contact support immediately.</p>
+          </div>
+        `,
+        text: `Your GarageGuru password reset code is: ${otp}. This code expires in 10 minutes. If you didn't request this reset, please contact support.`
+      })
+    );
+
+    await Promise.all(emailPromises);
+  };
+
+  // Rate limiting storage (in production, use Redis)
+  const rateLimits = new Map<string, { count: number; resetTime: number; locked?: boolean; lockTime?: number }>();
+
+  const checkRateLimit = (email: string, maxRequests = 3, windowMs = 60 * 60 * 1000) => {
+    const now = Date.now();
+    const limit = rateLimits.get(email);
+
+    if (limit?.locked && limit.lockTime && now < limit.lockTime) {
+      throw new Error('Account locked. Try again in 15 minutes.');
+    }
+
+    if (!limit || now > limit.resetTime) {
+      rateLimits.set(email, { count: 1, resetTime: now + windowMs });
+      return;
+    }
+
+    if (limit.count >= maxRequests) {
+      // Lock account for 15 minutes
+      rateLimits.set(email, { 
+        ...limit, 
+        locked: true, 
+        lockTime: now + 15 * 60 * 1000 
+      });
+      throw new Error('Too many requests. Account locked for 15 minutes.');
+    }
+
+    limit.count++;
+  };
+
+  // 1. Request OTP for password change
+  app.post("/api/mfa/request", async (req, res) => {
+    try {
+      const { email, purpose } = req.body;
+
+      if (purpose !== 'password_change') {
+        return res.status(400).json({ message: 'Invalid purpose' });
+      }
+
+      if (!SUPER_ADMIN_EMAILS.includes(email)) {
+        // Return generic response to avoid enumeration
+        return res.json({ ok: true });
+      }
+
+      // Check rate limits
+      try {
+        checkRateLimit(email);
+      } catch (error: any) {
+        return res.status(429).json({ message: error.message });
+      }
+
+      // Generate OTP and salt
+      const otp = generateOtp();
+      const salt = crypto.randomBytes(16).toString('hex');
+      const hashedOtp = hashOtp(otp, salt);
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      // Invalidate any existing OTP for this email/purpose
+      const existingOtp = await storage.getOtpRecord(email, purpose);
+      if (existingOtp) {
+        await storage.updateOtpRecord(existingOtp.id, { used: true });
+      }
+
+      // Store new OTP record
+      await storage.createOtpRecord({
+        email,
+        hashed_otp: hashedOtp,
+        salt,
+        purpose,
+        expires_at: expiresAt
+      });
+
+      // Send email to both super admin addresses
+      await sendOtpEmail(otp);
+
+      res.json({ ok: true });
+    } catch (error: any) {
+      console.error('OTP request error:', error);
+      res.status(500).json({ message: 'Failed to send OTP' });
+    }
+  });
+
+  // 2. Verify OTP and get temporary token
+  app.post("/api/mfa/verify", async (req, res) => {
+    try {
+      const { email, code, purpose } = req.body;
+
+      if (!SUPER_ADMIN_EMAILS.includes(email)) {
+        return res.status(400).json({ message: 'Invalid request' });
+      }
+
+      // Get OTP record
+      const otpRecord = await storage.getOtpRecord(email, purpose);
+      if (!otpRecord) {
+        return res.status(400).json({ message: 'Invalid or expired code' });
+      }
+
+      // Check attempts (max 5)
+      if (otpRecord.attempts >= 5) {
+        await storage.updateOtpRecord(otpRecord.id, { used: true });
+        return res.status(400).json({ message: 'Too many attempts. Request a new code.' });
+      }
+
+      // Verify OTP
+      const isValid = bcrypt.compareSync(code + otpRecord.salt, otpRecord.hashed_otp);
+      
+      if (!isValid) {
+        await storage.updateOtpRecord(otpRecord.id, { 
+          attempts: otpRecord.attempts + 1 
+        });
+        return res.status(400).json({ message: 'Invalid code' });
+      }
+
+      // Mark OTP as used
+      await storage.updateOtpRecord(otpRecord.id, { used: true });
+
+      // Generate temporary token (5 minutes)
+      const tempToken = jwt.sign({ 
+        email, 
+        purpose, 
+        type: 'otp_verified' 
+      }, JWT_SECRET, { expiresIn: '5m' });
+
+      res.json({ otp_verified_token: tempToken });
+    } catch (error: any) {
+      console.error('OTP verification error:', error);
+      res.status(500).json({ message: 'Failed to verify OTP' });
+    }
+  });
+
+  // 3. Change password with verified OTP token
+  app.post("/api/password/change", async (req, res) => {
+    try {
+      const { email, otp_verified_token, new_password } = req.body;
+
+      if (!SUPER_ADMIN_EMAILS.includes(email)) {
+        return res.status(400).json({ message: 'Invalid request' });
+      }
+
+      // Verify temporary token
+      let decoded;
+      try {
+        decoded = jwt.verify(otp_verified_token, JWT_SECRET) as any;
+      } catch (error) {
+        return res.status(400).json({ message: 'Invalid or expired token' });
+      }
+
+      if (decoded.email !== email || decoded.purpose !== 'password_change' || decoded.type !== 'otp_verified') {
+        return res.status(400).json({ message: 'Invalid token' });
+      }
+
+      // Validate password strength
+      if (!new_password || new_password.length < 8) {
+        return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+      }
+
+      // Update password
+      const hashedPassword = await bcrypt.hash(new_password, 12);
+      await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashedPassword, email]);
+
+      // Send security notification to both emails
+      if (mailService) {
+        const emailPromises = SUPER_ADMIN_EMAILS.map(notifyEmail => 
+          mailService!.send({
+            to: notifyEmail,
+            from: 'noreply@garageguru.com',
+            subject: 'GarageGuru Super Admin Password Changed',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">Security Alert: Password Changed</h2>
+                <p>The password for super admin account <strong>${email}</strong> has been successfully changed.</p>
+                <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+                <p>If you did not make this change, please contact support immediately.</p>
+              </div>
+            `,
+            text: `Security Alert: The password for super admin account ${email} has been changed at ${new Date().toLocaleString()}. If you did not make this change, please contact support immediately.`
+          })
+        );
+
+        await Promise.all(emailPromises);
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Password change error:', error);
+      res.status(500).json({ message: 'Failed to change password' });
+    }
+  });
+
+  // ============================================
+  // Super Admin API Endpoints
+  // ============================================
+
+  // Middleware to check super admin email access
+  const requireSuperAdminEmail = (req: any, res: any, next: any) => {
+    if (!req.user || !SUPER_ADMIN_EMAILS.includes(req.user.email)) {
+      return res.status(403).json({ message: 'Access denied. Super admin access required.' });
+    }
+    next();
+  };
+
+  // Get all garages with stats
+  app.get("/api/super-admin/garages", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const garages = await storage.getAllGarages();
+      
+      // Get user counts and stats for each garage
+      const garagesWithStats = await Promise.all(garages.map(async (garage) => {
+        const users = await storage.getUsersByGarage(garage.id);
+        const adminCount = users.filter(u => u.role === 'garage_admin').length;
+        const staffCount = users.filter(u => u.role === 'mechanic_staff').length;
+        
+        return {
+          ...garage,
+          userCount: users.length,
+          adminCount,
+          staffCount,
+          users: users.map(u => ({ ...u, password: undefined })) // Remove passwords
+        };
+      }));
+
+      // Get overall stats
+      const allUsers = await storage.getAllUsers();
+      const totalUsers = allUsers.length;
+      const totalGarages = garages.length;
+      
+      // Calculate new users in last 7 and 30 days
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      
+      const newUsers7Days = allUsers.filter(u => new Date(u.created_at) > sevenDaysAgo).length;
+      const newUsers30Days = allUsers.filter(u => new Date(u.created_at) > thirtyDaysAgo).length;
+
+      res.json({
+        garages: garagesWithStats,
+        stats: {
+          totalGarages,
+          totalUsers,
+          newUsers7Days,
+          newUsers30Days
+        }
+      });
+    } catch (error: any) {
+      console.error('Get garages error:', error);
+      res.status(500).json({ message: 'Failed to fetch garages' });
+    }
+  });
+
+  // Get users for a specific garage
+  app.get("/api/super-admin/garages/:garageId/users", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const users = await storage.getUsersByGarage(garageId);
+      
+      // Remove passwords from response
+      const safeUsers = users.map(u => ({ ...u, password: undefined }));
+      
+      res.json(safeUsers);
+    } catch (error: any) {
+      console.error('Get garage users error:', error);
+      res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  });
+
+  // Toggle user role (Admin ↔ Staff) with guardrails
+  app.post("/api/super-admin/users/:userId/toggle-role", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const { userId } = req.params;
+
+      // Get current user
+      const user = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+      if (!user.rows[0]) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const currentUser = user.rows[0];
+      
+      // Cannot toggle super_admin accounts
+      if (currentUser.role === 'super_admin') {
+        return res.status(400).json({ message: 'Cannot modify super admin accounts' });
+      }
+
+      // Determine new role
+      const newRole = currentUser.role === 'garage_admin' ? 'mechanic_staff' : 'garage_admin';
+      
+      // Apply guardrails via storage method (which checks for last admin)
+      const updatedUser = await storage.updateUserRole(userId, newRole, req.user.id);
+      
+      res.json({ 
+        ...updatedUser, 
+        password: undefined 
+      });
+    } catch (error: any) {
+      console.error('Toggle role error:', error);
+      res.status(400).json({ message: error.message || 'Failed to toggle role' });
+    }
+  });
+
+  // Get access requests (optional feature)
+  app.get("/api/super-admin/access-requests", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const { garageId } = req.query;
+      const requests = await storage.getAccessRequests(garageId as string);
+      res.json(requests);
+    } catch (error: any) {
+      console.error('Get access requests error:', error);
+      res.status(500).json({ message: 'Failed to fetch access requests' });
+    }
+  });
+
+  // Process access request (approve/deny)
+  app.post("/api/super-admin/access-requests/:requestId", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const { requestId } = req.params;
+      const { status, note } = req.body; // status: 'approved' | 'denied'
+
+      if (!['approved', 'denied'].includes(status)) {
+        return res.status(400).json({ message: 'Invalid status' });
+      }
+
+      // Update access request
+      const updatedRequest = await storage.updateAccessRequest(requestId, {
+        status,
+        note,
+        processed_by: req.user.id
+      });
+
+      res.json(updatedRequest);
+    } catch (error: any) {
+      console.error('Process access request error:', error);
+      res.status(500).json({ message: 'Failed to process request' });
+    }
+  });
+
+  // Get audit logs
+  app.get("/api/super-admin/audit-logs", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const { garageId } = req.query;
+      const logs = await storage.getAuditLogs(garageId as string);
+      res.json(logs);
+    } catch (error: any) {
+      console.error('Get audit logs error:', error);
+      res.status(500).json({ message: 'Failed to fetch audit logs' });
     }
   });
 
