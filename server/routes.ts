@@ -336,7 +336,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         const garage = await storage.getGarage(garageId);
         if (garage) {
           // Get garage admin email
-          const garageUsers = await storage.getGarageUsers(garageId);
+          const garageUsers = await storage.getUsersByGarage(garageId);
           const garageAdmin = garageUsers.find(user => user.role === 'garage_admin');
           
           if (garageAdmin) {
