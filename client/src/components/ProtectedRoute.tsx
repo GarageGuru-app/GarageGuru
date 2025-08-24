@@ -18,15 +18,22 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
   const [location, navigate] = useLocation();
 
   useEffect(() => {
+    console.log('🔥 [PROTECTED] useEffect triggered - location:', location, 'user:', !!user, 'isLoading:', isLoading);
+    
     if (!isLoading && !user) {
       // Only navigate if we're not already on login page
       if (location !== '/login') {
+        console.log('🔥 [PROTECTED] No user, redirecting to login from:', location);
         navigate("/login");
+      } else {
+        console.log('🔥 [PROTECTED] Already on login page, not redirecting');
       }
       return;
     }
 
     if (user && isLoading === false) {
+      console.log('🔥 [PROTECTED] User authenticated, checking route permissions');
+      console.log('🔥 [PROTECTED] User role:', user.role, 'Current location:', location);
       // Handle super admin route protection
       if (location === '/super-admin') {
         if (user.role !== 'super_admin' || !SUPER_ADMIN_EMAILS.includes(user.email)) {

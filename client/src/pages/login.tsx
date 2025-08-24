@@ -38,13 +38,16 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔥 [LOGIN] Form submitted, isLoading:', isLoading);
     
     // Prevent double submission
     if (isLoading) {
+      console.log('🔥 [LOGIN] Already loading, preventing double submission');
       return;
     }
     
     if (!email || !password) {
+      console.log('🔥 [LOGIN] Missing email or password');
       toast({
         title: "Login Failed",
         description: "Please enter both email and password",
@@ -53,24 +56,32 @@ export default function Login() {
       return;
     }
 
+    console.log('🔥 [LOGIN] Starting login process for:', email);
     setIsLoading(true);
 
     try {
+      console.log('🔥 [LOGIN] Calling auth login function');
       const redirectPath = await login(email, password);
+      console.log('🔥 [LOGIN] Login successful, redirectPath:', redirectPath);
+      
       // Clear fields only on successful login
       setEmail("");
       setPassword("");
+      
       // Navigate to the appropriate route based on user role
       if (redirectPath) {
+        console.log('🔥 [LOGIN] Navigating to:', redirectPath);
         navigate(redirectPath);
       }
     } catch (error) {
+      console.log('🔥 [LOGIN] Login failed with error:', error);
       toast({
         title: "Login Failed",
         description: error instanceof Error ? error.message : "Invalid credentials",
         variant: "destructive",
       });
     } finally {
+      console.log('🔥 [LOGIN] Setting isLoading to false');
       setIsLoading(false);
     }
   };

@@ -106,21 +106,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('🔥 [AUTH] Login function called for:', email);
       const response = await apiRequest("POST", "/api/auth/login", { email, password });
       const data = await response.json();
+      console.log('🔥 [AUTH] Login API response received, token exists:', !!data.token);
       
       // Set auth data from login response
       localStorage.setItem("auth-token", data.token);
       setToken(data.token);
       setUser(data.user);
       setGarage(data.garage);
+      console.log('🔥 [AUTH] Auth state updated - user role:', data.user?.role);
 
       // Return route path for navigation
       if (data.user) {
-        return routeUserBasedOnRole(data.user, data.garage);
+        const route = routeUserBasedOnRole(data.user, data.garage);
+        console.log('🔥 [AUTH] Calculated route for user:', route);
+        return route;
       }
       return null;
     } catch (error) {
+      console.log('🔥 [AUTH] Login error:', error);
       // apiRequest already throws descriptive errors
       throw error;
     }
