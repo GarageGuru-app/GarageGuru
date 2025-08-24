@@ -23,6 +23,7 @@ export const users = pgTable("users", {
   garageId: varchar("garage_id").references(() => garages.id),
   name: text("name").notNull(),
   firstLogin: boolean("first_login").default(true),
+  mustChangePassword: boolean("must_change_password").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

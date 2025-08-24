@@ -23,6 +23,7 @@ import Sales from "@/pages/sales";
 import Profile from "@/pages/profile";
 import SuperAdmin from "@/pages/super-admin";
 import AdminDashboard from "@/pages/admin-dashboard";
+import ChangePassword from "@/pages/change-password";
 import StaffDashboard from "@/pages/staff-dashboard";
 import AccessRequest from "@/pages/access-request";
 import Unauthorized from "@/pages/unauthorized";
@@ -34,6 +35,7 @@ function Router() {
       <Switch>
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        <Route path="/change-password" component={ChangePassword} />
         
         <Route path="/garage-setup">
           <ProtectedRoute roles={["garage_admin"]}>

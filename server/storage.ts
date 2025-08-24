@@ -10,6 +10,7 @@ export interface User {
   role: string;
   garage_id: string | null;
   name: string | null;
+  must_change_password?: boolean;
   created_at: Date;
 }
 
@@ -125,6 +126,8 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: Partial<User>): Promise<User>;
   createGarage(garage: Partial<Garage>): Promise<Garage>;
+  updateUser(id: string, user: Partial<User>): Promise<User>;
+  changePassword(userId: string, newPassword: string): Promise<void>;
   
   // Garages
   getGarage(id: string): Promise<Garage | undefined>;
@@ -322,6 +325,14 @@ export class DatabaseStorage implements IStorage {
       [userId, ...values]
     );
     return result.rows[0];
+  }
+
+  async changePassword(userId: string, newPassword: string): Promise<void> {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      'UPDATE users SET password = $2, must_change_password = FALSE WHERE id = $1',
+      [userId, hashedPassword]
+    );
   }
 
   // Spare Parts methods

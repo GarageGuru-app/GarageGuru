@@ -213,27 +213,29 @@ export class GmailEmailService {
               </table>
             </div>
 
-            <div style="background: #10b981; padding: 25px; border-radius: 12px; margin: 25px 0; text-align: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
-              <h4 style="margin: 0 0 15px 0; color: white; font-size: 20px;">🔑 ACTIVATION CODE</h4>
+            <div style="background: #3b82f6; padding: 25px; border-radius: 12px; margin: 25px 0; text-align: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+              <h4 style="margin: 0 0 15px 0; color: white; font-size: 20px;">⚡ ACTION REQUIRED</h4>
               <div style="background: white; padding: 25px; border-radius: 8px; margin: 15px 0;">
-                <p style="margin: 0 0 10px 0; font-size: 14px; color: #6b7280;">Send this code to the user:</p>
-                <div style="background: #f9fafb; padding: 20px; border-radius: 8px; border: 2px dashed #10b981;">
-                  <span style="font-family: 'Courier New', monospace; font-size: 32px; font-weight: bold; color: #065f46; letter-spacing: 3px;">${data.generatedActivationCode || 'ERROR'}</span>
-                </div>
+                <p style="margin: 0 0 10px 0; font-size: 16px; color: #1f2937; font-weight: bold;">Review and Process This Request</p>
+                <p style="margin: 0; font-size: 14px; color: #6b7280;">Use the Super Admin Dashboard to approve or deny this access request</p>
               </div>
               <p style="margin: 10px 0 0 0; color: white; font-size: 14px; font-weight: bold;">
-                ${data.requestType.toUpperCase()} ACCESS CODE
+                ${data.requestType.toUpperCase()} ACCESS REQUEST
               </p>
             </div>
 
             <div style="background: #fef3c7; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
-              <h4 style="margin: 0 0 15px 0; color: #92400e; font-size: 16px;">📝 To Approve This Request</h4>
+              <h4 style="margin: 0 0 15px 0; color: #92400e; font-size: 16px;">📝 How to Process This Request</h4>
               <ol style="margin: 0; padding-left: 20px; color: #78350f;">
-                <li style="margin-bottom: 8px;">Review the request details above</li>
-                <li style="margin-bottom: 8px;">Copy the activation code: <strong>${data.generatedActivationCode}</strong></li>
-                <li style="margin-bottom: 8px;">Email the code to <strong>${data.email}</strong></li>
-                <li>User can then register with this activation code</li>
+                <li style="margin-bottom: 8px;">Log in to the Super Admin Dashboard</li>
+                <li style="margin-bottom: 8px;">Go to the "Access Requests" tab</li>
+                <li style="margin-bottom: 8px;">Review the request details</li>
+                <li style="margin-bottom: 8px;">Click "Approve" to create account and send credentials</li>
+                <li>Or click "Deny" to reject the request</li>
               </ol>
+              <p style="margin: 15px 0 0 0; font-size: 13px; color: #78350f; font-style: italic;">
+                📧 Email notifications will be sent automatically to the user based on your decision.
+              </p>
             </div>
           </div>
 
@@ -291,13 +293,16 @@ ${data.garageId && data.garageName ? `🏪 Selected Garage: ${data.garageName} (
 ⏰ Time: ${data.timestamp}
 ${data.message ? `💬 Message: ${data.message}` : ''}
 
-🔑 ACTIVATION CODE: ${data.generatedActivationCode || 'ERROR'}
-${data.requestType.toUpperCase()} ACCESS CODE
+⚡ ACTION REQUIRED: Review and Process Request
 
-To Approve Access:
-1. Review the request details above
-2. Send this activation code to ${data.email}: ${data.generatedActivationCode || 'ERROR'}
-3. User can register with this code
+To Process This Request:
+1. Log in to the Super Admin Dashboard
+2. Go to the "Access Requests" tab  
+3. Review the request details
+4. Click "Approve" to create account and send credentials
+5. Or click "Deny" to reject the request
+
+📧 Email notifications will be sent automatically to the user.
 
 ---
 GarageGuru Management System
@@ -311,7 +316,7 @@ Access Control Notification
       name: string;
       role: string;
       email: string;
-      temporaryPassword: string;
+      temporaryPassword: string | null;
     }
   ): Promise<boolean> {
     if (!this.isConfigured) {
@@ -324,7 +329,7 @@ Access Control Notification
       console.log(`📧 Sending approval notification via Gmail to: ${userEmail}`);
       
       const mailOptions = {
-        from: this.senderEmail,
+        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
         to: userEmail,
         subject: '🎉 Access Approved - GarageGuru Account Created',
         text: this.generateApprovalEmailText(approvalData),
@@ -357,7 +362,7 @@ Access Control Notification
       console.log(`📧 Sending denial notification via Gmail to: ${userEmail}`);
       
       const mailOptions = {
-        from: this.senderEmail,
+        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
         to: userEmail,
         subject: '❌ Access Request Update - GarageGuru',
         text: this.generateDenialEmailText(denialData),
@@ -377,7 +382,7 @@ Access Control Notification
     name: string;
     role: string;
     email: string;
-    temporaryPassword: string;
+    temporaryPassword: string | null;
   }): string {
     return `
       <!DOCTYPE html>
@@ -414,10 +419,17 @@ Access Control Notification
                   <td style="padding: 8px 0; font-weight: bold; color: #374151; width: 100px;">📧 Email:</td>
                   <td style="padding: 8px 0; color: #1f2937; font-family: monospace; background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">${data.email}</td>
                 </tr>
+                ${data.temporaryPassword ? `
                 <tr>
                   <td style="padding: 8px 0; font-weight: bold; color: #374151;">🔒 Password:</td>
                   <td style="padding: 8px 0; color: #1f2937; font-family: monospace; background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">${data.temporaryPassword}</td>
                 </tr>
+                ` : `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">🔒 Password:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">Use your existing password</td>
+                </tr>
+                `}
                 <tr>
                   <td style="padding: 8px 0; font-weight: bold; color: #374151;">👤 Role:</td>
                   <td style="padding: 8px 0; color: #1f2937; text-transform: capitalize;">${data.role.replace('_', ' ')}</td>
@@ -425,12 +437,21 @@ Access Control Notification
               </table>
             </div>
             
+            ${data.temporaryPassword ? `
             <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
               <h4 style="margin: 0 0 10px 0; color: #d97706; font-size: 16px;">⚠️ Important Security Notice</h4>
               <p style="color: #92400e; font-size: 14px; margin: 0; line-height: 1.5;">
                 This is a <strong>temporary password</strong>. For security reasons, you will be prompted to change your password when you first log in. Please choose a strong, unique password.
               </p>
             </div>
+            ` : `
+            <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+              <h4 style="margin: 0 0 10px 0; color: #1e40af; font-size: 16px;">ℹ️ Account Updated</h4>
+              <p style="color: #1e3a8a; font-size: 14px; margin: 0; line-height: 1.5;">
+                Your existing account has been updated with new access permissions. You can log in using your current password.
+              </p>
+            </div>
+            `}
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${process.env.FRONTEND_URL || 'https://your-domain.replit.app'}/login" 
@@ -462,7 +483,7 @@ Access Control Notification
     name: string;
     role: string;
     email: string;
-    temporaryPassword: string;
+    temporaryPassword: string | null;
   }): string {
     return `
 🎉 WELCOME TO GARAGEGURU - ACCESS APPROVED!
@@ -473,11 +494,14 @@ Your access request has been APPROVED! You can now log in to the GarageGuru syst
 
 🔑 LOGIN CREDENTIALS:
 📧 Email: ${data.email}
-🔒 Password: ${data.temporaryPassword}
+🔒 Password: ${data.temporaryPassword ? data.temporaryPassword : 'Use your existing password'}
 👤 Role: ${data.role.replace('_', ' ')}
 
-⚠️ IMPORTANT SECURITY NOTICE:
-This is a temporary password. You will be prompted to change your password when you first log in.
+${data.temporaryPassword ? 
+`⚠️ IMPORTANT SECURITY NOTICE:
+This is a temporary password. You will be prompted to change your password when you first log in.` :
+`ℹ️ ACCOUNT UPDATED:
+Your existing account has been updated with new access permissions. You can log in using your current password.`}
 
 🚀 LOGIN NOW:
 ${process.env.FRONTEND_URL || 'https://your-domain.replit.app'}/login

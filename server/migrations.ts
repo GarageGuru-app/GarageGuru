@@ -140,6 +140,14 @@ export async function runMigrations() {
       console.log('Note: processed_by/processed_at columns may already exist');
     }
 
+    // Add must_change_password column to users table
+    try {
+      await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT FALSE`);
+    } catch (error) {
+      // Column might already exist, ignore error
+      console.log('Note: must_change_password column may already exist');
+    }
+
     // Create audit logs table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS audit_logs (

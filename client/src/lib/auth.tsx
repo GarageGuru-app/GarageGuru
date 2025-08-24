@@ -12,6 +12,7 @@ interface AuthContextType {
   token: string | null;
   routeUserBasedOnRole: (userData: User, garageData: Garage | null) => string;
   updateToken: (newToken: string) => void;
+  refreshUser: () => Promise<void>;
 }
 
 // Super Admin emails that can access /super-admin
@@ -41,7 +42,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Role-based routing logic - returns route path instead of navigating
   const routeUserBasedOnRole = (userData: User, garageData: Garage | null): string => {
-    const { role, email, firstLogin, garageId } = userData;
+    const { role, email, firstLogin, garageId, mustChangePassword } = userData;
+
+    // Check if user must change password first
+    if (mustChangePassword) {
+      return '/change-password';
+    }
 
     // Super Admin routing
     if (role === 'super_admin' && SUPER_ADMIN_EMAILS.includes(email)) {
@@ -187,6 +193,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Don't clear user data - keep existing session seamless
   };
 
+  const refreshUser = async () => {
+    if (!token) return;
+    
+    try {
+      const response = await apiRequest("GET", "/api/user/profile");
+      const data = await response.json();
+      if (data.user) {
+        setUser(data.user);
+        setGarage(data.garage);
+      }
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -199,6 +220,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         token,
         routeUserBasedOnRole,
         updateToken,
+        refreshUser,
       }}
     >
       {children}

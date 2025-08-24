@@ -390,7 +390,8 @@ export async function registerRoutes(app: Express): Promise<void> {
             password: hashedPassword,
             name: request.name,
             role: role || (request.requested_role === 'admin' ? 'garage_admin' : 'mechanic_staff'),
-            garage_id: request.garage_id
+            garage_id: request.garage_id,
+            must_change_password: true
           };
           
           newUser = await storage.createUser(userData);
@@ -651,6 +652,44 @@ export async function registerRoutes(app: Express): Promise<void> {
         message: 'Internal server error',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
+    }
+  });
+
+  // Change password endpoint
+  app.post("/api/auth/change-password", authenticateToken, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!newPassword) {
+        return res.status(400).json({ message: "New password is required" });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: "New password must be at least 8 characters long" });
+      }
+      
+      const user = await storage.getUserByEmail(req.user.email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // For users with must_change_password=true, we allow password change without current password verification
+      if (!user.must_change_password) {
+        if (!currentPassword) {
+          return res.status(400).json({ message: "Current password is required" });
+        }
+        const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!isValidPassword) {
+          return res.status(401).json({ message: "Current password is incorrect" });
+        }
+      }
+      
+      await storage.changePassword(user.id, newPassword);
+      
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      console.error('Change password error:', error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
