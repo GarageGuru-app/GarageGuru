@@ -481,6 +481,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { email, password } = req.body;
       
       if (!email || !password) {
+        console.log('Missing email or password:', { email: !!email, password: !!password });
         return res.status(400).json({ message: 'Email and password required' });
       }
       
@@ -491,6 +492,8 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       
+      // Add extra logging for password comparison
+      console.log('Comparing password. Length:', password.length);
       const validPassword = await bcrypt.compare(password, user.password);
       console.log('Password valid:', validPassword ? 'Yes' : 'No');
       

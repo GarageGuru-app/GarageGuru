@@ -39,6 +39,11 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent double submission
+    if (isLoading) {
+      return;
+    }
+    
     if (!email || !password) {
       toast({
         title: "Login Failed",
@@ -296,7 +301,7 @@ export default function Login() {
 
           <Button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !email || !password}
             className="w-full bg-white text-primary hover:bg-gray-100"
           >
             {isLoading ? (
