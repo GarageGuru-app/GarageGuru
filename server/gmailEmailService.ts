@@ -305,6 +305,281 @@ Access Control Notification
     `;
   }
 
+  async sendAccessApprovalNotification(
+    userEmail: string,
+    approvalData: {
+      name: string;
+      role: string;
+      email: string;
+      temporaryPassword: string;
+    }
+  ): Promise<boolean> {
+    if (!this.isConfigured) {
+      console.log('📧 Gmail SMTP not configured - logging approval instead');
+      console.log(`✅ ACCESS APPROVED for ${approvalData.email} as ${approvalData.role}`);
+      return false;
+    }
+
+    try {
+      console.log(`📧 Sending approval notification via Gmail to: ${userEmail}`);
+      
+      const mailOptions = {
+        from: this.senderEmail,
+        to: userEmail,
+        subject: '🎉 Access Approved - GarageGuru Account Created',
+        text: this.generateApprovalEmailText(approvalData),
+        html: this.generateApprovalEmailHTML(approvalData)
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      console.log('📧 Approval notification sent successfully via Gmail');
+      return true;
+    } catch (error) {
+      console.error('📧 Failed to send approval notification:', error);
+      return false;
+    }
+  }
+
+  async sendAccessDenialNotification(
+    userEmail: string,
+    denialData: {
+      name: string;
+      requestType: string;
+    }
+  ): Promise<boolean> {
+    if (!this.isConfigured) {
+      console.log('📧 Gmail SMTP not configured - logging denial instead');
+      console.log(`❌ ACCESS DENIED for ${userEmail}`);
+      return false;
+    }
+
+    try {
+      console.log(`📧 Sending denial notification via Gmail to: ${userEmail}`);
+      
+      const mailOptions = {
+        from: this.senderEmail,
+        to: userEmail,
+        subject: '❌ Access Request Update - GarageGuru',
+        text: this.generateDenialEmailText(denialData),
+        html: this.generateDenialEmailHTML(denialData)
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      console.log('📧 Denial notification sent successfully via Gmail');
+      return true;
+    } catch (error) {
+      console.error('📧 Failed to send denial notification:', error);
+      return false;
+    }
+  }
+
+  private generateApprovalEmailHTML(data: {
+    name: string;
+    role: string;
+    email: string;
+    temporaryPassword: string;
+  }): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GarageGuru - Access Approved</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 20px; text-align: center;">
+            <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+              <span style="font-size: 40px;">🎉</span>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Welcome to GarageGuru!</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Your Access Has Been Approved</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #10b981; margin: 0 0 20px 0; font-size: 24px;">🎊 Congratulations ${data.name}!</h2>
+            
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Your access request has been <strong style="color: #10b981;">approved</strong>! You can now log in to the GarageGuru system with your new account.
+            </p>
+            
+            <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+              <h3 style="margin: 0 0 15px 0; color: #10b981; font-size: 18px;">🔑 Your Login Credentials</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151; width: 100px;">📧 Email:</td>
+                  <td style="padding: 8px 0; color: #1f2937; font-family: monospace; background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">${data.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">🔒 Password:</td>
+                  <td style="padding: 8px 0; color: #1f2937; font-family: monospace; background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">${data.temporaryPassword}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">👤 Role:</td>
+                  <td style="padding: 8px 0; color: #1f2937; text-transform: capitalize;">${data.role.replace('_', ' ')}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+              <h4 style="margin: 0 0 10px 0; color: #d97706; font-size: 16px;">⚠️ Important Security Notice</h4>
+              <p style="color: #92400e; font-size: 14px; margin: 0; line-height: 1.5;">
+                This is a <strong>temporary password</strong>. For security reasons, you will be prompted to change your password when you first log in. Please choose a strong, unique password.
+              </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'https://your-domain.replit.app'}/login" 
+                 style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);">
+                🚀 Login to GarageGuru
+              </a>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 20px 0 0 0;">
+              If you have any questions or need assistance, please contact the system administrator.
+            </p>
+          </div>
+          
+          <!-- Footer -->
+          <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+              This email was sent from GarageGuru Management System<br>
+              &copy; 2025 GarageGuru. All rights reserved.
+            </p>
+          </div>
+          
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  private generateApprovalEmailText(data: {
+    name: string;
+    role: string;
+    email: string;
+    temporaryPassword: string;
+  }): string {
+    return `
+🎉 WELCOME TO GARAGEGURU - ACCESS APPROVED!
+
+Congratulations ${data.name}!
+
+Your access request has been APPROVED! You can now log in to the GarageGuru system.
+
+🔑 LOGIN CREDENTIALS:
+📧 Email: ${data.email}
+🔒 Password: ${data.temporaryPassword}
+👤 Role: ${data.role.replace('_', ' ')}
+
+⚠️ IMPORTANT SECURITY NOTICE:
+This is a temporary password. You will be prompted to change your password when you first log in.
+
+🚀 LOGIN NOW:
+${process.env.FRONTEND_URL || 'https://your-domain.replit.app'}/login
+
+If you have any questions, please contact the system administrator.
+
+---
+GarageGuru Management System
+© 2025 GarageGuru. All rights reserved.
+    `;
+  }
+
+  private generateDenialEmailHTML(data: {
+    name: string;
+    requestType: string;
+  }): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GarageGuru - Access Request Update</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px 20px; text-align: center;">
+            <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+              <span style="font-size: 40px;">📋</span>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">GarageGuru</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Access Request Update</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #ef4444; margin: 0 0 20px 0; font-size: 24px;">Access Request Status</h2>
+            
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Dear ${data.name},
+            </p>
+            
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Thank you for your interest in the GarageGuru Management System. After careful review, we are unable to approve your request for <strong>${data.requestType}</strong> access at this time.
+            </p>
+            
+            <div style="background: #fef2f2; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+              <h3 style="margin: 0 0 15px 0; color: #ef4444; font-size: 18px;">📋 Next Steps</h3>
+              <ul style="color: #374151; margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Contact the system administrator for more information</li>
+                <li style="margin-bottom: 8px;">Ensure you have the correct authorization from your organization</li>
+                <li style="margin-bottom: 8px;">You may submit a new request in the future if circumstances change</li>
+              </ul>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 20px 0 0 0;">
+              If you believe this decision was made in error or have questions, please contact the system administrator.
+            </p>
+          </div>
+          
+          <!-- Footer -->
+          <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+              This email was sent from GarageGuru Management System<br>
+              &copy; 2025 GarageGuru. All rights reserved.
+            </p>
+          </div>
+          
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  private generateDenialEmailText(data: {
+    name: string;
+    requestType: string;
+  }): string {
+    return `
+GARAGEGURU - ACCESS REQUEST UPDATE
+
+Dear ${data.name},
+
+Thank you for your interest in the GarageGuru Management System. 
+
+After careful review, we are unable to approve your request for ${data.requestType.toUpperCase()} access at this time.
+
+📋 NEXT STEPS:
+• Contact the system administrator for more information
+• Ensure you have the correct authorization from your organization  
+• You may submit a new request in the future if circumstances change
+
+If you believe this decision was made in error or have questions, please contact the system administrator.
+
+---
+GarageGuru Management System
+© 2025 GarageGuru. All rights reserved.
+    `;
+  }
+
   private logAccessRequest(data: AccessRequestData): void {
     console.log('\n🔑 NEW ACCESS REQUEST 🔑');
     console.log('================================');

@@ -340,7 +340,7 @@ export default function SuperAdminPage() {
 
   // Fetch access requests
   const { data: accessRequests, refetch: refetchAccessRequests } = useQuery({
-    queryKey: ['/api/super-admin/access-requests'],
+    queryKey: ['/api/access-requests'],
     enabled: currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || '')
   });
 
@@ -348,6 +348,28 @@ export default function SuperAdminPage() {
   const { data: auditLogs, refetch: refetchAuditLogs } = useQuery({
     queryKey: ['/api/super-admin/audit-logs'],
     enabled: currentUser && SUPER_ADMIN_EMAILS.includes(currentUser.email || '')
+  });
+
+  // Process access request mutation
+  const processRequestMutation = useMutation({
+    mutationFn: async ({ requestId, action, role }: { requestId: string, action: 'approve' | 'deny', role?: string }) => {
+      return apiRequest('POST', `/api/access-requests/${requestId}/process`, { action, role });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Access request processed successfully',
+      });
+      refetchAccessRequests();
+      refetchGarages();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to process request',
+        variant: 'destructive',
+      });
+    },
   });
 
   // Role toggle mutation
@@ -392,6 +414,16 @@ export default function SuperAdminPage() {
 
   const handleToggleRole = (userId: string) => {
     toggleRoleMutation.mutate({ userId });
+  };
+
+  const handleApproveRequest = (requestId: string, requestedRole: string) => {
+    // Convert requested role to actual system role
+    const role = requestedRole === 'admin' ? 'garage_admin' : 'mechanic_staff';
+    processRequestMutation.mutate({ requestId, action: 'approve', role });
+  };
+
+  const handleDenyRequest = (requestId: string) => {
+    processRequestMutation.mutate({ requestId, action: 'deny' });
   };
 
   return (

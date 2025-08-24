@@ -255,7 +255,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Request activation code route
+  // Request access route - saves to database and notifies super admin
   app.post("/api/auth/request-access", async (req, res) => {
     try {
       const { email, name, requestType, message, garageId } = req.body;
@@ -268,6 +268,29 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
       
+      // Check if there's already a pending request for this email
+      const existingRequests = await storage.getAccessRequests();
+      const pendingRequest = existingRequests.find(req => 
+        req.email === email && req.status === 'pending'
+      );
+      
+      if (pendingRequest) {
+        return res.status(400).json({ 
+          message: 'You already have a pending access request. Please wait for super admin approval.' 
+        });
+      }
+
+      // Create access request in database
+      const accessRequest = await storage.createAccessRequest({
+        garage_id: garageId || null,
+        user_id: null, // Will be set when user is created after approval
+        email,
+        name,
+        requested_role: requestType || 'staff',
+        status: 'pending',
+        note: message
+      });
+
       // Get garage information if garageId is provided
       let garageName = '';
       let garageOwner = '';
@@ -279,22 +302,6 @@ export async function registerRoutes(app: Express): Promise<void> {
         }
       }
 
-      // Generate role-specific activation code
-      const generateRoleBasedCode = (requestType: string) => {
-        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        let randomPart = '';
-        for (let i = 0; i < 6; i++) {
-          randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        
-        if (requestType === 'admin') {
-          return `GARAGE-ADMIN-2025-${randomPart}`;
-        } else {
-          return `GARAGE-STAFF-2025-${randomPart}`;
-        }
-      };
-      const generatedActivationCode = generateRoleBasedCode(requestType || 'staff');
-
       const requestData = {
         email,
         name,
@@ -303,7 +310,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         garageId,
         garageName,
         garageOwner,
-        generatedActivationCode,
+        requestId: accessRequest.id,
         timestamp: new Date().toLocaleString()
       };
 
@@ -315,12 +322,105 @@ export async function registerRoutes(app: Express): Promise<void> {
       );
       
       const responseMessage = emailSent 
-        ? `Access request sent to super admin. You will receive activation code via email if approved.`
-        : `Access request logged for super admin review. Check server logs or configure email delivery.`;
+        ? `Access request sent to super admin. You will receive an email notification once your request is reviewed.`
+        : `Access request saved for super admin review. You will receive an email notification once your request is reviewed.`;
       
       res.json({ message: responseMessage });
     } catch (error) {
       console.error('Access request error:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get pending access requests (super admin only)
+  app.get("/api/access-requests", authenticateToken, requireRole(['super_admin']), async (req, res) => {
+    try {
+      const requests = await storage.getAccessRequests();
+      res.json(requests);
+    } catch (error) {
+      console.error('Get access requests error:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Approve or deny access request (super admin only)
+  app.post("/api/access-requests/:id/process", authenticateToken, requireRole(['super_admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { action, role } = req.body; // action: 'approve' or 'deny', role: 'garage_admin' or 'mechanic_staff'
+      
+      // Get the access request
+      const requests = await storage.getAccessRequests();
+      const request = requests.find(r => r.id === id);
+      
+      if (!request) {
+        return res.status(404).json({ message: 'Access request not found' });
+      }
+      
+      if (request.status !== 'pending') {
+        return res.status(400).json({ message: 'Request has already been processed' });
+      }
+      
+      if (action === 'approve') {
+        // Create user account
+        const defaultPassword = 'ChangeMe123!'; // User will need to change this on first login
+        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+        
+        const userData = {
+          email: request.email,
+          password: hashedPassword,
+          name: request.name,
+          role: role || (request.requested_role === 'admin' ? 'garage_admin' : 'mechanic_staff'),
+          garage_id: request.garage_id
+        };
+        
+        const newUser = await storage.createUser(userData);
+        
+        // Update access request status
+        await storage.updateAccessRequest(id, {
+          status: 'approved',
+          user_id: newUser.id,
+          processed_by: req.user.email,
+          processed_at: new Date()
+        });
+        
+        // Send approval email notification
+        const gmailService = GmailEmailService.getInstance();
+        await gmailService.sendAccessApprovalNotification(
+          request.email,
+          {
+            name: request.name,
+            role: userData.role,
+            email: request.email,
+            temporaryPassword: defaultPassword
+          }
+        );
+        
+        res.json({ message: 'Access request approved and user created successfully' });
+      } else if (action === 'deny') {
+        // Update access request status
+        await storage.updateAccessRequest(id, {
+          status: 'denied',
+          processed_by: req.user.email,
+          processed_at: new Date()
+        });
+        
+        // Send denial email notification
+        const gmailService = GmailEmailService.getInstance();
+        await gmailService.sendAccessDenialNotification(
+          request.email,
+          {
+            name: request.name,
+            requestType: request.requested_role
+          }
+        );
+        
+        res.json({ message: 'Access request denied' });
+      } else {
+        res.status(400).json({ message: 'Invalid action. Use "approve" or "deny"' });
+      }
+    } catch (error) {
+      console.error('Process access request error:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
