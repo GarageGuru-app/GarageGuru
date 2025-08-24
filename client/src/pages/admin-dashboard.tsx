@@ -38,8 +38,25 @@ import {
   RefreshCw,
   Home,
   BarChart3,
-  UserCircle
+  UserCircle,
+  Package,
+  LogOut,
+  Menu
 } from "lucide-react";
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarFooter, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarGroupLabel, 
+  SidebarHeader, 
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem, 
+  SidebarProvider, 
+  SidebarTrigger 
+} from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 
@@ -151,56 +168,201 @@ export default function AdminDashboard() {
   const activeStaffCount = staffMembers?.filter((staff: any) => staff.status === 'active').length || 0;
   const pendingRequestsCount = accessRequests?.filter((req: any) => req.status === 'pending').length || 0;
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="gradient-header text-primary-foreground">
-        <div className="flex items-center justify-between px-4 lg:px-8 py-4 lg:py-6">
-          <div className="flex items-center space-x-3 lg:space-x-4">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-white rounded-full flex items-center justify-center">
-              <Settings className="text-primary w-5 h-5 lg:w-7 lg:h-7" />
-            </div>
-            <div>
-              <h1 className="text-lg lg:text-2xl font-semibold" data-testid="title-admin-dashboard">
-                Admin Dashboard
-              </h1>
-              <p className="text-sm lg:text-base text-blue-100">
-                {garage?.name || "Admin Portal"}
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-1 sm:space-x-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowNotifications(true)}
-              className="text-primary-foreground hover:bg-white/10 relative p-1 sm:p-2"
-              data-testid="button-notifications"
-            >
-              <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-              {(lowStockParts?.length || 0) > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs">
-                  {lowStockParts?.length}
-                </span>
-              )}
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="text-primary-foreground hover:bg-white/10 p-1 sm:p-2"
-              data-testid="button-theme-toggle"
-            >
-              {theme === "dark" ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
-            </Button>
-          </div>
-        </div>
-      </div>
+  const { logout } = useAuth();
 
-      {/* Main Content */}
-      <div className="px-4 lg:px-8 py-6 lg:py-8 space-y-6 lg:space-y-8">
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        {/* Desktop Sidebar */}
+        <Sidebar className="hidden lg:flex">
+          <SidebarHeader className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                <Settings className="text-primary-foreground w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="font-semibold">{garage?.name || "Admin Portal"}</h2>
+                <p className="text-sm text-muted-foreground">Admin Dashboard</p>
+              </div>
+            </div>
+          </SidebarHeader>
+          
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => navigate("/admin-dashboard")}
+                      className="w-full"
+                    >
+                      <Home className="w-4 h-4" />
+                      <span>Dashboard</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => navigate("/customers")}
+                      className="w-full"
+                    >
+                      <Users className="w-4 h-4" />
+                      <span>Customers</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => navigate("/job-cards")}
+                      className="w-full"
+                    >
+                      <ClipboardList className="w-4 h-4" />
+                      <span>Job Cards</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => navigate("/spare-parts")}
+                      className="w-full"
+                    >
+                      <Package className="w-4 h-4" />
+                      <span>Spare Parts</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => navigate("/sales")}
+                      className="w-full"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                      <span>Sales Reports</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            
+            <SidebarGroup>
+              <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => navigate("/job-card")}
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>New Job Card</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => navigate("/customer")}
+                      className="w-full"
+                    >
+                      <UserCircle className="w-4 h-4" />
+                      <span>Add Customer</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => navigate("/spare-part")}
+                      className="w-full"
+                    >
+                      <Package className="w-4 h-4" />
+                      <span>Add Parts</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+          
+          <SidebarFooter className="p-4">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={logout}
+                  className="w-full text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Desktop Header */}
+          <div className="gradient-header text-primary-foreground">
+            <div className="flex items-center justify-between px-4 lg:px-8 py-4 lg:py-6">
+              {/* Mobile: Show menu trigger and title */}
+              <div className="flex items-center space-x-3 lg:hidden">
+                <SidebarTrigger />
+                <div>
+                  <h1 className="text-lg font-semibold" data-testid="title-admin-dashboard">
+                    Admin Dashboard
+                  </h1>
+                  <p className="text-sm text-blue-100">
+                    {garage?.name || "Admin Portal"}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Desktop: Show title and actions */}
+              <div className="hidden lg:flex items-center space-x-4">
+                <div>
+                  <h1 className="text-2xl font-semibold" data-testid="title-admin-dashboard">
+                    Admin Dashboard
+                  </h1>
+                  <p className="text-base text-blue-100">
+                    {garage?.name || "Admin Portal"}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Actions */}
+              <div className="flex items-center space-x-2 lg:space-x-4">
+                <Button
+                  onClick={() => navigate("/job-card")}
+                  className="hidden lg:flex items-center space-x-2 bg-white text-primary hover:bg-gray-50"
+                  data-testid="button-new-job-desktop"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>New Job Card</span>
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowNotifications(true)}
+                  className="text-primary-foreground hover:bg-white/10 relative"
+                  data-testid="button-notifications"
+                >
+                  <Bell className="w-5 h-5" />
+                  {(lowStockParts?.length || 0) > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                      {lowStockParts?.length}
+                    </span>
+                  )}
+                </Button>
+            
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleTheme}
+                  className="text-primary-foreground hover:bg-white/10"
+                  data-testid="button-theme-toggle"
+                >
+                  {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 px-4 lg:px-8 py-6 lg:py-8 space-y-6 lg:space-y-8">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <Card data-testid="card-pending-jobs">
@@ -416,39 +578,40 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Notification Panel */}
-      <NotificationPanel
-        isOpen={showNotifications}
-        onClose={() => setShowNotifications(false)}
-        lowStockParts={lowStockParts || []}
-      />
+          {/* Notification Panel */}
+          <NotificationPanel
+            isOpen={showNotifications}
+            onClose={() => setShowNotifications(false)}
+          />
 
-      {/* Low Stock Alert Dialog */}
-      <AlertDialog open={showLowStockAlert} onOpenChange={setShowLowStockAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
-              <TriangleAlert className="w-5 h-5" />
-              Low Stock Alert
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              You have {lowStockParts?.length} items running low on stock. 
-              Consider restocking to avoid service delays.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction 
-              onClick={() => navigate("/spare-parts")}
-              data-testid="button-manage-stock"
-            >
-              Manage Stock
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 lg:hidden">
+          {/* Low Stock Alert Dialog */}
+          <AlertDialog open={showLowStockAlert} onOpenChange={setShowLowStockAlert}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+                  <TriangleAlert className="w-5 h-5" />
+                  Low Stock Alert
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  You have {lowStockParts?.length} items running low on stock. 
+                  Consider restocking to avoid service delays.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction 
+                  onClick={() => navigate("/spare-parts")}
+                  data-testid="button-manage-stock"
+                >
+                  Manage Stock
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          </div>
+        </div>
+        
+        {/* Mobile Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 lg:hidden">
         <div className="grid grid-cols-5 py-2">
           <button 
             onClick={() => navigate('/admin-dashboard')}
@@ -493,8 +656,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Add bottom padding for mobile to prevent overlap */}
-      <div className="h-16 lg:hidden"></div>
-    </div>
+        {/* Add bottom padding for mobile to prevent overlap */}
+        <div className="h-16 lg:hidden"></div>
+    </SidebarProvider>
   );
 }
