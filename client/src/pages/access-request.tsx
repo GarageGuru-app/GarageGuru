@@ -57,7 +57,10 @@ export default function AccessRequest() {
     setIsSubmitting(true);
 
     try {
-      const response = await apiRequest("POST", "/api/access-requests", {
+      const response = await apiRequest("POST", "/api/auth/request-access", {
+        email: user?.email,
+        name: user?.name,
+        requestType: "staff",
         garageId: selectedGarageId,
         message: message.trim(),
       });
