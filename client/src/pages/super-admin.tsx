@@ -674,19 +674,6 @@ export default function SuperAdminPage() {
                                 </Badge>
                                 {user.role !== 'super_admin' && (
                                   <>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleToggleRole(user.id)}
-                                      disabled={toggleRoleMutation.isPending}
-                                      data-testid={`button-toggle-role-${user.id}`}
-                                    >
-                                      {toggleRoleMutation.isPending ? (
-                                        <RefreshCw className="w-3 h-3 animate-spin" />
-                                      ) : (
-                                        <>↔ Toggle</>
-                                      )}
-                                    </Button>
                                     <div className="flex items-center space-x-2">
                                       <span className="text-xs text-muted-foreground">
                                         {user.status === 'active' ? 'Active' : 'Suspended'}

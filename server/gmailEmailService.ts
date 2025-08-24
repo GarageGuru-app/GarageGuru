@@ -578,6 +578,33 @@ GarageGuru Management System
     `;
   }
 
+  async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+    if (!this.isConfigured) {
+      console.log('📧 Gmail SMTP not configured - logging email instead');
+      console.log(`📧 Email to: ${to}`);
+      console.log(`📧 Subject: ${subject}`);
+      return false;
+    }
+
+    try {
+      const mailOptions = {
+        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        to: to,
+        subject: subject,
+        html: html,
+        text: html.replace(/<[^>]*>/g, '') // Simple HTML to text conversion
+      };
+
+      console.log(`📧 Sending email via Gmail to: ${to}`);
+      await this.transporter.sendMail(mailOptions);
+      console.log(`📧 Email sent successfully via Gmail`);
+      return true;
+    } catch (error: any) {
+      console.error('📧 Gmail email send failed:', error);
+      return false;
+    }
+  }
+
   private generateDenialEmailText(data: {
     name: string;
     requestType: string;
@@ -723,3 +750,7 @@ GarageGuru Management System
     }
   }
 }
+
+// Create and export default instance
+const gmailEmailService = GmailEmailService.getInstance();
+export default gmailEmailService;
