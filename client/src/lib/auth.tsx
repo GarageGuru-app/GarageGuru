@@ -75,10 +75,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('🔥 [AUTH] useEffect triggered - token exists:', !!token, 'user exists:', !!user, 'isLoading:', isLoading);
     
     if (token) {
-      // Only verify token if we don't already have user data AND we're not currently loading
-      if (!user && !isLoading) {
+      // Only verify token if we don't already have user data
+      if (!user) {
         console.log('🔥 [AUTH] Token exists but no user, fetching profile');
-        setIsLoading(true); // Set loading to prevent multiple concurrent requests
         
         apiRequest("GET", "/api/user/profile")
           .then(res => res.json())
@@ -102,14 +101,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setToken(null);
             } else {
               console.log("🔥 [AUTH] Network/temporary error, keeping token:", error.message);
-              // Don't clear valid tokens for temporary network issues
             }
           })
           .finally(() => {
             console.log('🔥 [AUTH] Setting isLoading to false after profile fetch');
             setIsLoading(false);
           });
-      } else if (user) {
+      } else {
         // User data already exists, just stop loading
         console.log('🔥 [AUTH] User data already exists, stopping loading');
         setIsLoading(false);
@@ -121,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setGarage(null);
       setIsLoading(false);
     }
-  }, [token, user]); // Include user in dependencies but guard against infinite loops
+  }, [token]); // Remove user from dependencies to prevent loops
 
   const login = async (email: string, password: string) => {
     try {
