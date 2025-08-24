@@ -324,7 +324,7 @@ export default function SuperAdminPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGarage, setSelectedGarage] = useState<Garage | null>(null);
   const [showMFA, setShowMFA] = useState(false);
-  const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
+  const [processingAction, setProcessingAction] = useState<{ requestId: string; action: 'approve' | 'deny' } | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -361,7 +361,7 @@ export default function SuperAdminPage() {
         title: 'Success',
         description: 'Access request processed successfully',
       });
-      setProcessingRequestId(null);
+      setProcessingAction(null);
       refetchAccessRequests();
       refetchGarages();
     },
@@ -371,7 +371,7 @@ export default function SuperAdminPage() {
         description: error.message || 'Failed to process request',
         variant: 'destructive',
       });
-      setProcessingRequestId(null);
+      setProcessingAction(null);
     },
   });
 
@@ -420,14 +420,14 @@ export default function SuperAdminPage() {
   };
 
   const handleApproveRequest = (requestId: string, requestedRole: string) => {
-    setProcessingRequestId(requestId);
+    setProcessingAction({ requestId, action: 'approve' });
     // Convert requested role to actual system role
     const role = requestedRole === 'admin' ? 'garage_admin' : 'mechanic_staff';
     processRequestMutation.mutate({ requestId, action: 'approve', role });
   };
 
   const handleDenyRequest = (requestId: string) => {
-    setProcessingRequestId(requestId);
+    setProcessingAction({ requestId, action: 'deny' });
     processRequestMutation.mutate({ requestId, action: 'deny' });
   };
 
@@ -666,10 +666,10 @@ export default function SuperAdminPage() {
                                 size="sm" 
                                 variant="default" 
                                 onClick={() => handleApproveRequest(request.id, request.requested_role)}
-                                disabled={processingRequestId === request.id}
+                                disabled={processingAction?.requestId === request.id}
                                 data-testid={`button-approve-${request.id}`}
                               >
-                                {processingRequestId === request.id ? (
+                                {processingAction?.requestId === request.id && processingAction?.action === 'approve' ? (
                                   <RefreshCw className="w-3 h-3 animate-spin" />
                                 ) : (
                                   <CheckCircle className="w-3 h-3" />
@@ -679,10 +679,10 @@ export default function SuperAdminPage() {
                                 size="sm" 
                                 variant="destructive" 
                                 onClick={() => handleDenyRequest(request.id)}
-                                disabled={processingRequestId === request.id}
+                                disabled={processingAction?.requestId === request.id}
                                 data-testid={`button-deny-${request.id}`}
                               >
-                                {processingRequestId === request.id ? (
+                                {processingAction?.requestId === request.id && processingAction?.action === 'deny' ? (
                                   <RefreshCw className="w-3 h-3 animate-spin" />
                                 ) : (
                                   <XCircle className="w-3 h-3" />
