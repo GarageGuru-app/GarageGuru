@@ -59,12 +59,20 @@ export default function AccessRequestPage() {
         });
         setAccessRequest({ email: "", name: "", requestType: "staff", message: "", garageId: "" });
       } else {
-        // Display the actual server error message
-        toast({
-          title: "Request Failed", 
-          description: data.message || "Failed to send access request. Please try again.",
-          variant: "destructive",
-        });
+        // Handle specific garage selection error
+        if (data.message && data.message.includes("Garage selection is required")) {
+          toast({
+            title: "Garage Selection Required",
+            description: "Please select a garage from the dropdown above to continue with your access request.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Request Failed", 
+            description: data.message || "Failed to send access request. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       toast({
@@ -269,6 +277,11 @@ export default function AccessRequestPage() {
                       No garages available. Contact admin to create a garage first.
                     </p>
                   )}
+                  {!accessRequest.garageId && availableGarages.length > 0 && (
+                    <p className="text-yellow-200 text-xs mt-1">
+                      Please select a garage to enable the submit button
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -290,7 +303,12 @@ export default function AccessRequestPage() {
               <Button
                 type="submit"
                 className="w-full bg-white text-primary hover:bg-white/90 font-medium"
-                disabled={isLoading || !accessRequest.email || !accessRequest.name}
+                disabled={
+                  isLoading || 
+                  !accessRequest.email || 
+                  !accessRequest.name ||
+                  (accessRequest.requestType === "staff" && !accessRequest.garageId)
+                }
                 data-testid="button-submit-request"
               >
                 {isLoading ? (
