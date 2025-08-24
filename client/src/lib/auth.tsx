@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { User, Garage } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 
 interface AuthContextType {
   user: User | null;
@@ -72,17 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (token) {
       // Verify token and get user profile
-      fetch("/api/user/profile", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error('Profile fetch failed');
-          }
-          return res.json();
-        })
+      apiRequest("GET", "/api/user/profile")
+        .then(res => res.json())
         .then(data => {
           if (data.user) {
             setUser(data.user);
@@ -104,13 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await apiRequest("POST", "/api/auth/login", { email, password });
 
       if (!response.ok) {
         let errorMessage = "Login failed";
@@ -147,13 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (registerData: RegisterData) => {
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(registerData),
-    });
+    const response = await apiRequest("POST", "/api/auth/register", registerData);
 
     if (!response.ok) {
       const error = await response.json();

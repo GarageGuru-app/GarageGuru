@@ -57,9 +57,7 @@ export default function GarageSetup() {
       // Force refresh of auth context by refetching profile
       try {
         const token = localStorage.getItem("auth-token");
-        const response = await fetch("/api/user/profile", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await apiRequest("GET", "/api/user/profile");
         const data = await response.json();
         
         // This will trigger a page refresh/redirect through auth context
