@@ -9,7 +9,16 @@ const app = express();
 
 // Add CORS configuration
 app.use(cors({
-  origin: ["http://localhost:5000", "http://localhost:3000", "http://127.0.0.1:5000"],
+  origin: [
+    "http://localhost:5000", 
+    "http://localhost:3000", 
+    "http://127.0.0.1:5000",
+    // Replit domains
+    /^https:\/\/.*\.replit\.app$/,
+    /^https:\/\/.*\.replit\.dev$/,
+    // Allow any origin in development
+    ...(process.env.NODE_ENV === 'development' ? [true] : [])
+  ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
