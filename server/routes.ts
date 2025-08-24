@@ -279,16 +279,21 @@ export async function registerRoutes(app: Express): Promise<void> {
         }
       }
 
-      // Generate random alphanumeric activation code
-      const generateRandomCode = () => {
+      // Generate role-specific activation code
+      const generateRoleBasedCode = (requestType: string) => {
         const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        let result = '';
-        for (let i = 0; i < 8; i++) {
-          result += chars.charAt(Math.floor(Math.random() * chars.length));
+        let randomPart = '';
+        for (let i = 0; i < 6; i++) {
+          randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-        return result;
+        
+        if (requestType === 'admin') {
+          return `GARAGE-ADMIN-2025-${randomPart}`;
+        } else {
+          return `GARAGE-STAFF-2025-${randomPart}`;
+        }
       };
-      const generatedActivationCode = generateRandomCode();
+      const generatedActivationCode = generateRoleBasedCode(requestType || 'staff');
 
       const requestData = {
         email,
