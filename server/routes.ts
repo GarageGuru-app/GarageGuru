@@ -7,11 +7,9 @@ import { insertUserSchema, insertGarageSchema, insertCustomerSchema, insertSpare
 import { z } from "zod";
 import { GmailEmailService } from "./gmailEmailService";
 import { pool } from "./db";
-import { MailService } from '@sendgrid/mail';
 import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 
 // Super Admin emails that can access /super-admin
 const SUPER_ADMIN_EMAILS = [
@@ -19,12 +17,8 @@ const SUPER_ADMIN_EMAILS = [
   'ananthautomotivegarage@gmail.com'
 ];
 
-// Initialize SendGrid if API key is available
-let mailService: MailService | null = null;
-if (SENDGRID_API_KEY) {
-  mailService = new MailService();
-  mailService.setApiKey(SENDGRID_API_KEY);
-}
+// Initialize Gmail service
+const gmailService = GmailEmailService.getInstance();
 
 // Extend Express Request type
 declare global {
@@ -1036,38 +1030,44 @@ export async function registerRoutes(app: Express): Promise<void> {
     return bcrypt.hashSync(otp + salt, 10);
   };
 
-  // Helper function to send OTP email
+  // Helper function to send OTP email using Gmail
   const sendOtpEmail = async (otp: string) => {
-    if (!mailService) {
-      throw new Error('Email service not configured');
+    const gmailUser = process.env.GMAIL_USER;
+    
+    if (!gmailUser) {
+      throw new Error('Gmail service not configured');
     }
 
+    const emailHTML = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">GarageGuru Password Reset</h2>
+        <p>Your password reset verification code is:</p>
+        <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
+          ${otp}
+        </div>
+        <p><strong>⚠️ Security Notice:</strong></p>
+        <ul>
+          <li>This code expires in 10 minutes</li>
+          <li>Only use this code if you requested a password reset</li>
+          <li>Never share this code with anyone</li>
+        </ul>
+        <p>If you didn't request this reset, please contact support immediately.</p>
+      </div>
+    `;
+
+    const emailText = `Your GarageGuru password reset code is: ${otp}. This code expires in 10 minutes. If you didn't request this reset, please contact support.`;
+
+    // Send OTP to both super admin emails using Gmail service
     const emailPromises = SUPER_ADMIN_EMAILS.map(email => 
-      mailService!.send({
-        to: email,
-        from: 'noreply@garageguru.com',
-        subject: 'GarageGuru Super Admin Password Reset Code',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">GarageGuru Password Reset</h2>
-            <p>Your password reset verification code is:</p>
-            <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
-              ${otp}
-            </div>
-            <p><strong>⚠️ Security Notice:</strong></p>
-            <ul>
-              <li>This code expires in 10 minutes</li>
-              <li>Only use this code if you requested a password reset</li>
-              <li>Never share this code with anyone</li>
-            </ul>
-            <p>If you didn't request this reset, please contact support immediately.</p>
-          </div>
-        `,
-        text: `Your GarageGuru password reset code is: ${otp}. This code expires in 10 minutes. If you didn't request this reset, please contact support.`
-      })
+      gmailService.sendOtpEmail(email, otp, 'password reset')
     );
 
-    await Promise.all(emailPromises);
+    const results = await Promise.all(emailPromises);
+    const allSent = results.every(sent => sent);
+    
+    if (!allSent) {
+      console.log('⚠️ Some OTP emails may not have been sent via Gmail');
+    }
   };
 
   // Rate limiting storage (in production, use Redis)
@@ -1229,26 +1229,16 @@ export async function registerRoutes(app: Express): Promise<void> {
       const hashedPassword = await bcrypt.hash(new_password, 12);
       await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashedPassword, email]);
 
-      // Send security notification to both emails
-      if (mailService) {
+      // Send security notification to both emails using Gmail service
+      try {
         const emailPromises = SUPER_ADMIN_EMAILS.map(notifyEmail => 
-          mailService!.send({
-            to: notifyEmail,
-            from: 'noreply@garageguru.com',
-            subject: 'GarageGuru Super Admin Password Changed',
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">Security Alert: Password Changed</h2>
-                <p>The password for super admin account <strong>${email}</strong> has been successfully changed.</p>
-                <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
-                <p>If you did not make this change, please contact support immediately.</p>
-              </div>
-            `,
-            text: `Security Alert: The password for super admin account ${email} has been changed at ${new Date().toLocaleString()}. If you did not make this change, please contact support immediately.`
-          })
+          gmailService.sendOtpEmail(notifyEmail, 'SECURITY ALERT', 'password change notification')
         );
 
         await Promise.all(emailPromises);
+        console.log('📧 Security notifications sent to all super admin emails');
+      } catch (error) {
+        console.error('Failed to send security notifications:', error);
       }
 
       res.json({ success: true });

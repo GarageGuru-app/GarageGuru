@@ -47,6 +47,63 @@ export class GmailEmailService {
     }
   }
 
+  async sendOtpEmail(
+    email: string,
+    otp: string,
+    purpose: string = 'password reset'
+  ): Promise<boolean> {
+    if (!this.isConfigured) {
+      console.log('📧 Gmail SMTP not configured - logging OTP instead');
+      console.log(`📧 OTP for ${email}: ${otp} (${purpose})`);
+      return false;
+    }
+
+    try {
+      const mailOptions = {
+        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: purpose.includes('notification') 
+          ? 'GarageGuru Super Admin Password Changed - Security Alert'
+          : `GarageGuru Super Admin ${purpose.charAt(0).toUpperCase() + purpose.slice(1)} Code`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            ${purpose.includes('notification') ? `
+              <h2 style="color: #333;">Security Alert: Password Changed</h2>
+              <p>A super admin password has been successfully changed.</p>
+              <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+              <p>If you did not make this change, please contact support immediately.</p>
+            ` : `
+              <h2 style="color: #333;">GarageGuru ${purpose.charAt(0).toUpperCase() + purpose.slice(1)}</h2>
+              <p>Your ${purpose} verification code is:</p>
+              <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
+                ${otp}
+              </div>
+              <p><strong>⚠️ Security Notice:</strong></p>
+              <ul>
+                <li>This code expires in 10 minutes</li>
+                <li>Only use this code if you requested a ${purpose}</li>
+                <li>Never share this code with anyone</li>
+              </ul>
+              <p>If you didn't request this ${purpose}, please contact support immediately.</p>
+            `}
+          </div>
+        `,
+        text: purpose.includes('notification') 
+          ? `Security Alert: A super admin password has been changed at ${new Date().toLocaleString()}. If you did not make this change, please contact support immediately.`
+          : `Your GarageGuru ${purpose} code is: ${otp}. This code expires in 10 minutes. If you didn't request this ${purpose}, please contact support.`
+      };
+
+      console.log(`📧 Sending OTP email via Gmail to: ${email}`);
+      await this.transporter.sendMail(mailOptions);
+      console.log(`📧 OTP email sent successfully via Gmail`);
+      return true;
+    } catch (error: any) {
+      console.error('📧 Gmail OTP send failed:', error);
+      console.log(`📧 OTP for ${email}: ${otp} (${purpose})`);
+      return false;
+    }
+  }
+
   async sendAccessRequestNotification(
     superAdminEmail: string,
     requestData: AccessRequestData
