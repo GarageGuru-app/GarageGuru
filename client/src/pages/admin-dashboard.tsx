@@ -7,8 +7,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NotificationPanel } from "@/components/NotificationPanel";
 import {
   AlertDialog,
@@ -27,6 +25,7 @@ import {
   ClipboardList, 
   TrendingUp, 
   Users, 
+  Cog,
   Clock,
   IndianRupee,
   TriangleAlert,
@@ -39,55 +38,51 @@ import {
   RefreshCw,
   Home,
   BarChart3,
-  UserCircle,
-  Package,
-  LogOut,
-  Building2,
-  Calendar
+  UserCircle
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 
 export default function AdminDashboard() {
-  const { user, garage, logout } = useAuth();
+  const { user, garage } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLowStockAlert, setShowLowStockAlert] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { data: pendingJobs, refetch: refetchJobs } = useQuery({
+  const { data: pendingJobs } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards"],
     queryFn: async () => {
       if (!garage?.id) return [];
-      const response = await apiRequest("GET", `/api/garages/${garage.id}/job-cards`);
-      const data = await response.json();
-      return data.filter((job: any) => job.status === "pending");
-    },
-    enabled: !!garage?.id,
-  });
-
-  const { data: todaySales, refetch: refetchTodaySales } = useQuery({
-    queryKey: ["/api/garages", garage?.id, "sales", "today"],
-    queryFn: async () => {
-      if (!garage?.id) return { totalRevenue: 0, totalJobs: 0, totalProfit: 0 };
-      const response = await apiRequest("GET", `/api/garages/${garage.id}/sales/today`);
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/job-cards?status=pending`);
       return response.json();
     },
     enabled: !!garage?.id,
   });
 
-  const { data: salesStats, refetch: refetchSalesStats } = useQuery({
+  const { data: salesStats } = useQuery({
     queryKey: ["/api/garages", garage?.id, "sales", "stats"],
     queryFn: async () => {
-      if (!garage?.id) return { totalRevenue: 0, totalJobs: 0, totalProfit: 0 };
+      if (!garage?.id) return null;
       const response = await apiRequest("GET", `/api/garages/${garage.id}/sales/stats`);
       return response.json();
     },
     enabled: !!garage?.id,
   });
 
-  const { data: lowStockParts, refetch: refetchLowStock } = useQuery({
+  const { data: todayStats } = useQuery({
+    queryKey: ["/api/garages", garage?.id, "sales", "today"],
+    queryFn: async () => {
+      if (!garage?.id) return null;
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/sales/today`);
+      return response.json();
+    },
+    enabled: !!garage?.id,
+  });
+
+  const { data: lowStockParts } = useQuery({
     queryKey: ["/api/garages", garage?.id, "spare-parts", "low-stock"],
     queryFn: async () => {
       if (!garage?.id) return [];
@@ -97,7 +92,8 @@ export default function AdminDashboard() {
     enabled: !!garage?.id,
   });
 
-  const { data: staffMembers, refetch: refetchStaff } = useQuery({
+  // Fetch staff members for the garage
+  const { data: staffMembers } = useQuery({
     queryKey: ["/api/garages", garage?.id, "staff"],
     queryFn: async () => {
       if (!garage?.id) return [];
@@ -107,423 +103,324 @@ export default function AdminDashboard() {
     enabled: !!garage?.id,
   });
 
-  const { data: accessRequests, refetch: refetchAccessRequests } = useQuery({
-    queryKey: ["/api/access-requests"],
+  // Get access requests for this garage
+  const { data: accessRequests } = useQuery({
+    queryKey: ["/api/access-requests", garage?.id],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/access-requests");
+      if (!garage?.id) return [];
+      const response = await apiRequest("GET", `/api/access-requests?garageId=${garage.id}`);
       return response.json();
+    },
+    enabled: !!garage?.id,
+  });
+
+  // Update user status mutation
+  const updateUserStatusMutation = useMutation({
+    mutationFn: ({ userId, status }: { userId: string; status: string }) => {
+      return apiRequest('PATCH', `/api/users/${userId}/status`, { status });
+    },
+    onSuccess: (_, { status }) => {
+      toast({
+        title: 'Success',
+        description: `Staff member ${status === 'suspended' ? 'suspended' : 'activated'} successfully`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "staff"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update staff status',
+        variant: 'destructive',
+      });
     },
   });
 
-  // Check for low stock alert
+  const handleToggleStaffStatus = (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+    updateUserStatusMutation.mutate({ userId, status: newStatus });
+  };
+
+  // Show low stock alert if there are items
   useEffect(() => {
     if (lowStockParts && lowStockParts.length > 0) {
       setShowLowStockAlert(true);
     }
   }, [lowStockParts]);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        refetchJobs(),
-        refetchTodaySales(),
-        refetchSalesStats(),
-        refetchLowStock(),
-        refetchStaff(),
-        refetchAccessRequests()
-      ]);
-      toast({
-        title: 'Success',
-        description: 'Data refreshed successfully',
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to refresh data',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+  // Calculate derived data
+  const activeStaffCount = staffMembers?.filter((staff: any) => staff.status === 'active').length || 0;
+  const pendingRequestsCount = accessRequests?.filter((req: any) => req.status === 'pending').length || 0;
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="gradient-header text-primary-foreground">
+        <div className="flex items-center justify-between px-2 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center">
+              <Settings className="text-primary w-4 h-4 sm:w-6 sm:h-6" />
+            </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2" data-testid="title-admin-dashboard">
-                <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              <h1 className="text-base sm:text-lg font-semibold" data-testid="title-admin-dashboard">
                 Admin Dashboard
               </h1>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                {garage?.name || 'GarageGuru'} - Manage your garage operations
+              <p className="text-xs sm:text-sm text-blue-100">
+                {garage?.name || "Admin Portal"}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                data-testid="button-refresh"
-              >
-                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline ml-2">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowNotifications(true)}
-                className="relative"
-                data-testid="button-notifications"
-              >
-                <Bell className="w-4 h-4" />
-                {(lowStockParts?.length || 0) > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                    {lowStockParts?.length}
-                  </span>
-                )}
-                <span className="hidden sm:inline ml-2">Notifications</span>
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => navigate("/job-card")}
-                data-testid="button-new-job-card"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline ml-2">New Job Card</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleTheme}
-                data-testid="button-theme-toggle"
-              >
-                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                data-testid="button-logout"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline ml-2">Logout</span>
-              </Button>
-            </div>
+          </div>
+          
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowNotifications(true)}
+              className="text-primary-foreground hover:bg-white/10 relative p-1 sm:p-2"
+              data-testid="button-notifications"
+            >
+              <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+              {(lowStockParts?.length || 0) > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs">
+                  {lowStockParts?.length}
+                </span>
+              )}
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="text-primary-foreground hover:bg-white/10 p-1 sm:p-2"
+              data-testid="button-theme-toggle"
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card data-testid="stat-pending-jobs">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Car className="w-5 h-5 text-primary" />
+      {/* Main Content */}
+      <div className="px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Card data-testid="card-pending-jobs">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center space-x-2">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Pending Jobs</p>
-                  <p className="text-2xl font-bold" data-testid="count-pending-jobs">
-                    {pendingJobs?.length || 0}
-                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Pending Jobs</p>
+                  <p className="text-lg sm:text-2xl font-bold">{pendingJobs?.length || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card data-testid="stat-today-revenue">
+          <Card data-testid="card-today-revenue">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center space-x-2">
                 <IndianRupee className="w-5 h-5 text-green-600" />
                 <div>
                   <p className="text-sm text-muted-foreground">Today's Revenue</p>
-                  <p className="text-2xl font-bold text-green-600" data-testid="amount-today-revenue">
-                    ₹{todaySales?.totalRevenue?.toLocaleString() || '0'}
-                  </p>
+                  <p className="text-2xl font-bold">₹{todayStats?.revenue || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card data-testid="stat-total-staff">
+          <Card data-testid="card-total-revenue">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-600" />
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Staff</p>
-                  <p className="text-2xl font-bold text-blue-600" data-testid="count-total-staff">
-                    {staffMembers?.length || 0}
-                  </p>
+                  <p className="text-sm text-muted-foreground">Total Revenue</p>
+                  <p className="text-2xl font-bold">₹{salesStats?.totalRevenue || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card data-testid="stat-low-stock-items">
+          <Card data-testid="card-low-stock-alert">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Package className="w-5 h-5 text-red-600" />
+              <div className="flex items-center space-x-2">
+                <TriangleAlert className="w-5 h-5 text-red-600" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Low Stock Items</p>
-                  <p className="text-2xl font-bold text-red-600" data-testid="count-low-stock">
-                    {lowStockParts?.length || 0}
-                  </p>
+                  <p className="text-sm text-muted-foreground">Low Stock</p>
+                  <p className="text-2xl font-bold text-red-600">{lowStockParts?.length || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="jobs" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="jobs" data-testid="tab-jobs" className="text-xs sm:text-sm">
-              Pending Jobs
-            </TabsTrigger>
-            <TabsTrigger value="sales" data-testid="tab-sales" className="text-xs sm:text-sm">
-              Sales Overview
-            </TabsTrigger>
-            <TabsTrigger value="staff" data-testid="tab-staff" className="text-xs sm:text-sm">
-              Staff Management
-            </TabsTrigger>
-            <TabsTrigger value="requests" data-testid="tab-requests" className="text-xs sm:text-sm">
-              Access Requests
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Pending Jobs Tab */}
-          <TabsContent value="jobs" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Car className="w-5 h-5" />
-                  Pending Job Cards
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {pendingJobs && pendingJobs.length > 0 ? (
-                  <div className="space-y-4">
-                    {pendingJobs.slice(0, 5).map((job: any) => (
-                      <div 
-                        key={job.id} 
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 cursor-pointer"
-                        onClick={() => navigate(`/job-card/${job.id}`)}
-                        data-testid={`job-card-${job.id}`}
-                      >
-                        <div>
-                          <p className="font-medium" data-testid={`job-vehicle-${job.id}`}>
-                            {job.vehicle_number}
-                          </p>
-                          <p className="text-sm text-muted-foreground" data-testid={`job-customer-${job.id}`}>
-                            {job.customer_name}
-                          </p>
-                        </div>
-                        <Badge variant="outline" data-testid={`job-status-${job.id}`}>
-                          {job.status}
-                        </Badge>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/pending-services")}
-                      className="w-full mt-4"
-                      data-testid="button-view-all-jobs"
-                    >
-                      View All Pending Jobs
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Car className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No pending job cards</p>
-                    <Button
-                      onClick={() => navigate("/job-card")}
-                      className="mt-4"
-                      data-testid="button-create-first-job"
-                    >
-                      Create Your First Job Card
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Sales Overview Tab */}
-          <TabsContent value="sales" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Today's Sales</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-2xl font-bold text-green-600">
-                      ₹{todaySales?.totalRevenue?.toLocaleString() || '0'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {todaySales?.totalJobs || 0} jobs completed
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Profit: ₹{todaySales?.totalProfit?.toLocaleString() || '0'}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Total Revenue</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-2xl font-bold">
-                      ₹{salesStats?.totalRevenue?.toLocaleString() || '0'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {salesStats?.totalJobs || 0} total jobs
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Total Profit: ₹{salesStats?.totalProfit?.toLocaleString() || '0'}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => navigate("/sales-analytics")}
-                    data-testid="button-view-analytics"
-                  >
-                    <BarChart3 className="w-4 h-4 mr-2" />
-                    View Analytics
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => navigate("/spare-parts")}
-                    data-testid="button-manage-inventory"
-                  >
-                    <Package className="w-4 h-4 mr-2" />
-                    Manage Inventory
-                  </Button>
-                </CardContent>
-              </Card>
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wrench className="w-5 h-5" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Button
+                onClick={() => navigate("/job-card")}
+                className="h-20 flex flex-col items-center justify-center space-y-2"
+                data-testid="button-new-job"
+              >
+                <Plus className="w-6 h-6" />
+                <span>New Job Card</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => navigate("/customers")}
+                className="h-20 flex flex-col items-center justify-center space-y-2"
+                data-testid="button-manage-customers"
+              >
+                <Users className="w-6 h-6" />
+                <span>Customers</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => navigate("/spare-parts")}
+                className="h-20 flex flex-col items-center justify-center space-y-2"
+                data-testid="button-spare-parts"
+              >
+                <Cog className="w-6 h-6" />
+                <span>Spare Parts</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => navigate("/sales")}
+                className="h-20 flex flex-col items-center justify-center space-y-2"
+                data-testid="button-sales-reports"
+              >
+                <FileText className="w-6 h-6" />
+                <span>Sales Reports</span>
+              </Button>
             </div>
-          </TabsContent>
+          </CardContent>
+        </Card>
 
-          {/* Staff Management Tab */}
-          <TabsContent value="staff" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Staff Members
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {staffMembers && staffMembers.length > 0 ? (
-                  <div className="space-y-4">
-                    {staffMembers.map((staff: any) => (
-                      <div 
-                        key={staff.id} 
-                        className="flex items-center justify-between p-4 border rounded-lg"
-                        data-testid={`staff-member-${staff.id}`}
-                      >
-                        <div>
-                          <p className="font-medium" data-testid={`staff-name-${staff.id}`}>
-                            {staff.name}
-                          </p>
-                          <p className="text-sm text-muted-foreground" data-testid={`staff-email-${staff.id}`}>
-                            {staff.email}
-                          </p>
-                        </div>
+        {/* Staff Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Staff Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {staffMembers && staffMembers.length > 0 ? (
+              <div className="space-y-3">
+                {staffMembers.map((staff: any) => (
+                  <div 
+                    key={staff.id}
+                    className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                    data-testid={`staff-row-${staff.id}`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium" data-testid={`staff-name-${staff.id}`}>{staff.name}</p>
                         <Badge 
-                          variant={staff.status === 'active' ? 'default' : 'secondary'}
-                          data-testid={`staff-status-${staff.id}`}
+                          variant={staff.status === 'active' ? 'default' : 'destructive'}
+                          className="text-xs"
+                          data-testid={`staff-status-badge-${staff.id}`}
                         >
-                          {staff.status}
+                          {staff.status === 'active' ? 'Active' : 'Suspended'}
                         </Badge>
                       </div>
-                    ))}
+                      <p className="text-sm text-muted-foreground" data-testid={`staff-email-${staff.id}`}>{staff.email}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-muted-foreground">
+                        {staff.status === 'active' ? 'Active' : 'Suspended'}
+                      </span>
+                      <Switch
+                        checked={staff.status === 'active'}
+                        onCheckedChange={() => handleToggleStaffStatus(staff.id, staff.status || 'active')}
+                        disabled={updateUserStatusMutation.isPending}
+                        data-testid={`switch-toggle-staff-status-${staff.id}`}
+                        className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+                      />
+                      {updateUserStatusMutation.isPending && (
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No staff members yet</p>
-                    <p className="text-sm">Staff can request access to join your garage</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No staff members found</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Access Requests Tab */}
-          <TabsContent value="requests" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserCheck className="w-5 h-5" />
-                  Access Requests
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {accessRequests && accessRequests.length > 0 ? (
-                  <div className="space-y-4">
-                    {accessRequests.map((request: any) => (
-                      <div 
-                        key={request.id} 
-                        className="flex items-center justify-between p-4 border rounded-lg"
-                        data-testid={`access-request-${request.id}`}
-                      >
-                        <div>
-                          <p className="font-medium" data-testid={`request-name-${request.id}`}>
-                            {request.name}
-                          </p>
-                          <p className="text-sm text-muted-foreground" data-testid={`request-email-${request.id}`}>
-                            {request.email}
-                          </p>
-                          <p className="text-sm text-muted-foreground" data-testid={`request-role-${request.id}`}>
-                            Requested role: {request.requested_role}
-                          </p>
-                        </div>
-                        <Badge 
-                          variant={request.status === 'pending' ? 'outline' : 'default'}
-                          data-testid={`request-status-${request.id}`}
-                        >
-                          {request.status}
-                        </Badge>
-                      </div>
-                    ))}
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5" />
+              Recent Job Cards
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {pendingJobs && pendingJobs.length > 0 ? (
+              <div className="space-y-3">
+                {pendingJobs.slice(0, 5).map((job: any) => (
+                  <div 
+                    key={job.id}
+                    className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                    data-testid={`job-card-${job.id}`}
+                  >
+                    <div>
+                      <p className="font-medium">{job.customerName}</p>
+                      <p className="text-sm text-muted-foreground">{job.bikeNumber}</p>
+                      <p className="text-sm text-muted-foreground">{job.complaint}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">₹{job.totalAmount}</p>
+                      <p className="text-sm text-muted-foreground">{job.status}</p>
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <UserCheck className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No access requests</p>
-                    <p className="text-sm">New access requests will appear here</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                ))}
+                
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/pending-services")}
+                  className="w-full mt-4"
+                  data-testid="button-view-all-jobs"
+                >
+                  View All Pending Jobs
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Car className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No pending job cards</p>
+                <Button
+                  onClick={() => navigate("/job-card")}
+                  className="mt-4"
+                  data-testid="button-create-first-job"
+                >
+                  Create Your First Job Card
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Notification Panel */}
       <NotificationPanel
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
+        lowStockParts={lowStockParts || []}
       />
 
       {/* Low Stock Alert Dialog */}
