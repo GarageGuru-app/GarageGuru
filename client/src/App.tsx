@@ -22,6 +22,9 @@ import SpareParts from "@/pages/spare-parts";
 import Sales from "@/pages/sales";
 import Profile from "@/pages/profile";
 import SuperAdmin from "@/pages/super-admin";
+import AdminDashboard from "@/pages/admin-dashboard";
+import StaffDashboard from "@/pages/staff-dashboard";
+import AccessRequest from "@/pages/access-request";
 import Unauthorized from "@/pages/unauthorized";
 import NotFound from "@/pages/not-found";
 
@@ -115,6 +118,28 @@ function Router() {
           <Layout>
             <Profile />
           </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/admin-dashboard">
+        <ProtectedRoute roles={["garage_admin"]}>
+          <Layout>
+            <AdminDashboard />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/staff-dashboard">
+        <ProtectedRoute roles={["mechanic_staff"]}>
+          <Layout>
+            <StaffDashboard />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/access-request">
+        <ProtectedRoute roles={["mechanic_staff"]}>
+          <AccessRequest />
         </ProtectedRoute>
       </Route>
       

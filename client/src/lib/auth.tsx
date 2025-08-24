@@ -4,12 +4,19 @@ import type { User, Garage } from "@shared/schema";
 interface AuthContextType {
   user: User | null;
   garage: Garage | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  login: (email: string, password: string) => Promise<string | null>;
+  register: (data: RegisterData) => Promise<string | null>;
   logout: () => void;
   isLoading: boolean;
   token: string | null;
+  routeUserBasedOnRole: (userData: User, garageData: Garage | null) => string;
 }
+
+// Super Admin emails that can access /super-admin
+const SUPER_ADMIN_EMAILS = [
+  'gorla.ananthkalyan@gmail.com',
+  'ananthautomotivegarage@gmail.com'
+];
 
 interface RegisterData {
   email: string;
@@ -29,6 +36,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [garage, setGarage] = useState<Garage | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem("auth-token"));
   const [isLoading, setIsLoading] = useState(true);
+
+  // Role-based routing logic - returns route path instead of navigating
+  const routeUserBasedOnRole = (userData: User, garageData: Garage | null): string => {
+    const { role, email, firstLogin, garageId } = userData;
+
+    // Super Admin routing
+    if (role === 'super_admin' && SUPER_ADMIN_EMAILS.includes(email)) {
+      return '/super-admin';
+    }
+
+    // Admin routing
+    if (role === 'garage_admin') {
+      if (firstLogin || !garageData) {
+        return '/garage-setup';
+      } else {
+        return '/admin-dashboard';
+      }
+    }
+
+    // Staff routing  
+    if (role === 'mechanic_staff') {
+      if (!garageId || !garageData) {
+        return '/access-request';
+      } else {
+        return '/staff-dashboard';
+      }
+    }
+
+    // Fallback for unrecognized roles
+    console.error('User role not recognized or not provisioned:', role);
+    return '/unauthorized';
+  };
 
   useEffect(() => {
     if (token) {
@@ -92,6 +131,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(data.token);
       setUser(data.user);
       setGarage(data.garage);
+
+      // Return route path for navigation
+      if (data.user) {
+        return routeUserBasedOnRole(data.user, data.garage);
+      }
+      return null;
     } catch (error) {
       // Handle network errors or JSON parsing errors
       if (error instanceof Error) {
@@ -120,6 +165,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(data.token);
     setUser(data.user);
     setGarage(data.garage);
+
+    // Return route path for navigation after registration
+    if (data.user) {
+      return routeUserBasedOnRole(data.user, data.garage);
+    }
+    return null;
   };
 
   const logout = () => {
@@ -139,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         isLoading,
         token,
+        routeUserBasedOnRole,
       }}
     >
       {children}

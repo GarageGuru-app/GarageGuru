@@ -7,20 +7,66 @@ interface ProtectedRouteProps {
   roles?: string[];
 }
 
+// Super Admin emails that can access /super-admin
+const SUPER_ADMIN_EMAILS = [
+  'gorla.ananthkalyan@gmail.com',
+  'ananthautomotivegarage@gmail.com'
+];
+
 export default function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
-  const { user, garage, isLoading } = useAuth();
+  const { user, garage, isLoading, routeUserBasedOnRole } = useAuth();
   const [location, navigate] = useLocation();
 
   useEffect(() => {
     if (!isLoading && !user) {
       navigate("/login");
-    } else if (user && roles && !roles.includes(user.role)) {
-      navigate("/dashboard");
-    } else if (user && user.role === 'garage_admin' && !garage && location !== '/garage-setup') {
-      // Redirect garage admins without garage to setup page
-      navigate("/garage-setup");
+      return;
     }
-  }, [user, garage, isLoading, roles, navigate, location]);
+
+    if (user && isLoading === false) {
+      // Handle super admin route protection
+      if (location === '/super-admin') {
+        if (user.role !== 'super_admin' || !SUPER_ADMIN_EMAILS.includes(user.email)) {
+          navigate('/unauthorized');
+          return;
+        }
+      }
+
+      // Handle role-based route protection
+      if (roles && roles.length > 0) {
+        if (!roles.includes(user.role)) {
+          navigate('/unauthorized');
+          return;
+        }
+
+        // Additional checks for specific roles
+        if (user.role === 'garage_admin') {
+          // Admin must have a garage except for garage-setup
+          if (!garage && location !== '/garage-setup') {
+            navigate('/garage-setup');
+            return;
+          }
+        }
+
+        if (user.role === 'mechanic_staff') {
+          // Staff must have garage_id except for access-request
+          if (!user.garageId && location !== '/access-request') {
+            navigate('/access-request');
+            return;
+          }
+        }
+      }
+
+      // Auto-redirect users to appropriate dashboards if they're on generic routes
+      if (location === '/dashboard' || location === '/') {
+        const correctRoute = routeUserBasedOnRole(user, garage);
+        if (correctRoute && correctRoute !== location) {
+          navigate(correctRoute);
+          return;
+        }
+      }
+    }
+  }, [user, garage, isLoading, roles, navigate, location, routeUserBasedOnRole]);
 
   if (isLoading) {
     return (
@@ -34,17 +80,27 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
     return null;
   }
 
-  if (roles && !roles.includes(user.role)) {
-    return (
-      <div className="screen-content flex items-center justify-center">
-        <div className="text-destructive">Access denied</div>
-      </div>
-    );
+  // Super admin route protection
+  if (location === '/super-admin') {
+    if (user.role !== 'super_admin' || !SUPER_ADMIN_EMAILS.includes(user.email)) {
+      return null; // Will redirect via useEffect
+    }
   }
 
-  // Allow garage setup page for admins without garage
-  if (user.role === 'garage_admin' && !garage && location !== '/garage-setup') {
-    return null;
+  // Role-based protection
+  if (roles && roles.length > 0) {
+    if (!roles.includes(user.role)) {
+      return null; // Will redirect via useEffect
+    }
+
+    // Additional role-specific protections
+    if (user.role === 'garage_admin' && !garage && location !== '/garage-setup') {
+      return null; // Will redirect via useEffect
+    }
+
+    if (user.role === 'mechanic_staff' && !user.garageId && location !== '/access-request') {
+      return null; // Will redirect via useEffect
+    }
   }
 
   return <>{children}</>;

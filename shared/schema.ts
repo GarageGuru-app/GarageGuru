@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   role: text("role").notNull(), // 'garage_admin', 'mechanic_staff', 'super_admin'
   garageId: varchar("garage_id").references(() => garages.id),
   name: text("name").notNull(),
+  firstLogin: boolean("first_login").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
