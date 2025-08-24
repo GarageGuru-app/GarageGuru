@@ -198,8 +198,124 @@
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Desktop Layout Styles */
+.desktop-container {
+  @apply flex h-screen bg-background;
+}
+
+.desktop-sidebar {
+  @apply flex flex-col bg-card border-r border-border transition-all duration-300;
+  width: 280px;
+  min-width: 280px;
+}
+
+.desktop-sidebar.collapsed {
+  width: 80px;
+  min-width: 80px;
+}
+
+.sidebar-header {
+  @apply flex items-center justify-between p-4 border-b border-border;
+}
+
+.sidebar-nav {
+  @apply flex-1 p-3 space-y-1;
+}
+
+.nav-item {
+  @apply w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-accent;
+}
+
+.nav-item.active {
+  @apply bg-primary text-primary-foreground;
+}
+
+.nav-item.active:hover {
+  background-color: hsl(var(--primary) / 0.9);
+}
+
+.nav-icon {
+  @apply relative flex-shrink-0;
+}
+
+.nav-badge {
+  @apply absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.nav-label {
+  @apply text-sm font-medium;
+}
+
+.sidebar-footer {
+  @apply p-3 border-t border-border;
+}
+
+.desktop-main {
+  @apply flex-1 flex flex-col overflow-hidden;
+}
+
+.desktop-header {
+  @apply flex items-center justify-between px-6 py-4 border-b border-border backdrop-blur-sm;
+  background-color: hsl(var(--card) / 0.5);
+}
+
+.header-left {
+  @apply flex items-center gap-4;
+}
+
+.breadcrumbs {
+  @apply flex items-center gap-2 text-sm;
+}
+
+.header-right {
+  @apply flex items-center gap-2;
+}
+
+.desktop-content {
+  @apply flex-1 overflow-auto p-6;
+}
+
+/* Desktop-specific dashboard layouts */
+.desktop-dashboard-grid {
+  @apply grid gap-6;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.desktop-stats-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6;
+}
+
+.desktop-content-grid {
+  @apply grid grid-cols-1 lg:grid-cols-3 gap-6;
+}
+
+.desktop-main-content {
+  @apply lg:col-span-2 space-y-6;
+}
+
+.desktop-sidebar-content {
+  @apply space-y-6;
+}
+
+/* Responsive behavior */
+@media (max-width: 1024px) {
+  .desktop-container {
+    @apply block;
+  }
+  
+  .desktop-sidebar {
+    @apply hidden;
+  }
+  
+  .desktop-main {
+    @apply w-full;
+  }
+}
+
 /* Mobile-specific styles */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .mobile-container {
     max-width: 100%;
   }
@@ -211,6 +327,22 @@
   .fab {
     right: 16px;
     bottom: 76px;
+  }
+
+  /* Hide desktop layout on mobile */
+  .desktop-container {
+    @apply hidden;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Hide mobile layout on desktop */
+  .mobile-container {
+    @apply hidden;
+  }
+  
+  .desktop-container {
+    @apply flex;
   }
 }
 

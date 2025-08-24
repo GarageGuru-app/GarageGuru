@@ -51,6 +51,19 @@ export default function AdminDashboard() {
   const [, navigate] = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLowStockAlert, setShowLowStockAlert] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // Check if desktop view
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+
+    checkIsDesktop();
+    window.addEventListener('resize', checkIsDesktop);
+
+    return () => window.removeEventListener('resize', checkIsDesktop);
+  }, []);
 
   const { data: pendingJobs } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards"],
@@ -151,6 +164,286 @@ export default function AdminDashboard() {
   const activeStaffCount = staffMembers?.filter((staff: any) => staff.status === 'active').length || 0;
   const pendingRequestsCount = accessRequests?.filter((req: any) => req.status === 'pending').length || 0;
 
+  // Desktop layout with better use of screen space
+  if (isDesktop) {
+    return (
+      <div className="desktop-dashboard-grid">
+        {/* Stats Grid - Full Width */}
+        <div className="desktop-stats-grid">
+          <Card data-testid="card-pending-jobs">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                  <Clock className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Pending Jobs</p>
+                  <p className="text-3xl font-bold">{pendingJobs?.length || 0}</p>
+                  <p className="text-xs text-muted-foreground">Jobs waiting</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-today-revenue">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                  <IndianRupee className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Today's Revenue</p>
+                  <p className="text-3xl font-bold">₹{todayStats?.revenue || 0}</p>
+                  <p className="text-xs text-muted-foreground">From {todayStats?.jobCount || 0} jobs</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-total-revenue">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                  <TrendingUp className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Revenue</p>
+                  <p className="text-3xl font-bold">₹{salesStats?.totalRevenue || 0}</p>
+                  <p className="text-xs text-muted-foreground">All time</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-low-stock-alert">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg">
+                  <TriangleAlert className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Low Stock Items</p>
+                  <p className="text-3xl font-bold text-red-600">{lowStockParts?.length || 0}</p>
+                  <p className="text-xs text-muted-foreground">Need attention</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="desktop-content-grid">
+          {/* Left Column - Main Content */}
+          <div className="desktop-main-content">
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wrench className="w-5 h-5" />
+                  Quick Actions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    onClick={() => navigate("/job-card")}
+                    className="h-24 flex flex-col items-center justify-center space-y-2"
+                    data-testid="button-new-job"
+                  >
+                    <Plus className="w-8 h-8" />
+                    <span>New Job Card</span>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/customers")}
+                    className="h-24 flex flex-col items-center justify-center space-y-2"
+                    data-testid="button-manage-customers"
+                  >
+                    <Users className="w-8 h-8" />
+                    <span>Customers</span>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/spare-parts")}
+                    className="h-24 flex flex-col items-center justify-center space-y-2"
+                    data-testid="button-spare-parts"
+                  >
+                    <Cog className="w-8 h-8" />
+                    <span>Spare Parts</span>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/sales")}
+                    className="h-24 flex flex-col items-center justify-center space-y-2"
+                    data-testid="button-sales-reports"
+                  >
+                    <FileText className="w-8 h-8" />
+                    <span>Sales Reports</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activity */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5" />
+                  Recent Job Cards
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {pendingJobs && pendingJobs.length > 0 ? (
+                  <div className="space-y-3">
+                    {pendingJobs.slice(0, 5).map((job: any) => (
+                      <div 
+                        key={job.id}
+                        className="flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+                        data-testid={`job-card-${job.id}`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium">{job.customerName}</p>
+                            <Badge variant="outline">{job.bikeNumber}</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{job.complaint}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Created: {new Date(job.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-lg">₹{job.totalAmount}</p>
+                          <Badge variant={job.status === 'pending' ? 'destructive' : 'default'}>
+                            {job.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/pending-services")}
+                      className="w-full mt-4"
+                      data-testid="button-view-all-jobs"
+                    >
+                      View All Pending Jobs
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Car className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg mb-2">No pending job cards</p>
+                    <p className="text-sm mb-4">Create your first job card to get started</p>
+                    <Button
+                      onClick={() => navigate("/job-card")}
+                      data-testid="button-create-first-job"
+                    >
+                      Create Your First Job Card
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Sidebar Content */}
+          <div className="desktop-sidebar-content">
+            {/* Staff Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Staff Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {staffMembers && staffMembers.length > 0 ? (
+                  <div className="space-y-3">
+                    {staffMembers.map((staff: any) => (
+                      <div 
+                        key={staff.id}
+                        className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                        data-testid={`staff-row-${staff.id}`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium truncate" data-testid={`staff-name-${staff.id}`}>
+                              {staff.name}
+                            </p>
+                            <Badge 
+                              variant={staff.status === 'active' ? 'default' : 'destructive'}
+                              className="text-xs"
+                              data-testid={`staff-status-badge-${staff.id}`}
+                            >
+                              {staff.status === 'active' ? 'Active' : 'Suspended'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate" data-testid={`staff-email-${staff.id}`}>
+                            {staff.email}
+                          </p>
+                        </div>
+                        <Switch
+                          checked={staff.status === 'active'}
+                          onCheckedChange={() => handleToggleStaffStatus(staff.id, staff.status || 'active')}
+                          disabled={updateUserStatusMutation.isPending}
+                          data-testid={`switch-toggle-staff-status-${staff.id}`}
+                          className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No staff members found</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Access Requests */}
+            {accessRequests && accessRequests.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserCheck className="w-5 h-5" />
+                    Pending Requests
+                    <Badge variant="destructive">{pendingRequestsCount}</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {accessRequests.filter((req: any) => req.status === 'pending').slice(0, 3).map((request: any) => (
+                      <div key={request.id} className="p-3 bg-muted rounded-lg">
+                        <p className="font-medium">{request.name}</p>
+                        <p className="text-sm text-muted-foreground">{request.email}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Requesting: {request.requestedRole}
+                        </p>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/access-requests")}
+                      className="w-full"
+                      size="sm"
+                    >
+                      View All Requests
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile layout (existing code)
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
