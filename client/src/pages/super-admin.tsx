@@ -122,7 +122,8 @@ const MFAPasswordChange: React.FC = () => {
         code: otp,
         purpose: 'password_change'
       });
-      setOtpToken(response.otp_verified_token);
+      const data = await response.json();
+      setOtpToken(data.otp_verified_token);
       setStep('change');
       toast({
         title: 'OTP Verified',
@@ -363,38 +364,41 @@ export default function SuperAdminPage() {
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="title-super-admin">
-                <Shield className="w-6 h-6 text-primary" />
+              <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2" data-testid="title-super-admin">
+                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 Super Admin Dashboard
               </h1>
-              <p className="text-muted-foreground">Manage garages, users, and system settings</p>
+              <p className="text-sm sm:text-base text-muted-foreground">Manage garages, users, and system settings</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => refetchGarages()}
                 disabled={loadingGarages}
                 data-testid="button-refresh"
               >
                 <RefreshCw className={`w-4 h-4 ${loadingGarages ? 'animate-spin' : ''}`} />
-                Refresh
+                <span className="hidden sm:inline ml-2">Refresh</span>
               </Button>
               <Button
+                size="sm"
                 onClick={() => setShowMFA(true)}
                 data-testid="button-change-password"
               >
-                <Key className="w-4 h-4 mr-2" />
-                Change Password
+                <Key className="w-4 h-4" />
+                <span className="hidden sm:inline ml-2">Change Password</span>
               </Button>
               <Button
                 variant="outline"
+                size="sm"
                 onClick={logout}
                 data-testid="button-logout"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline ml-2">Logout</span>
               </Button>
             </div>
           </div>
@@ -403,7 +407,7 @@ export default function SuperAdminPage() {
 
       <div className="container mx-auto px-4 py-6">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Card data-testid="stat-total-garages">
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
@@ -455,17 +459,17 @@ export default function SuperAdminPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="garages" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="garages" data-testid="tab-garages">Garages & Users</TabsTrigger>
-            <TabsTrigger value="access-requests" data-testid="tab-access-requests">Access Requests</TabsTrigger>
-            <TabsTrigger value="audit-logs" data-testid="tab-audit-logs">Audit Logs</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsTrigger value="garages" data-testid="tab-garages" className="text-xs sm:text-sm">Garages</TabsTrigger>
+            <TabsTrigger value="access-requests" data-testid="tab-access-requests" className="text-xs sm:text-sm">Requests</TabsTrigger>
+            <TabsTrigger value="audit-logs" data-testid="tab-audit-logs" className="text-xs sm:text-sm">Audit Logs</TabsTrigger>
           </TabsList>
 
           {/* Garages & Users Tab */}
           <TabsContent value="garages" className="space-y-4">
             {/* Search and Filters */}
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1 max-w-md">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search garages..."
@@ -478,7 +482,7 @@ export default function SuperAdminPage() {
             </div>
 
             {/* Garages List */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {loadingGarages ? (
                 <div className="col-span-full flex items-center justify-center py-8">
                   <RefreshCw className="w-6 h-6 animate-spin" />

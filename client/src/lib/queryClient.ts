@@ -8,9 +8,18 @@ async function throwIfResNotOk(res: Response) {
       const message = json.message || json.error || res.statusText;
       throw new Error(message);
     } catch (parseError) {
-      // If response isn't JSON, fall back to status text
-      const text = await res.text() || res.statusText;
-      throw new Error(text);
+      // If response isn't JSON, show user-friendly messages based on status
+      if (res.status === 401) {
+        throw new Error("Invalid email or password");
+      } else if (res.status === 403) {
+        throw new Error("Access denied");
+      } else if (res.status === 404) {
+        throw new Error("Service not found");
+      } else if (res.status >= 500) {
+        throw new Error("Server error. Please try again later");
+      } else {
+        throw new Error("Something went wrong. Please try again");
+      }
     }
   }
 }
