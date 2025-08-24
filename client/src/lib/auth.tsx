@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Role-based routing logic - returns route path instead of navigating
   const routeUserBasedOnRole = (userData: User, garageData: Garage | null): string => {
-    const { role, email, firstLogin, garageId } = userData;
+    const { role, email, first_login: firstLogin, garage_id: garageId } = userData;
 
     // Super Admin routing
     if (role === 'super_admin' && SUPER_ADMIN_EMAILS.includes(email)) {
