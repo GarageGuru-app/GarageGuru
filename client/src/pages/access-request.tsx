@@ -57,8 +57,8 @@ export default function AccessRequest() {
       errors.name = "Name is required";
     }
 
-    // Validate garage selection (mandatory)
-    if (!selectedGarageId) {
+    // Validate garage selection (mandatory) - check for empty string, null, undefined
+    if (!selectedGarageId || selectedGarageId.trim() === '') {
       errors.garage = "Please select a garage to request access";
     }
 
@@ -75,6 +75,16 @@ export default function AccessRequest() {
       toast({
         title: "Please Complete Required Fields",
         description: "All fields except message are required. Please fill in the missing information.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Additional safety check - prevent API call if garage not selected
+    if (!selectedGarageId || selectedGarageId.trim() === '') {
+      toast({
+        title: "Garage Selection Required",
+        description: "Please select a garage to request access to.",
         variant: "destructive",
       });
       return;
@@ -263,10 +273,10 @@ export default function AccessRequest() {
                   ))}
                 </SelectContent>
               </Select>
-              {validationErrors.garage && (
+              {(validationErrors.garage || (!selectedGarageId && garages && garages.length > 0)) && (
                 <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
                   <AlertCircle className="w-4 h-4" />
-                  {validationErrors.garage}
+                  {validationErrors.garage || "Please select a garage to request access"}
                 </p>
               )}
             </div>
