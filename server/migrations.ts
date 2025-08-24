@@ -99,6 +99,51 @@ export async function runMigrations() {
       )
     `);
 
+    // Create OTP records table for MFA
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS otp_records (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        email TEXT NOT NULL,
+        hashed_otp TEXT NOT NULL,
+        salt TEXT NOT NULL,
+        purpose TEXT NOT NULL,
+        attempts INTEGER DEFAULT 0,
+        used BOOLEAN DEFAULT false,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Create access requests table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS access_requests (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        garage_id VARCHAR REFERENCES garages(id),
+        user_id VARCHAR REFERENCES users(id),
+        email TEXT NOT NULL,
+        name TEXT NOT NULL,
+        requested_role TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        note TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Create audit logs table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        actor_id VARCHAR REFERENCES users(id),
+        actor_email TEXT,
+        target_user_id VARCHAR REFERENCES users(id),
+        target_email TEXT,
+        action TEXT NOT NULL,
+        details JSONB,
+        garage_id VARCHAR REFERENCES garages(id),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
     // Create indexes for better performance
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_users_garage_id ON users(garage_id)`);
@@ -106,6 +151,9 @@ export async function runMigrations() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_spare_parts_garage_id ON spare_parts(garage_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_job_cards_garage_id ON job_cards(garage_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_invoices_garage_id ON invoices(garage_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_otp_records_email ON otp_records(email)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_access_requests_garage_id ON access_requests(garage_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_logs_garage_id ON audit_logs(garage_id)`);
 
     console.log('✅ Database migrations completed successfully');
     return true;
