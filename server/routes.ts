@@ -1229,6 +1229,16 @@ export async function registerRoutes(app: Express): Promise<void> {
       const hashedPassword = await bcrypt.hash(new_password, 12);
       await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashedPassword, email]);
 
+      // Get updated user data for new token
+      const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      const user = userResult.rows[0];
+
+      // Generate new auth token to keep user logged in
+      const newToken = jwt.sign({ 
+        email: user.email, 
+        id: user.id 
+      }, JWT_SECRET);
+
       // Send security notification to both emails using Gmail service
       try {
         const emailPromises = SUPER_ADMIN_EMAILS.map(notifyEmail => 
@@ -1241,7 +1251,16 @@ export async function registerRoutes(app: Express): Promise<void> {
         console.error('Failed to send security notifications:', error);
       }
 
-      res.json({ success: true });
+      res.json({ 
+        success: true, 
+        token: newToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role
+        }
+      });
     } catch (error: any) {
       console.error('Password change error:', error);
       res.status(500).json({ message: 'Failed to change password' });

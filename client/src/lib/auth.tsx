@@ -11,6 +11,7 @@ interface AuthContextType {
   isLoading: boolean;
   token: string | null;
   routeUserBasedOnRole: (userData: User, garageData: Garage | null) => string;
+  updateToken: (newToken: string) => void;
 }
 
 // Super Admin emails that can access /super-admin
@@ -149,6 +150,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("auth-token");
   };
 
+  const updateToken = (newToken: string) => {
+    localStorage.setItem("auth-token", newToken);
+    setToken(newToken);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -160,6 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         token,
         routeUserBasedOnRole,
+        updateToken,
       }}
     >
       {children}

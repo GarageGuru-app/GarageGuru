@@ -90,6 +90,7 @@ const MFAPasswordChange: React.FC = () => {
   const [otpToken, setOtpToken] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { updateToken } = useAuth();
 
   const requestOtp = async () => {
     setLoading(true);
@@ -143,11 +144,18 @@ const MFAPasswordChange: React.FC = () => {
   const changePassword = async () => {
     setLoading(true);
     try {
-      await apiRequest('POST', '/api/password/change', {
+      const response = await apiRequest('POST', '/api/password/change', {
         email,
         otp_verified_token: otpToken,
         new_password: newPassword
       });
+      const data = await response.json();
+      
+      // Update auth token to stay logged in
+      if (data.token) {
+        updateToken(data.token);
+      }
+      
       toast({
         title: 'Success',
         description: 'Password changed successfully. Security notification sent to both admin emails.',
