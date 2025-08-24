@@ -131,6 +131,15 @@ export async function runMigrations() {
       )
     `);
 
+    // Add missing columns to existing access_requests table (if they don't exist)
+    try {
+      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS processed_by TEXT`);
+      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP`);
+    } catch (error) {
+      // Columns might already exist, ignore error
+      console.log('Note: processed_by/processed_at columns may already exist');
+    }
+
     // Create audit logs table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS audit_logs (
