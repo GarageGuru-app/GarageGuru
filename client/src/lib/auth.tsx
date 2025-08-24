@@ -84,7 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setToken(null);
           }
         })
-        .catch(() => {
+        .catch((error) => {
+          console.log("Token validation failed, clearing auth:", error.message);
           localStorage.removeItem("auth-token");
           setToken(null);
         })
