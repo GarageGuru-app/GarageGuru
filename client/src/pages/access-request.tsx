@@ -33,8 +33,6 @@ export default function AccessRequest() {
   
   const [selectedGarageId, setSelectedGarageId] = useState("");
   const [message, setMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
 
   // Fetch available garages for staff access
   const { data: garages, isLoading } = useQuery({
@@ -45,63 +43,9 @@ export default function AccessRequest() {
     },
   });
 
-  const validateForm = () => {
-    const errors: {[key: string]: string} = {};
-
-    // Validate user email and name (should exist from auth)
-    if (!user?.email) {
-      errors.email = "Email is required";
-    }
-    
-    if (!user?.name) {
-      errors.name = "Name is required";
-    }
-
-    // Validate garage selection (mandatory) - check for empty string, null, undefined
-    if (!selectedGarageId || selectedGarageId.trim() === '') {
-      errors.garage = "Please select a garage to request access";
-    }
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmitRequest = async () => {
-    console.log("🔍 Form submission started", { selectedGarageId, userEmail: user?.email, userName: user?.name });
-    
-    // Immediate validation checks
-    if (!user?.email || !user?.name) {
-      toast({
-        title: "User Information Missing",
-        description: "Email and name are required. Please log in again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!selectedGarageId || selectedGarageId.trim() === '') {
-      console.log("❌ Garage validation failed", { selectedGarageId });
-      toast({
-        title: "Garage Selection Required",
-        description: "Please select a garage to request access to.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Run full validation
-    setValidationErrors({});
-    if (!validateForm()) {
-      console.log("❌ Form validation failed");
-      toast({
-        title: "Please Complete Required Fields",
-        description: "All fields except message are required. Please fill in the missing information.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    console.log("✅ All validations passed, making API call");
     setIsSubmitting(true);
 
     try {
@@ -123,7 +67,6 @@ export default function AccessRequest() {
         // Clear form
         setSelectedGarageId("");
         setMessage("");
-        setValidationErrors({});
       } else {
         const errorResult = await response.json();
         throw new Error(errorResult.message || "Failed to send request");
@@ -208,28 +151,12 @@ export default function AccessRequest() {
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm text-muted-foreground">Name *</Label>
-                <p className={`font-medium ${!user?.name ? 'text-red-600 dark:text-red-400' : ''}`} data-testid="text-user-name">
-                  {user?.name || "Name not provided"}
-                </p>
-                {validationErrors.name && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
-                    {validationErrors.name}
-                  </p>
-                )}
+                <Label className="text-sm text-muted-foreground">Name</Label>
+                <p className="font-medium" data-testid="text-user-name">{user?.name}</p>
               </div>
               <div>
-                <Label className="text-sm text-muted-foreground">Email *</Label>
-                <p className={`font-medium ${!user?.email ? 'text-red-600 dark:text-red-400' : ''}`} data-testid="text-user-email">
-                  {user?.email || "Email not provided"}
-                </p>
-                {validationErrors.email && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
-                    {validationErrors.email}
-                  </p>
-                )}
+                <Label className="text-sm text-muted-foreground">Email</Label>
+                <p className="font-medium" data-testid="text-user-email">{user?.email}</p>
               </div>
             </div>
             <div>
@@ -257,20 +184,10 @@ export default function AccessRequest() {
               </Label>
               <Select 
                 value={selectedGarageId} 
-                onValueChange={(value) => {
-                  console.log("🏪 Garage selected:", value);
-                  setSelectedGarageId(value);
-                  // Clear garage validation error when user selects a garage
-                  if (validationErrors.garage) {
-                    setValidationErrors(prev => ({ ...prev, garage: '' }));
-                  }
-                }}
+                onValueChange={setSelectedGarageId}
                 disabled={isLoading}
               >
-                <SelectTrigger 
-                  data-testid="select-garage" 
-                  className={validationErrors.garage ? "border-red-300 dark:border-red-700" : ""}
-                >
+                <SelectTrigger data-testid="select-garage">
                   <SelectValue placeholder={isLoading ? "Loading garages..." : "Choose a garage to request access"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -286,10 +203,10 @@ export default function AccessRequest() {
                   ))}
                 </SelectContent>
               </Select>
-              {(validationErrors.garage || (!selectedGarageId && garages && garages.length > 0)) && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
+              {!selectedGarageId && (
+                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
                   <AlertCircle className="w-4 h-4" />
-                  {validationErrors.garage || "Please select a garage to request access"}
+                  Please select a garage to enable the submit button
                 </p>
               )}
             </div>
@@ -315,7 +232,7 @@ export default function AccessRequest() {
             {/* Submit Button */}
             <Button
               onClick={handleSubmitRequest}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !selectedGarageId}
               className="w-full"
               data-testid="button-submit-request"
             >
