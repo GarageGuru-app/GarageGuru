@@ -195,8 +195,8 @@ export default function AccessRequest() {
                 onValueChange={setSelectedGarageId}
                 disabled={isLoading}
               >
-                <SelectTrigger data-testid="select-garage">
-                  <SelectValue placeholder={isLoading ? "Loading garages..." : "Choose a garage"} />
+                <SelectTrigger data-testid="select-garage" className={!selectedGarageId ? "border-red-300 dark:border-red-700" : ""}>
+                  <SelectValue placeholder={isLoading ? "Loading garages..." : "Choose a garage to request access"} />
                 </SelectTrigger>
                 <SelectContent>
                   {garages?.map((garage: any) => (
@@ -211,6 +211,12 @@ export default function AccessRequest() {
                   ))}
                 </SelectContent>
               </Select>
+              {!selectedGarageId && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  Garage selection is required for staff access requests
+                </p>
+              )}
             </div>
 
             {/* Message */}
@@ -234,7 +240,7 @@ export default function AccessRequest() {
             {/* Submit Button */}
             <Button
               onClick={handleSubmitRequest}
-              disabled={isSubmitting || !selectedGarageId}
+              disabled={isSubmitting}
               className="w-full"
               data-testid="button-submit-request"
             >
