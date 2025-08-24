@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Settings, Moon, Sun, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Register() {
   const [, navigate] = useLocation();
@@ -118,7 +119,7 @@ export default function Register() {
           description: data.message || "Your request has been sent to the super admin. You'll receive an activation code if approved.",
         });
         setShowAccessRequest(false);
-        setAccessRequest({ email: "", name: "", requestType: "staff", message: "" });
+        setAccessRequest({ email: "", name: "", requestType: "staff", message: "", garageId: "" });
       } else {
         // Display the actual server error message
         toast({

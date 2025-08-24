@@ -77,14 +77,34 @@ export const getQueryFn: <T>(options: {
       return null;
     }
 
-    await throwIfResNotOk(res);
+    // Don't clear auth state for failed API calls - just throw the error
+    if (!res.ok) {
+      try {
+        const json = await res.json();
+        const message = json.message || json.error || res.statusText;
+        throw new Error(message);
+      } catch (parseError) {
+        // If response isn't JSON, show user-friendly messages based on status
+        if (res.status === 401) {
+          throw new Error("Unauthorized access");
+        } else if (res.status === 403) {
+          throw new Error("Access denied");
+        } else if (res.status === 404) {
+          throw new Error("Resource not found");
+        } else if (res.status >= 500) {
+          throw new Error("Server error. Please try again later");
+        } else {
+          throw new Error("Request failed. Please try again");
+        }
+      }
+    }
     return await res.json();
   };
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
+      queryFn: getQueryFn({ on401: "returnNull" }), // Don't throw on 401, just return null
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
