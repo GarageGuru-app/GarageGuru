@@ -33,6 +33,9 @@ export default function AccessRequest() {
   
   const [selectedGarageId, setSelectedGarageId] = useState("");
   const [message, setMessage] = useState("");
+  
+  // Debug garage selection
+  console.log("🔍 Debug - selectedGarageId:", selectedGarageId, "Type:", typeof selectedGarageId, "Length:", selectedGarageId?.length);
 
   // Fetch available garages for staff access
   const { data: garages, isLoading } = useQuery({
@@ -184,7 +187,10 @@ export default function AccessRequest() {
               </Label>
               <Select 
                 value={selectedGarageId} 
-                onValueChange={setSelectedGarageId}
+                onValueChange={(value) => {
+                  console.log("🏪 Garage changed to:", value, "Type:", typeof value);
+                  setSelectedGarageId(value);
+                }}
                 disabled={isLoading}
               >
                 <SelectTrigger data-testid="select-garage">
@@ -232,8 +238,8 @@ export default function AccessRequest() {
             {/* Submit Button */}
             <Button
               onClick={handleSubmitRequest}
-              disabled={isSubmitting || !selectedGarageId}
-              className="w-full"
+              disabled={isSubmitting || !selectedGarageId || selectedGarageId.trim() === ''}
+              className={`w-full ${(!selectedGarageId || selectedGarageId.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
               data-testid="button-submit-request"
             >
               {isSubmitting ? (
