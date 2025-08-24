@@ -423,6 +423,48 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async getSalesDataByDateRange(garageId: string, startDate: string, endDate: string): Promise<Array<{
+    date: string;
+    period: string;
+    revenue: number;
+    totalSales: number;
+    serviceCharges: number;
+    partsRevenue: number;
+    profit: number;
+    count: number;
+    invoiceCount: number;
+  }>> {
+    const result = await pool.query(
+      `SELECT 
+        DATE(created_at) as date,
+        DATE(created_at) as period,
+        COALESCE(SUM(total_amount), 0) as revenue,
+        COALESCE(SUM(total_amount), 0) as total_sales,
+        COALESCE(SUM(service_charge), 0) as service_charges,
+        COALESCE(SUM(parts_total), 0) as parts_revenue,
+        COALESCE(SUM(total_amount), 0) as profit,
+        COUNT(*) as count,
+        COUNT(*) as invoice_count
+       FROM invoices 
+       WHERE garage_id = $1 AND DATE(created_at) BETWEEN $2 AND $3
+       GROUP BY DATE(created_at)
+       ORDER BY DATE(created_at) ASC`,
+      [garageId, startDate, endDate]
+    );
+
+    return result.rows.map(row => ({
+      date: row.date,
+      period: row.period,
+      revenue: parseFloat(row.revenue || 0),
+      totalSales: parseFloat(row.total_sales || 0),
+      serviceCharges: parseFloat(row.service_charges || 0),
+      partsRevenue: parseFloat(row.parts_revenue || 0),
+      profit: parseFloat(row.profit || 0),
+      count: parseInt(row.count || 0),
+      invoiceCount: parseInt(row.invoice_count || 0)
+    }));
+  }
+
   async getMonthlySalesData(garageId: string): Promise<Array<{
     month: string;
     year: number;
