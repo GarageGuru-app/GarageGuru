@@ -448,7 +448,11 @@ export default function SuperAdminPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => refetchGarages()}
+                onClick={() => {
+                  refetchGarages();
+                  refetchAccessRequests();
+                  refetchAuditLogs();
+                }}
                 disabled={loadingGarages}
                 data-testid="button-refresh"
               >

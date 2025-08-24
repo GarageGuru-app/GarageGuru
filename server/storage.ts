@@ -194,6 +194,7 @@ export interface IStorage {
   createAccessRequest(request: Partial<AccessRequest>): Promise<AccessRequest>;
   getAccessRequests(garageId?: string): Promise<AccessRequest[]>;
   updateAccessRequest(id: string, request: Partial<AccessRequest>): Promise<AccessRequest>;
+  checkExistingAccessRequest(email: string): Promise<AccessRequest | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -684,6 +685,14 @@ export class DatabaseStorage implements IStorage {
     return result.rows[0];
   }
 
+  async checkExistingAccessRequest(email: string): Promise<AccessRequest | null> {
+    const result = await pool.query(
+      'SELECT * FROM access_requests WHERE email = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
+      [email, 'pending']
+    );
+    return result.rows[0] || null;
+  }
+
   async getAccessRequests(garageId?: string): Promise<AccessRequest[]> {
     let query = 'SELECT * FROM access_requests';
     let params: any[] = [];
@@ -702,13 +711,16 @@ export class DatabaseStorage implements IStorage {
   async updateAccessRequest(id: string, request: Partial<AccessRequest>): Promise<AccessRequest> {
     const fields = Object.keys(request).filter(key => key !== 'id');
     const values = fields.map(field => (request as any)[field]);
-    const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
     
+    // Add processed_at if status is being changed to approved/denied
     if (fields.includes('status') && (request.status === 'approved' || request.status === 'denied')) {
-      fields.push('processed_at');
-      values.push(new Date());
-      setClause.replace(/processed_at = \$\d+/, 'processed_at = NOW()');
+      if (!fields.includes('processed_at')) {
+        fields.push('processed_at');
+        values.push(new Date());
+      }
     }
+    
+    const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
     
     const result = await pool.query(
       `UPDATE access_requests SET ${setClause} WHERE id = $1 RETURNING *`,
