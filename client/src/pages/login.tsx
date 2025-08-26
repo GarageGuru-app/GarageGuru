@@ -150,15 +150,41 @@ export default function Login() {
         });
         setForgotPasswordStep('verify');
       } else {
-        throw new Error('Failed to send reset code');
+        // Handle error responses
+        const errorData = await response.json();
+        if (errorData.isSuspended) {
+          toast({
+            title: "Account Suspended", 
+            description: errorData.message,
+            variant: "destructive",
+          });
+          return;
+        }
+        if (errorData.isInactive) {
+          toast({
+            title: "Account Inactive",
+            description: errorData.message,
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error(errorData.message || 'Failed to send reset code');
       }
     } catch (error: any) {
-      const errorData = await error.response?.json?.() || {};
-      toast({
-        title: "Error",
-        description: errorData.message || "Failed to send reset code",
-        variant: "destructive",
-      });
+      // Handle network errors or other exceptions
+      if (error.message && !error.response) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error", 
+          description: "Failed to send reset code",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoadingForgot(false);
     }
