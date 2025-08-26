@@ -210,10 +210,10 @@ export default function SpareParts() {
   const filteredParts = spareParts.filter((part: any) => {
     const matchesSearch =
       part.name?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
-      part.partNumber?.toLowerCase?.()?.includes(searchTerm.toLowerCase());
+      part.part_number?.toLowerCase?.()?.includes(searchTerm.toLowerCase());
 
     if (showLowStockOnly) {
-      return matchesSearch && part.quantity <= part.lowStockThreshold;
+      return matchesSearch && part.quantity <= part.low_stock_threshold;
     }
 
     return matchesSearch;
@@ -237,12 +237,12 @@ export default function SpareParts() {
   const handleEdit = (part: any) => {
     setEditingPart(part);
     setFormData({
-      partNumber: part.partNumber,
-      name: part.name,
-      price: part.price.toString(),
-      costPrice: part.costPrice?.toString() || "0",
-      quantity: part.quantity.toString(),
-      lowStockThreshold: part.lowStockThreshold.toString(),
+      partNumber: part.part_number || "",
+      name: part.name || "",
+      price: part.price?.toString() || "",
+      costPrice: part.cost_price?.toString() || "0",
+      quantity: part.quantity?.toString() || "",
+      lowStockThreshold: part.low_stock_threshold?.toString() || "2",
       barcode: part.barcode || "",
     });
     setIsDialogOpen(true);
@@ -255,7 +255,7 @@ export default function SpareParts() {
     if (!editingPart) {
       const existingPart = spareParts.find(
         (part: any) =>
-          part.partNumber?.toLowerCase?.() === formData.partNumber?.toLowerCase?.(),
+          part.part_number?.toLowerCase?.() === formData.partNumber?.toLowerCase?.(),
       );
 
       if (existingPart) {
@@ -382,7 +382,7 @@ export default function SpareParts() {
 
   // find a part by scanned code (matches partNumber or barcode)
   const findPartByCode = (code: string, list: any[]) =>
-    list.find((p: any) => p.partNumber === code || p.barcode === code);
+    list.find((p: any) => p.part_number === code || p.barcode === code);
 
   const parseScannedCode = (scannedCode: string) => {
     // Parse quantity and selling price from scanned code
@@ -850,7 +850,7 @@ export default function SpareParts() {
                       <div className="flex items-center space-x-2">
                         <h3 className="font-semibold">{part.name}</h3>
                         <Badge variant="secondary" className="text-xs">
-                          #{part.partNumber}
+                          #{part.part_number}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
@@ -864,7 +864,7 @@ export default function SpareParts() {
                           </span>
                           <span
                             className={`text-sm font-medium ${
-                              part.quantity <= part.lowStockThreshold
+                              part.quantity <= part.low_stock_threshold
                                 ? "text-destructive"
                                 : "text-foreground"
                             }`}
@@ -874,12 +874,12 @@ export default function SpareParts() {
                         </div>
                         <div
                           className={`w-2 h-2 rounded-full ${
-                            part.quantity <= part.lowStockThreshold
+                            part.quantity <= part.low_stock_threshold
                               ? "bg-destructive"
                               : "bg-green-500"
                           }`}
                         />
-                        {part.quantity <= part.lowStockThreshold && (
+                        {part.quantity <= part.low_stock_threshold && (
                           <Badge variant="destructive" className="text-xs">
                             Low Stock
                           </Badge>
@@ -964,7 +964,7 @@ export default function SpareParts() {
                         {repeatScanPart.name}
                       </div>
                       <div className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                        Part Number: {repeatScanPart.partNumber}
+                        Part Number: {repeatScanPart.part_number}
                       </div>
                       <div className="text-sm text-blue-700 dark:text-blue-300">
                         Current Stock: {repeatScanPart.quantity}
@@ -1043,7 +1043,7 @@ export default function SpareParts() {
                         {duplicatePart?.name}
                       </div>
                       <div className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                        Part Number: {duplicatePart?.partNumber}
+                        Part Number: {duplicatePart?.part_number}
                       </div>
                       <div className="text-sm text-blue-700 dark:text-blue-300">
                         Current quantity: {duplicatePart?.quantity}
