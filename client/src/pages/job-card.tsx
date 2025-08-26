@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, QrCode, Plus, Trash2, Scan } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
+import { HybridScanner } from "@/components/HybridScanner";
 import CustomerSelector from "@/components/CustomerSelector";
 
 interface SparePartUsed {
@@ -27,7 +27,7 @@ export default function JobCard() {
   const { garage } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { startScanning } = useBarcodeScanner();
+  const [showScanner, setShowScanner] = useState(false);
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -198,7 +198,7 @@ export default function JobCard() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => startScanning(handleBarcodeScanned)}
+          onClick={() => setShowScanner(true)}
           className="text-white hover:bg-white/10"
         >
           <QrCode className="w-5 h-5" />
@@ -341,7 +341,7 @@ export default function JobCard() {
                 type="button"
                 variant="outline"
                 className="w-full border-dashed"
-                onClick={() => startScanning(handleBarcodeScanned)}
+                onClick={() => setShowScanner(true)}
               >
                 <Scan className="w-4 h-4 mr-2" />
                 Scan Barcode/QR Code
@@ -358,6 +358,13 @@ export default function JobCard() {
           </Button>
         </form>
       </div>
+
+      {/* HybridScanner Component */}
+      <HybridScanner
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={handleBarcodeScanned}
+      />
     </div>
   );
 }
