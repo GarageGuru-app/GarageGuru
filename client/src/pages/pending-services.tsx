@@ -269,7 +269,7 @@ export default function PendingServices() {
                     </div>
                   )}
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end sm:space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -277,9 +277,10 @@ export default function PendingServices() {
                         setSelectedJob(job);
                         setIsDetailsOpen(true);
                       }}
+                      className="text-xs px-2 py-1"
                     >
                       <Eye className="w-3 h-3 mr-1" />
-                      View Details
+                      View
                     </Button>
                     <Button
                       variant="outline"
@@ -287,9 +288,10 @@ export default function PendingServices() {
                       onClick={() => {
                         navigate(`/edit-job-card/${job.id}`);
                       }}
+                      className="text-xs px-2 py-1"
                     >
                       <Edit className="w-3 h-3 mr-1" />
-                      Edit Job Card
+                      Edit
                     </Button>
                     <Button
                       variant="outline"
@@ -299,9 +301,10 @@ export default function PendingServices() {
                         setChecklistItems(job.complaint || "");
                         setIsChecklistOpen(true);
                       }}
+                      className="text-xs px-2 py-1"
                     >
                       <CheckCircle className="w-3 h-3 mr-1" />
-                      Complete Service
+                      Complete
                     </Button>
                     {(() => {
                       const hasChecklist = job.complaint && (job.complaint.includes('☐') || job.complaint.includes('☑'));
@@ -329,7 +332,7 @@ export default function PendingServices() {
                             }
                           }}
                           disabled={hasIncompleteItems || invoiceExists}
-                          className={(hasIncompleteItems || invoiceExists) ? "opacity-50 cursor-not-allowed" : ""}
+                          className={`text-xs px-2 py-1 ${(hasIncompleteItems || invoiceExists) ? "opacity-50 cursor-not-allowed" : ""}`}
                         >
                           {invoiceExists ? (
                             <>
