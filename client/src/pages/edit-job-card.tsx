@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
 import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import * as z from "zod";
 
@@ -121,9 +121,11 @@ export default function EditJobCard() {
     },
   });
 
-  // Populate form when job card data is loaded
+  // Populate form when job card data is loaded - using a ref to prevent infinite loops
+  const isFormInitialized = useRef(false);
+  
   useEffect(() => {
-    if (jobCard) {
+    if (jobCard && !isFormInitialized.current) {
       console.log('Loading job card data:', jobCard);
       const spareParts = Array.isArray(jobCard.spare_parts) ? jobCard.spare_parts : 
                         (typeof jobCard.spare_parts === 'string' ? JSON.parse(jobCard.spare_parts || '[]') : []);
@@ -137,8 +139,10 @@ export default function EditJobCard() {
         serviceCharge: jobCard.service_charge?.toString() || "0",
         totalAmount: jobCard.total_amount?.toString() || "0"
       });
+      
+      isFormInitialized.current = true;
     }
-  }, [jobCard]);  // Removed 'form' from dependencies to prevent infinite loop
+  }, [jobCard]);
 
   // Search spare parts
   useEffect(() => {
@@ -159,12 +163,19 @@ export default function EditJobCard() {
   const watchedSpareParts = form.watch("spareParts");
   const watchedServiceCharge = form.watch("serviceCharge");
 
-  // Calculate totals
+  // Calculate totals - debounced to prevent excessive updates
   useEffect(() => {
-    const partsTotal = watchedSpareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
-    const serviceCharge = parseFloat(watchedServiceCharge || "0");
-    form.setValue("totalAmount", (partsTotal + serviceCharge).toString());
-  }, [watchedSpareParts, watchedServiceCharge]);  // Removed 'form' from dependencies
+    if (isFormInitialized.current) {
+      const partsTotal = watchedSpareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
+      const serviceCharge = parseFloat(watchedServiceCharge || "0");
+      const newTotal = (partsTotal + serviceCharge).toString();
+      
+      // Only update if the value actually changed
+      if (form.getValues("totalAmount") !== newTotal) {
+        form.setValue("totalAmount", newTotal, { shouldValidate: false });
+      }
+    }
+  }, [watchedSpareParts, watchedServiceCharge]);
 
   const addSparePart = (part: any) => {
     const currentParts = form.getValues("spareParts") || [];
