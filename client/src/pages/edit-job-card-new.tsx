@@ -82,7 +82,7 @@ export default function EditJobCard() {
       if (!garage?.id || !jobCardId) throw new Error("Missing garage or job card ID");
       
       const totalPartsAmount = data.spareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
-      const serviceCharge = parseFloat(data.serviceCharge || "0");
+      const serviceCharge = Number(data.serviceCharge || "0");
       const totalAmount = totalPartsAmount + serviceCharge;
 
       console.log('Updating job card with data:', {
@@ -380,11 +380,15 @@ export default function EditJobCard() {
                 <label className="block text-sm font-medium mb-2">Service Charge (₹)</label>
                 <Input
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
                   placeholder="Enter service charge"
                   value={formData.serviceCharge === "0" ? "" : formData.serviceCharge}
-                  onChange={(e) => handleInputChange("serviceCharge", e.target.value || "0")}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Keep the value as-is to prevent floating point precision issues
+                    handleInputChange("serviceCharge", value || "0");
+                  }}
                   onFocus={(e) => {
                     if (e.target.value === "0") {
                       e.target.value = "";
