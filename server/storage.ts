@@ -328,7 +328,17 @@ export class DatabaseStorage implements IStorage {
   async getCustomer(id: string, garageId: string): Promise<Customer | undefined> {
     try {
       const result = await pool.query('SELECT * FROM customers WHERE id = $1 AND garage_id = $2', [id, garageId]);
-      return result.rows[0];
+      const customer = result.rows[0];
+      if (!customer) return undefined;
+      
+      return {
+        ...customer,
+        bikeNumber: customer.bike_number,
+        totalJobs: customer.total_jobs,
+        totalSpent: customer.total_spent,
+        lastVisit: customer.last_visit,
+        createdAt: customer.created_at
+      };
     } catch (error) {
       console.error('getCustomer error:', error);
       return undefined;
@@ -355,9 +365,18 @@ export class DatabaseStorage implements IStorage {
   async updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer> {
     const result = await pool.query(
       'UPDATE customers SET name = COALESCE($2, name), phone = COALESCE($3, phone), bike_number = COALESCE($4, bike_number), total_jobs = COALESCE($5, total_jobs), total_spent = COALESCE($6, total_spent), last_visit = COALESCE($7, last_visit), notes = COALESCE($8, notes) WHERE id = $1 RETURNING *',
-      [id, customer.name, customer.phone, customer.bike_number, customer.total_jobs, customer.total_spent, customer.last_visit, customer.notes]
+      [id, customer.name, customer.phone, customer.bikeNumber || customer.bike_number, customer.totalJobs || customer.total_jobs, customer.totalSpent || customer.total_spent, customer.lastVisit || customer.last_visit, customer.notes]
     );
-    return result.rows[0];
+    const updatedCustomer = result.rows[0];
+    
+    return {
+      ...updatedCustomer,
+      bikeNumber: updatedCustomer.bike_number,
+      totalJobs: updatedCustomer.total_jobs,
+      totalSpent: updatedCustomer.total_spent,
+      lastVisit: updatedCustomer.last_visit,
+      createdAt: updatedCustomer.created_at
+    };
   }
 
   async updateUserGarage(userId: string, garageId: string): Promise<User> {
