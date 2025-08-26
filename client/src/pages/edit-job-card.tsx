@@ -88,13 +88,22 @@ export default function EditJobCard() {
       const serviceCharge = parseFloat(data.serviceCharge || "0");
       const totalAmount = totalPartsAmount + serviceCharge;
 
-      return apiRequest("PUT", `/api/garages/${garage.id}/job-cards/${jobCardId}`, {
+      console.log('Updating job card with data:', {
         ...data,
-        serviceCharge: serviceCharge.toString(),
-        totalAmount: totalAmount.toString(),
+        serviceCharge: serviceCharge,
+        totalAmount: totalAmount,
       });
+
+      const response = await apiRequest("PUT", `/api/garages/${garage.id}/job-cards/${jobCardId}`, {
+        ...data,
+        serviceCharge: serviceCharge,
+        totalAmount: totalAmount,
+      });
+      
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Job card updated successfully:', data);
       toast({
         title: "Success",
         description: "Job card updated successfully",
@@ -103,6 +112,7 @@ export default function EditJobCard() {
       navigate("/pending-services");
     },
     onError: (error: any) => {
+      console.error('Update job card error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update job card",
@@ -128,7 +138,7 @@ export default function EditJobCard() {
         totalAmount: jobCard.total_amount?.toString() || "0"
       });
     }
-  }, [jobCard, form]);
+  }, [jobCard]);  // Removed 'form' from dependencies to prevent infinite loop
 
   // Search spare parts
   useEffect(() => {
@@ -154,7 +164,7 @@ export default function EditJobCard() {
     const partsTotal = watchedSpareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
     const serviceCharge = parseFloat(watchedServiceCharge || "0");
     form.setValue("totalAmount", (partsTotal + serviceCharge).toString());
-  }, [watchedSpareParts, watchedServiceCharge, form]);
+  }, [watchedSpareParts, watchedServiceCharge]);  // Removed 'form' from dependencies
 
   const addSparePart = (part: any) => {
     const currentParts = form.getValues("spareParts") || [];
