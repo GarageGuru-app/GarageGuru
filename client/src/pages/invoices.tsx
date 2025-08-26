@@ -64,17 +64,68 @@ export default function Invoices() {
     });
   };
 
-  const downloadPDF = (pdfUrl: string, invoiceNumber: string) => {
-    if (pdfUrl) {
+  const downloadPDF = async (pdfUrl: string, invoiceNumber: string) => {
+    if (!pdfUrl) {
+      console.error('No PDF URL provided');
+      return;
+    }
+
+    console.log('Attempting to download PDF from URL:', pdfUrl);
+    
+    try {
+      // First try to fetch the PDF to verify it exists and is accessible
+      const response = await fetch(pdfUrl);
+      if (!response.ok) {
+        console.error('PDF fetch failed:', response.status, response.statusText);
+        throw new Error(`Failed to access PDF: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      console.log('PDF blob size:', blob.size, 'bytes');
+      
+      if (blob.size === 0) {
+        console.error('PDF blob is empty');
+        throw new Error('PDF file is empty');
+      }
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${invoiceNumber}.pdf`;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      console.log('PDF download initiated successfully');
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      // Fallback: try opening in new tab
+      console.log('Fallback: Opening PDF in new tab');
       const a = document.createElement('a');
       a.href = pdfUrl;
-      a.download = `${invoiceNumber}.pdf`;
       a.target = '_blank';
       a.click();
     }
   };
 
   const sendWhatsApp = (phone: string, pdfUrl: string) => {
+    console.log('Sending WhatsApp with PDF URL:', pdfUrl);
+    
+    // Test the PDF URL accessibility first
+    fetch(pdfUrl, { method: 'HEAD' })
+      .then(response => {
+        console.log('PDF URL accessibility check:', response.ok ? 'Success' : 'Failed', response.status);
+        if (!response.ok) {
+          console.warn('PDF URL may not be accessible:', response.status, response.statusText);
+        }
+      })
+      .catch(error => {
+        console.error('PDF URL check failed:', error);
+      });
+    
     const message = `Hi! Here's your service invoice: ${pdfUrl}`;
     const whatsappUrl = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');

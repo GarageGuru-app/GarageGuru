@@ -181,10 +181,17 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   }
   
   const formData = new FormData();
-  formData.append('file', pdfBlob);
+  // Create a proper File object with PDF content type
+  const pdfFile = new File([pdfBlob], filename ? `${filename}.pdf` : 'invoice.pdf', { 
+    type: 'application/pdf',
+    lastModified: Date.now()
+  });
+  
+  formData.append('file', pdfFile);
   formData.append('upload_preset', uploadPreset);
-  formData.append('resource_type', 'raw');
-  // Note: access_mode not allowed for unsigned uploads
+  formData.append('resource_type', 'auto'); // Let Cloudinary auto-detect
+  formData.append('format', 'pdf'); // Explicitly specify format
+  
   if (filename) {
     // Ensure filename has .pdf extension for Cloudinary
     const pdfFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
@@ -207,7 +214,24 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
     }
     
     const data = await response.json();
-    return data.secure_url;
+    console.log('Cloudinary upload successful:', data);
+    
+    // Return the secure_url - try different approaches for better PDF access
+    const pdfUrl = data.secure_url;
+    console.log('Original Cloudinary URL:', pdfUrl);
+    
+    // Try different URL formats to ensure PDF accessibility
+    const urlParts = pdfUrl.split('/upload/');
+    if (urlParts.length === 2) {
+      // Method 1: Try with resource_type and format specification
+      const improvedUrl = `${urlParts[0]}/upload/fl_attachment/${urlParts[1]}`;
+      console.log('Improved PDF URL:', improvedUrl);
+      
+      // Test the URL accessibility
+      return improvedUrl;
+    }
+    
+    return pdfUrl;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
     console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
