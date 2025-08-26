@@ -422,7 +422,33 @@ export class DatabaseStorage implements IStorage {
 
   async getLowStockParts(garageId: string): Promise<SparePart[]> {
     const result = await pool.query('SELECT * FROM spare_parts WHERE garage_id = $1 AND quantity <= low_stock_threshold', [garageId]);
-    return result.rows;
+    const lowStockParts = result.rows;
+    
+    // Create notifications for low stock parts (avoid duplicates)
+    for (const part of lowStockParts) {
+      try {
+        // Check if notification already exists for this part (within last 24 hours)
+        const existingNotification = await pool.query(
+          'SELECT id FROM notifications WHERE garage_id = $1 AND type = $2 AND data->>\'partId\' = $3 AND created_at > NOW() - INTERVAL \'24 hours\'',
+          [garageId, 'low_stock', part.id]
+        );
+        
+        if (existingNotification.rows.length === 0) {
+          // Create new low stock notification
+          await this.createNotification({
+            garageId,
+            title: 'Low Stock Alert',
+            message: `${part.name} (${part.part_number || 'No part number'}) is running low. Only ${part.quantity} left (threshold: ${part.low_stock_threshold})`,
+            type: 'low_stock',
+            data: { partId: part.id, partName: part.name, quantity: part.quantity, threshold: part.low_stock_threshold }
+          });
+        }
+      } catch (error) {
+        console.error('Error creating low stock notification:', error);
+      }
+    }
+    
+    return lowStockParts;
   }
 
   async getSparePart(id: string, garageId: string): Promise<SparePart | undefined> {

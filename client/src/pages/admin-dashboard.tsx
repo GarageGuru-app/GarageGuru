@@ -176,12 +176,18 @@ export default function AdminDashboard() {
     updateUserStatusMutation.mutate({ userId, status: newStatus });
   };
 
-  // Show low stock alert if there are items
+  // Show low stock alert once per session if there are items
   useEffect(() => {
-    if (lowStockParts && lowStockParts.length > 0) {
-      setShowLowStockAlert(true);
+    if (lowStockParts && lowStockParts.length > 0 && garage?.id) {
+      const sessionKey = `lowStockAlert_${garage.id}_session`;
+      const hasShownInSession = sessionStorage.getItem(sessionKey);
+      
+      if (!hasShownInSession) {
+        setShowLowStockAlert(true);
+        sessionStorage.setItem(sessionKey, 'true');
+      }
     }
-  }, [lowStockParts]);
+  }, [lowStockParts, garage?.id]);
 
   // Calculate derived data
   const activeStaffCount = staffMembers?.filter((staff: any) => staff.status === 'active').length || 0;

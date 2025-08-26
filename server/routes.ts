@@ -942,9 +942,6 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { garageId } = req.params;
       const lowStockParts = await storage.getLowStockParts(garageId);
       
-      // Create/update low stock notifications (commented out - function not implemented)
-      // await storage.createLowStockNotifications(garageId);
-      
       res.json(lowStockParts);
     } catch (error) {
       console.error('Error in low stock endpoint:', error);
