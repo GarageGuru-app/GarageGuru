@@ -481,7 +481,14 @@ export class DatabaseStorage implements IStorage {
       'INSERT INTO invoices (id, garage_id, job_card_id, customer_id, invoice_number, pdf_url, whatsapp_sent, total_amount, parts_total, service_charge, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
       [id, invoice.garageId, invoice.jobCardId, invoice.customerId, invoice.invoiceNumber, invoice.pdfUrl, invoice.whatsappSent || false, invoice.totalAmount || 0, invoice.partsTotal || 0, invoice.serviceCharge || 0, new Date()]
     );
-    return result.rows[0];
+    
+    // Ensure jobCardId is available in the returned invoice
+    const createdInvoice = result.rows[0];
+    if (createdInvoice && !createdInvoice.jobCardId && createdInvoice.job_card_id) {
+      createdInvoice.jobCardId = createdInvoice.job_card_id;
+    }
+    
+    return createdInvoice;
   }
 
   async updateInvoice(id: string, invoice: Partial<Invoice>): Promise<Invoice> {

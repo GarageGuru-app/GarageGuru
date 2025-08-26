@@ -1113,6 +1113,8 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { garageId } = req.params;
       const invoiceData = insertInvoiceSchema.parse({ ...req.body, garageId });
       
+      console.log('📝 Creating invoice with data:', invoiceData);
+      
       // Set the correct local timestamp (Indian Standard Time)
       const istTime = new Date().toLocaleString("sv-SE", {timeZone: "Asia/Kolkata"});
       const localTimestamp = new Date(istTime);
@@ -1120,6 +1122,8 @@ export async function registerRoutes(app: Express): Promise<void> {
       const invoice = await storage.createInvoice({
         ...invoiceData
       });
+      
+      console.log('📊 Invoice created successfully:', { id: invoice.id, jobCardId: invoice.jobCardId || invoice.job_card_id });
       
       // Update job card status to completed
       console.log('🔄 Updating job card status to completed for jobCardId:', invoice.jobCardId);
