@@ -450,11 +450,11 @@ export default function Sales() {
                 {recentInvoices.slice(0, 5).map((invoice: any) => (
                   <div key={invoice.id} className="flex items-center justify-between py-2 border-b border-border last:border-b-0">
                     <div>
-                      <p className="font-medium">Invoice #{invoice.invoiceNumber}</p>
+                      <p className="font-medium">Invoice #{(invoice as any).invoice_number || invoice.invoiceNumber || 'N/A'}</p>
                       <p className="text-sm text-muted-foreground">{formatDate((invoice as any).created_at || invoice.createdAt)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">₹{Number(invoice.totalAmount || 0).toLocaleString()}</p>
+                      <p className="font-medium">₹{Number((invoice as any).total_amount || invoice.totalAmount || 0).toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
