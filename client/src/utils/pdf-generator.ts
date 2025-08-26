@@ -1,6 +1,5 @@
 import jsPDF from 'jspdf';
 import type { JobCard, Garage } from '@shared/schema';
-import bikeLogo from '@/assets/bike-logo.svg';
 
 interface InvoiceData {
   jobCard: JobCard;
@@ -29,46 +28,18 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   pdf.setFillColor(37, 99, 235); // Blue background
   pdf.rect(0, 0, pageWidth, 45, 'F');
   
-  // Add logo (garage logo or default bike logo)
-  try {
-    let logoToUse = garage.logo || bikeLogo;
-    
-    // If using bike logo (SVG), convert to data URL
-    if (logoToUse === bikeLogo) {
-      const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="40" height="40">
-        <ellipse cx="30" cy="70" rx="15" ry="15" fill="none" stroke="#ffffff" stroke-width="3"/>
-        <ellipse cx="70" cy="70" rx="15" ry="15" fill="none" stroke="#ffffff" stroke-width="3"/>
-        <path d="M30 70 L45 35 L55 35 L70 70 M45 35 L30 70 M55 35 L45 50 L55 50" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M40 35 L50 35" fill="none" stroke="#ffffff" stroke-width="2"/>
-        <ellipse cx="55" cy="32" rx="6" ry="2" fill="#ffffff"/>
-        <circle cx="50" cy="55" r="3" fill="none" stroke="#ffffff" stroke-width="1"/>
-      </svg>`;
-      
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      logoToUse = await new Promise<string>((resolve) => {
-        img.onload = () => {
-          canvas.width = 40;
-          canvas.height = 40;
-          ctx?.drawImage(img, 0, 0, 40, 40);
-          resolve(canvas.toDataURL('image/png'));
-        };
-        img.src = 'data:image/svg+xml;base64,' + btoa(svgString);
-      });
-    }
-    
-    // Add logo to PDF
-    if (garage.logo) {
+  // Add garage logo if available
+  if (garage.logo) {
+    try {
       const response = await fetch(garage.logo);
       const blob = await response.blob();
+      
       if (blob.size < 500000) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
         
-        logoToUse = await new Promise<string>((resolve, reject) => {
+        const logoData = await new Promise<string>((resolve, reject) => {
           img.onload = () => {
             canvas.width = 40;
             canvas.height = 40;
@@ -78,12 +49,12 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
           img.onerror = reject;
           img.src = URL.createObjectURL(blob);
         });
+        
+        pdf.addImage(logoData, 'JPEG', 20, 5, 20, 20);
       }
+    } catch (error) {
+      console.error('Failed to load garage logo:', error);
     }
-    
-    pdf.addImage(logoToUse, 'PNG', 20, 5, 20, 20);
-  } catch (error) {
-    console.error('Failed to load logo:', error);
   }
   
   // Header text (white on blue background)
@@ -142,8 +113,8 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
       const partNumber = part.partNumber || part.part_number || '';
       const partName = part.name || 'Unnamed Part';
       const partDisplay = partNumber ? `PN: ${partNumber} — ${partName}` : partName;
-      pdf.text(`${partDisplay} — Qty ${part.quantity} x ₹${parseFloat(part.price).toFixed(2)}`, 20, yPos);
-      pdf.text(`₹${lineTotal.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
+      pdf.text(`${partDisplay} — Qty ${part.quantity} x Rs.${parseFloat(part.price).toFixed(2)}`, 20, yPos);
+      pdf.text(`Rs.${lineTotal.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
       yPos += 10;
     });
   } else {
@@ -163,11 +134,11 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   pdf.setTextColor(71, 85, 105); // Dark gray text
   pdf.setFont('helvetica', 'normal');
   pdf.text('Parts Total:', 20, yPos);
-  pdf.text(`₹${partsTotal.toFixed(2)}`, pageWidth - 25, yPos, { align: 'right' });
+  pdf.text(`Rs.${partsTotal.toFixed(2)}`, pageWidth - 25, yPos, { align: 'right' });
   
   yPos += 10;
   pdf.text('Service Charge:', 20, yPos);
-  pdf.text(`₹${serviceCharge.toFixed(2)}`, pageWidth - 25, yPos, { align: 'right' });
+  pdf.text(`Rs.${serviceCharge.toFixed(2)}`, pageWidth - 25, yPos, { align: 'right' });
   
   // Total amount with emphasis
   yPos += 12;
@@ -178,7 +149,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(12);
   pdf.text('Total Amount:', 20, yPos + 3);
-  pdf.text(`₹${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 25, yPos + 3, { align: 'right' });
+  pdf.text(`Rs.${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 25, yPos + 3, { align: 'right' });
   
   pdf.setTextColor(0, 0, 0); // Reset text color
   pdf.setFontSize(10);
