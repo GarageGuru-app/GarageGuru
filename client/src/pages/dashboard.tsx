@@ -211,8 +211,8 @@ export default function Dashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-muted-foreground text-sm">Today's Profit</p>
-                  <p className="text-2xl font-bold">₹{Number(todaySales || 0).toLocaleString()}</p>
+                  <p className="text-muted-foreground text-sm">Today's Revenue</p>
+                  <p className="text-2xl font-bold">₹{Number(todayStats?.todayProfit || 0).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Current day only</p>
                 </div>
                 <div className="icon-container success-bg">
@@ -222,6 +222,26 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Additional Revenue Stats for Admin */}
+        {user?.role === "garage_admin" && (
+          <div className="grid grid-cols-1 gap-4 mb-6">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-muted-foreground text-sm">Total Revenue</p>
+                    <p className="text-2xl font-bold">₹{Number(salesStats?.totalProfit || 0).toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">All time revenue from {salesStats?.totalInvoices || 0} invoices</p>
+                  </div>
+                  <div className="icon-container bg-blue-100 dark:bg-blue-900">
+                    <TrendingUp className="text-blue-600 dark:text-blue-400 text-xl w-6 h-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Quick Actions Grid */}
         <div className="grid grid-cols-2 gap-4 mb-6">
