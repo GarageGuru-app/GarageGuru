@@ -957,7 +957,11 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { garageId } = req.params;
       const partData = insertSparePartSchema.parse({ ...req.body, garageId });
       
-      const sparePart = await storage.createSparePart(partData);
+      // Ensure the garageId is properly set for the database insert (snake_case field)
+      const partWithGarageId = { ...partData, garage_id: garageId };
+      console.log('Creating spare part with garageId:', garageId, 'Data:', partWithGarageId);
+      
+      const sparePart = await storage.createSparePart(partWithGarageId);
       res.json(sparePart);
     } catch (error) {
       console.error('Spare part creation error:', error);
