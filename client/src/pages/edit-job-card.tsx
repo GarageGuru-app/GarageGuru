@@ -114,12 +114,16 @@ export default function EditJobCard() {
   // Populate form when job card data is loaded
   useEffect(() => {
     if (jobCard) {
+      console.log('Loading job card data:', jobCard);
+      const spareParts = Array.isArray(jobCard.spare_parts) ? jobCard.spare_parts : 
+                        (typeof jobCard.spare_parts === 'string' ? JSON.parse(jobCard.spare_parts || '[]') : []);
+      
       form.reset({
         customerName: jobCard.customer_name || "",
         phone: jobCard.phone || "",
         bikeNumber: jobCard.bike_number || "",
         complaint: jobCard.complaint || "",
-        spareParts: jobCard.spare_parts || [],
+        spareParts: spareParts,
         serviceCharge: jobCard.service_charge?.toString() || "0",
         totalAmount: jobCard.total_amount?.toString() || "0"
       });
@@ -250,20 +254,9 @@ export default function EditJobCard() {
           </Button>
           <h2 className="text-lg font-semibold">Edit Job Card</h2>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => startScanning(handleBarcodeScanned)}
-            className="text-white hover:bg-white/10"
-            title="Scan Barcode/QR Code"
-          >
-            <QrCode className="w-5 h-5" />
-          </Button>
-          <Badge variant="secondary" className="warning-bg warning-text">
-            Pending
-          </Badge>
-        </div>
+        <Badge variant="secondary" className="warning-bg warning-text">
+          Pending
+        </Badge>
       </div>
 
       <div className="screen-content">
@@ -373,7 +366,19 @@ export default function EditJobCard() {
               <CardContent className="space-y-4">
                 {/* Search for spare parts */}
                 <div className="space-y-2">
-                  <FormLabel>Add Spare Parts</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Add Spare Parts</FormLabel>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => startScanning(handleBarcodeScanned)}
+                      className="flex items-center space-x-1"
+                    >
+                      <QrCode className="w-4 h-4" />
+                      <span>Scan</span>
+                    </Button>
+                  </div>
                   <div className="relative">
                     <Input
                       type="text"

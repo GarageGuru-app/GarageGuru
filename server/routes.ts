@@ -1007,6 +1007,31 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  app.get("/api/garages/:garageId/job-cards/:id", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId, id } = req.params;
+      const jobCard = await storage.getJobCard(id, garageId);
+      
+      if (!jobCard) {
+        return res.status(404).json({ message: 'Job card not found' });
+      }
+      
+      // Parse spare_parts if it's a JSON string
+      if (typeof jobCard.spare_parts === 'string') {
+        try {
+          jobCard.spare_parts = JSON.parse(jobCard.spare_parts);
+        } catch (e) {
+          jobCard.spare_parts = [];
+        }
+      }
+      
+      res.json(jobCard);
+    } catch (error) {
+      console.error('Error fetching job card:', error);
+      res.status(500).json({ message: 'Failed to fetch job card' });
+    }
+  });
+
   app.post("/api/garages/:garageId/job-cards", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
       const { garageId } = req.params;
