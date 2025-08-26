@@ -694,6 +694,8 @@ export default function SpareParts() {
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, price: e.target.value }))
                   }
+                  className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  style={{ appearance: "textfield" }}
                   required
                 />
               </div>
@@ -711,6 +713,8 @@ export default function SpareParts() {
                       costPrice: e.target.value,
                     }))
                   }
+                  className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  style={{ appearance: "textfield" }}
                   placeholder="Purchase cost per unit"
                 />
               </div>
@@ -727,6 +731,8 @@ export default function SpareParts() {
                       quantity: e.target.value,
                     }))
                   }
+                  className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  style={{ appearance: "textfield" }}
                   required
                 />
               </div>
@@ -737,6 +743,8 @@ export default function SpareParts() {
                   type="number"
                   min="0"
                   value={formData.lowStockThreshold}
+                  className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  style={{ appearance: "textfield" }}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,

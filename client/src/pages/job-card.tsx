@@ -321,7 +321,8 @@ export default function JobCard() {
                     min="1"
                     value={part.quantity}
                     onChange={(e) => updateSparePart(index, "quantity", parseInt(e.target.value))}
-                    className="w-20"
+                    className="w-20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    style={{ appearance: "textfield" }}
                     placeholder="Qty"
                   />
                   <Button

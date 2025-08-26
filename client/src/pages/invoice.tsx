@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,12 +26,18 @@ export default function Invoice() {
     queryKey: ["/api/garages", garage?.id, "job-cards", jobCardId],
     queryFn: async () => {
       if (!garage?.id || !jobCardId) return null;
-      const response = await apiRequest("GET", `/api/garages/${garage.id}/job-cards`);
-      const jobCards = await response.json();
-      return jobCards.find((jc: any) => jc.id === jobCardId);
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/job-cards/${jobCardId}`);
+      return response.json();
     },
     enabled: !!garage?.id && !!jobCardId,
   });
+
+  // Set service charge when job card loads
+  useEffect(() => {
+    if (jobCard?.service_charge) {
+      setServiceCharge(parseFloat(jobCard.service_charge) || 0);
+    }
+  }, [jobCard]);
 
   const createInvoiceMutation = useMutation({
     mutationFn: async (invoiceData: any) => {
@@ -318,9 +324,16 @@ export default function Invoice() {
                     type="number"
                     min="0"
                     step="0.01"
-                    value={serviceCharge}
-                    onChange={(e) => setServiceCharge(Number(e.target.value))}
-                    className="w-24 h-8 text-right text-sm"
+                    value={serviceCharge === 0 ? "" : serviceCharge}
+                    onChange={(e) => setServiceCharge(Number(e.target.value) || 0)}
+                    onFocus={(e) => {
+                      if (e.target.value === "0") {
+                        e.target.value = "";
+                        setServiceCharge(0);
+                      }
+                    }}
+                    className="w-24 h-8 text-right text-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    style={{ appearance: "textfield" }}
                     placeholder="0"
                   />
                 </div>
