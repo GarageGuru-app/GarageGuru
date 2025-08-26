@@ -34,10 +34,14 @@ export default function Customers() {
     customer.bikeNumber?.toLowerCase?.()?.includes(searchTerm.toLowerCase())
   );
 
-  const formatLastVisit = (dateString: string | null) => {
-    if (!dateString) return "No visits";
+  const formatLastVisit = (dateString: string | null, totalJobs: number) => {
+    if (!dateString || totalJobs === 0) return "No visits yet";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+    });
   };
 
 
@@ -190,7 +194,13 @@ export default function Customers() {
                   
                   <div className="mt-3 pt-3 border-t">
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Last visit: {formatLastVisit((customer as any).last_visit || customer.lastVisit)}</span>
+                      <div>
+                        {((customer as any).total_jobs || customer.totalJobs || 0) > 0 ? (
+                          <span>Last visit: {formatLastVisit((customer as any).last_visit || customer.lastVisit, (customer as any).total_jobs || customer.totalJobs || 0)}</span>
+                        ) : (
+                          <span>No visits yet</span>
+                        )}
+                      </div>
                       <div className="text-right">
                         <div>{(customer as any).total_jobs || customer.totalJobs || 0} visits</div>
                         <div className="font-medium text-primary">₹{Number(parseFloat((customer as any).total_spent || customer.totalSpent) || 0).toLocaleString()}</div>
