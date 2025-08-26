@@ -1391,7 +1391,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     `;
 
     // Send OTP to user's email using Gmail service
-    const sent = await gmailService.sendOtpEmail(email, otp, 'password reset');
+    const sent = await gmailService.sendOtpEmail(email, otp, 'user password reset');
     
     if (!sent) {
       console.log(`⚠️ OTP email may not have been sent to ${email}`);

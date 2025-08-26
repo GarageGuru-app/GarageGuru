@@ -64,6 +64,8 @@ export class GmailEmailService {
         to: email,
         subject: purpose.includes('notification') 
           ? 'GarageGuru Super Admin Password Changed - Security Alert'
+          : purpose.includes('user password') 
+          ? `GarageGuru Password Reset Code`
           : `GarageGuru Super Admin ${purpose.charAt(0).toUpperCase() + purpose.slice(1)} Code`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
