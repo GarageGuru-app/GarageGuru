@@ -541,17 +541,46 @@ export default function AdminDashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium">₹{(() => {
+                        // Debug log for troubleshooting
+                        console.log('Job data:', { 
+                          id: job.id, 
+                          customer: job.customer_name,
+                          spare_parts: job.spare_parts, 
+                          total_amount: job.total_amount, 
+                          service_charge: job.service_charge 
+                        });
+                        
                         // Calculate amount from spare parts if available
                         if (job.spare_parts && typeof job.spare_parts === 'string') {
                           try {
                             const parts = JSON.parse(job.spare_parts);
-                            const partsTotal = parts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0);
-                            return partsTotal || job.total_amount || job.service_charge || 0;
+                            if (parts && parts.length > 0) {
+                              const partsTotal = parts.reduce((sum: number, part: any) => sum + (Number(part.price || 0) * Number(part.quantity || 0)), 0);
+                              if (partsTotal > 0) return partsTotal;
+                            }
                           } catch (e) {
-                            return job.total_amount || job.service_charge || 0;
+                            console.log('Error parsing spare_parts JSON:', e);
                           }
                         }
-                        return job.total_amount || job.service_charge || 0;
+                        // If it's an array already (not stringified)
+                        if (job.spare_parts && Array.isArray(job.spare_parts) && job.spare_parts.length > 0) {
+                          const partsTotal = job.spare_parts.reduce((sum: number, part: any) => sum + (Number(part.price || 0) * Number(part.quantity || 0)), 0);
+                          if (partsTotal > 0) return partsTotal;
+                        }
+                        
+                        // Check stored amounts
+                        const totalAmount = Number(job.total_amount || 0);
+                        const serviceCharge = Number(job.service_charge || 0);
+                        
+                        if (totalAmount > 0) return totalAmount;
+                        if (serviceCharge > 0) return serviceCharge;
+                        
+                        // For completed jobs without amounts, show a default service charge
+                        if (job.status === 'completed') {
+                          return 200; // Default service charge for completed jobs
+                        }
+                        
+                        return 0;
                       })()}</p>
                       <p className="text-sm text-muted-foreground">{job.status}</p>
                     </div>
