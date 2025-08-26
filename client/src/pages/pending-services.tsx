@@ -285,7 +285,7 @@ export default function PendingServices() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        navigate(`/job-card/${job.id}`);
+                        navigate(`/edit-job-card/${job.id}`);
                       }}
                     >
                       <Edit className="w-3 h-3 mr-1" />
