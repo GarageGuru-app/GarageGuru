@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -154,7 +154,7 @@ export default function EditJobCard() {
   }, [searchQuery, availableParts]);
 
   // Calculate totals when spare parts or service charge changes - using useMemo to prevent loops
-  const calculatedTotal = React.useMemo(() => {
+  const calculatedTotal = useMemo(() => {
     const partsTotal = formData.spareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
     const serviceCharge = parseFloat(formData.serviceCharge || "0");
     return (partsTotal + serviceCharge).toString();
@@ -220,7 +220,7 @@ export default function EditJobCard() {
     setFormData(prev => ({ ...prev, spareParts: updatedParts }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     updateJobCardMutation.mutate(formData);
   };
