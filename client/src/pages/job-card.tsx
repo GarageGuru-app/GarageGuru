@@ -117,7 +117,7 @@ export default function JobCard() {
   };
 
   const handleBarcodeScanned = (barcode: string) => {
-    const part = spareParts.find((p: any) => p.barcode === barcode);
+    const part = spareParts.find((p: any) => p.barcode === barcode || p.partNumber === barcode || p.part_number === barcode);
     if (part) {
       const existingIndex = selectedParts.findIndex(p => p.id === part.id);
       if (existingIndex >= 0) {
@@ -125,7 +125,7 @@ export default function JobCard() {
       } else {
         setSelectedParts(prev => [...prev, {
           id: part.id,
-          partNumber: part.partNumber,
+          partNumber: part.partNumber || part.part_number,
           name: part.name,
           quantity: 1,
           price: Number(part.price),

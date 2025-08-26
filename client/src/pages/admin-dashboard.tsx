@@ -276,7 +276,7 @@ export default function AdminDashboard() {
                 <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                 <div>
                   <p className="text-xs sm:text-sm text-muted-foreground">Pending Jobs</p>
-                  <p className="text-lg sm:text-2xl font-bold">{pendingJobs?.length || 0}</p>
+                  <p className="text-lg sm:text-2xl font-bold">{pendingJobs?.filter((job: any) => job.status === 'pending')?.length || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -540,7 +540,7 @@ export default function AdminDashboard() {
                       <p className="text-sm text-muted-foreground">{job.complaint}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">₹{job.total_amount}</p>
+                      <p className="font-medium">₹{job.total_amount || job.service_charge || 0}</p>
                       <p className="text-sm text-muted-foreground">{job.status}</p>
                     </div>
                   </div>
