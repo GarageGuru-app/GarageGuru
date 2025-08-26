@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import type { JobCard, Garage } from '@shared/schema';
+import bikeLogo from '@/assets/bike-logo.svg';
 
 interface InvoiceData {
   jobCard: JobCard;
@@ -24,62 +25,97 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   
   let yPos = 20;
   
-  // Add logo if exists - optimized for smaller file size
-  if (garage.logo) {
-    try {
+  // Add header background color
+  pdf.setFillColor(37, 99, 235); // Blue background
+  pdf.rect(0, 0, pageWidth, 45, 'F');
+  
+  // Add logo (garage logo or default bike logo)
+  try {
+    let logoToUse = garage.logo || bikeLogo;
+    
+    // If using bike logo (SVG), convert to data URL
+    if (logoToUse === bikeLogo) {
+      const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="40" height="40">
+        <ellipse cx="30" cy="70" rx="15" ry="15" fill="none" stroke="#ffffff" stroke-width="3"/>
+        <ellipse cx="70" cy="70" rx="15" ry="15" fill="none" stroke="#ffffff" stroke-width="3"/>
+        <path d="M30 70 L45 35 L55 35 L70 70 M45 35 L30 70 M55 35 L45 50 L55 50" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M40 35 L50 35" fill="none" stroke="#ffffff" stroke-width="2"/>
+        <ellipse cx="55" cy="32" rx="6" ry="2" fill="#ffffff"/>
+        <circle cx="50" cy="55" r="3" fill="none" stroke="#ffffff" stroke-width="1"/>
+      </svg>`;
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      logoToUse = await new Promise<string>((resolve) => {
+        img.onload = () => {
+          canvas.width = 40;
+          canvas.height = 40;
+          ctx?.drawImage(img, 0, 0, 40, 40);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.src = 'data:image/svg+xml;base64,' + btoa(svgString);
+      });
+    }
+    
+    // Add logo to PDF
+    if (garage.logo) {
       const response = await fetch(garage.logo);
       const blob = await response.blob();
-      
-      // Only process if image is reasonable size (< 500KB)
       if (blob.size < 500000) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
         
-        const imageData = await new Promise<string>((resolve, reject) => {
+        logoToUse = await new Promise<string>((resolve, reject) => {
           img.onload = () => {
-            // Resize to small dimensions for PDF
-            canvas.width = 120;
-            canvas.height = 60;
-            ctx?.drawImage(img, 0, 0, 120, 60);
-            
-            // Convert to JPEG with compression
-            const compressedData = canvas.toDataURL('image/jpeg', 0.7);
-            resolve(compressedData);
+            canvas.width = 40;
+            canvas.height = 40;
+            ctx?.drawImage(img, 0, 0, 40, 40);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
           };
           img.onerror = reject;
           img.src = URL.createObjectURL(blob);
         });
-        
-        // Add compressed logo to PDF
-        pdf.addImage(imageData, 'JPEG', 20, 10, 30, 15);
-        yPos = 35;
       }
-    } catch (error) {
-      console.error('Failed to load logo:', error);
-      // Continue without logo
     }
+    
+    pdf.addImage(logoToUse, 'PNG', 20, 5, 20, 20);
+  } catch (error) {
+    console.error('Failed to load logo:', error);
   }
   
-  // Header
+  // Header text (white on blue background)
+  pdf.setTextColor(255, 255, 255); // White text
   pdf.setFontSize(20);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(garage.name, pageWidth / 2, yPos, { align: 'center' });
+  pdf.text(garage.name, pageWidth / 2, 20, { align: 'center' });
   
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'normal');
-  pdf.text(garage.phone, pageWidth / 2, yPos + 10, { align: 'center' });
+  pdf.text(garage.phone || 'Contact: N/A', pageWidth / 2, 32, { align: 'center' });
   
-  // Invoice details
+  // Reset text color for rest of document
+  pdf.setTextColor(0, 0, 0); // Black text
+  
+  // Invoice title with orange accent
+  pdf.setFillColor(249, 115, 22); // Orange background
+  pdf.rect(0, 45, pageWidth, 20, 'F');
+  
+  pdf.setTextColor(255, 255, 255); // White text
   pdf.setFontSize(16);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('INVOICE', pageWidth / 2, yPos + 30, { align: 'center' });
+  pdf.text('INVOICE', pageWidth / 2, 57, { align: 'center' });
+  
+  // Reset text color
+  pdf.setTextColor(0, 0, 0);
   
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   
   // Customer details
-  yPos += 50;
+  yPos = 75;
   pdf.text(`Invoice Number: ${invoiceNumber}`, 20, yPos);
   pdf.text(`Date: ${new Date().toLocaleDateString()}`, 20, yPos + 10);
   pdf.text(`Customer: ${customerName}`, 20, yPos + 20);
@@ -106,7 +142,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
       const partNumber = part.partNumber || part.part_number || '';
       const partName = part.name || 'Unnamed Part';
       const partDisplay = partNumber ? `PN: ${partNumber} — ${partName}` : partName;
-      pdf.text(`${partDisplay} — Qty ${part.quantity} x ₹${part.price}`, 20, yPos);
+      pdf.text(`${partDisplay} — Qty ${part.quantity} x ₹${parseFloat(part.price).toFixed(2)}`, 20, yPos);
       pdf.text(`₹${lineTotal.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
       yPos += 10;
     });
@@ -116,28 +152,51 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
     yPos += 10;
   }
   
-  // Totals
+  // Totals section with background
   yPos += 10;
-  pdf.line(20, yPos, pageWidth - 20, yPos); // Line separator
+  pdf.setFillColor(248, 250, 252); // Light gray background
+  pdf.rect(15, yPos, pageWidth - 30, 40, 'F');
+  pdf.setDrawColor(203, 213, 225); // Gray border
+  pdf.rect(15, yPos, pageWidth - 30, 40, 'S');
   
-  yPos += 10;
+  yPos += 12;
+  pdf.setTextColor(71, 85, 105); // Dark gray text
+  pdf.setFont('helvetica', 'normal');
   pdf.text('Parts Total:', 20, yPos);
-  pdf.text(`₹${partsTotal.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
+  pdf.text(`₹${partsTotal.toFixed(2)}`, pageWidth - 25, yPos, { align: 'right' });
   
   yPos += 10;
   pdf.text('Service Charge:', 20, yPos);
-  pdf.text(`₹${serviceCharge.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
+  pdf.text(`₹${serviceCharge.toFixed(2)}`, pageWidth - 25, yPos, { align: 'right' });
   
-  yPos += 10;
+  // Total amount with emphasis
+  yPos += 12;
+  pdf.setFillColor(37, 99, 235); // Blue background for total
+  pdf.rect(15, yPos - 3, pageWidth - 30, 12, 'F');
+  
+  pdf.setTextColor(255, 255, 255); // White text
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Total Amount:', 20, yPos);
-  pdf.text(`₹${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
+  pdf.setFontSize(12);
+  pdf.text('Total Amount:', 20, yPos + 3);
+  pdf.text(`₹${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 25, yPos + 3, { align: 'right' });
   
-  // Footer
-  yPos += 30;
+  pdf.setTextColor(0, 0, 0); // Reset text color
+  pdf.setFontSize(10);
+  
+  // Footer with thank you message
+  yPos += 25;
+  pdf.setFillColor(34, 197, 94); // Green background
+  pdf.rect(0, yPos, pageWidth, 15, 'F');
+  
+  pdf.setTextColor(255, 255, 255); // White text
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Thank you for choosing ' + garage.name + '!', pageWidth / 2, yPos + 8, { align: 'center' });
+  
+  pdf.setTextColor(0, 0, 0); // Reset text color
   pdf.setFontSize(8);
   pdf.setFont('helvetica', 'normal');
-  pdf.text('Thank you for choosing ' + garage.name, pageWidth / 2, yPos, { align: 'center' });
+  pdf.text('Visit us again for all your bike service needs', pageWidth / 2, yPos + 20, { align: 'center' });
   
   return pdf.output('blob');
 }
