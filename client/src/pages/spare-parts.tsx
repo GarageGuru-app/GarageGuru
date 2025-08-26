@@ -688,7 +688,7 @@ export default function SpareParts() {
                 <Input
                   id="price"
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
                   value={formData.price}
                   onChange={(e) =>
@@ -704,7 +704,7 @@ export default function SpareParts() {
                 <Input
                   id="costPrice"
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
                   value={formData.costPrice}
                   onChange={(e) =>

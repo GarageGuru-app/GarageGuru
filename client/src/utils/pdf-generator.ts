@@ -113,7 +113,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
       const partNumber = part.partNumber || part.part_number || '';
       const partName = part.name || 'Unnamed Part';
       const partDisplay = partNumber ? `PN: ${partNumber} — ${partName}` : partName;
-      pdf.text(`${partDisplay} — Qty ${part.quantity} x Rs.${parseFloat(part.price).toFixed(2)}`, 20, yPos);
+      pdf.text(`${partDisplay} — Qty ${part.quantity} x Rs.${Number(part.price).toFixed(2)}`, 20, yPos);
       pdf.text(`Rs.${lineTotal.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
       yPos += 10;
     });

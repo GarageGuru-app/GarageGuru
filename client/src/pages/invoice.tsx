@@ -35,7 +35,7 @@ export default function Invoice() {
   // Set service charge when job card loads
   useEffect(() => {
     if (jobCard?.service_charge) {
-      setServiceCharge(parseFloat(jobCard.service_charge) || 0);
+      setServiceCharge(Number(jobCard.service_charge) || 0);
     }
   }, [jobCard]);
 
@@ -336,7 +336,7 @@ export default function Invoice() {
                   <Input
                     type="number"
                     min="0"
-                    step="0.01"
+                    step="1"
                     value={serviceCharge === 0 ? "" : serviceCharge}
                     onChange={(e) => setServiceCharge(Number(e.target.value) || 0)}
                     onFocus={(e) => {

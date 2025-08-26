@@ -85,7 +85,7 @@ export default function EditJobCard() {
       if (!garage?.id || !jobCardId) throw new Error("Missing garage or job card ID");
       
       const totalPartsAmount = data.spareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
-      const serviceCharge = parseFloat(data.serviceCharge || "0");
+      const serviceCharge = Number(data.serviceCharge || "0");
       const totalAmount = totalPartsAmount + serviceCharge;
 
       console.log('Updating job card with data:', {
@@ -167,7 +167,7 @@ export default function EditJobCard() {
   useEffect(() => {
     if (isFormInitialized.current) {
       const partsTotal = watchedSpareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
-      const serviceCharge = parseFloat(watchedServiceCharge || "0");
+      const serviceCharge = Number(watchedServiceCharge || "0");
       const newTotal = (partsTotal + serviceCharge).toString();
       
       // Only update if the value actually changed
@@ -193,7 +193,7 @@ export default function EditJobCard() {
           partNumber: part.part_number || "",
           name: part.name,
           quantity: 1,
-          price: parseFloat(part.price || "0")
+          price: Number(part.price || "0")
         }
       ]);
     }
@@ -406,9 +406,9 @@ export default function EditJobCard() {
                         <Input
                           {...field}
                           type="number"
-                          step="0.01"
+                          step="1"
                           min="0"
-                          placeholder="0.00"
+                          placeholder="0"
                         />
                       </FormControl>
                       <FormMessage />
@@ -549,7 +549,7 @@ export default function EditJobCard() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Service Charge:</span>
-                    <span>₹{parseFloat(watchedServiceCharge || "0").toFixed(2)}</span>
+                    <span>₹{Number(watchedServiceCharge || "0").toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-lg font-semibold border-t pt-2">
                     <span>Total Amount:</span>

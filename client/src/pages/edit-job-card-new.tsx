@@ -156,7 +156,7 @@ export default function EditJobCard() {
   // Calculate totals when spare parts or service charge changes - using useMemo to prevent loops
   const calculatedTotal = useMemo(() => {
     const partsTotal = formData.spareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
-    const serviceCharge = parseFloat(formData.serviceCharge || "0");
+    const serviceCharge = Number(formData.serviceCharge || "0");
     return (partsTotal + serviceCharge).toString();
   }, [formData.spareParts, formData.serviceCharge]);
 
@@ -184,7 +184,7 @@ export default function EditJobCard() {
         partNumber: part.part_number || "",
         name: part.name,
         quantity: 1,
-        price: parseFloat(part.price || "0")
+        price: Number(part.price || "0")
       };
       setFormData(prev => ({ ...prev, spareParts: [...prev.spareParts, newPart] }));
     }
@@ -533,7 +533,7 @@ export default function EditJobCard() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Service Charge:</span>
-                  <span>₹{parseFloat(formData.serviceCharge || "0").toFixed(2)}</span>
+                  <span>₹{Number(formData.serviceCharge || "0").toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-semibold border-t pt-2">
                   <span>Total Amount:</span>
