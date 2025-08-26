@@ -192,6 +192,12 @@ export default function Invoices() {
                       <MessageCircle className="w-4 h-4" />
                       <span>{invoice.whatsapp_sent ? 'Sent' : 'Not sent'}</span>
                     </div>
+                    {invoice.visit_count && (
+                      <div className="flex items-center space-x-2 col-span-2">
+                        <User className="w-4 h-4" />
+                        <span className="text-primary font-medium">Customer visits: {invoice.visit_count}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="text-sm bg-muted/30 p-2 rounded mb-3">

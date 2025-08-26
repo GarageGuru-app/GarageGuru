@@ -482,7 +482,18 @@ export class DatabaseStorage implements IStorage {
 
   // Invoices (simplified implementation)
   async getInvoices(garageId: string): Promise<Invoice[]> {
-    const result = await pool.query('SELECT * FROM invoices WHERE garage_id = $1 ORDER BY created_at DESC', [garageId]);
+    const result = await pool.query(`
+      SELECT 
+        i.*,
+        c.name as customer_name,
+        c.bike_number,
+        c.phone,
+        c.total_jobs as visit_count
+      FROM invoices i
+      LEFT JOIN customers c ON i.customer_id = c.id
+      WHERE i.garage_id = $1 
+      ORDER BY i.created_at DESC
+    `, [garageId]);
     return result.rows;
   }
 
