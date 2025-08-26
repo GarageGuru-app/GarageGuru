@@ -417,7 +417,15 @@ export class DatabaseStorage implements IStorage {
   // Spare Parts methods
   async getSpareParts(garageId: string): Promise<SparePart[]> {
     const result = await pool.query('SELECT * FROM spare_parts WHERE garage_id = $1 ORDER BY created_at DESC', [garageId]);
-    return result.rows;
+    // Map database fields to frontend-expected fields
+    return result.rows.map(row => ({
+      ...row,
+      partNumber: row.part_number,
+      costPrice: row.cost_price,
+      lowStockThreshold: row.low_stock_threshold,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
   }
 
   async getLowStockParts(garageId: string): Promise<SparePart[]> {
@@ -448,13 +456,32 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    return lowStockParts;
+    // Map database fields to frontend-expected fields for low stock parts
+    return lowStockParts.map(row => ({
+      ...row,
+      partNumber: row.part_number,
+      costPrice: row.cost_price,
+      lowStockThreshold: row.low_stock_threshold,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
   }
 
   async getSparePart(id: string, garageId: string): Promise<SparePart | undefined> {
     try {
       const result = await pool.query('SELECT * FROM spare_parts WHERE id = $1 AND garage_id = $2', [id, garageId]);
-      return result.rows[0];
+      if (result.rows[0]) {
+        const row = result.rows[0];
+        return {
+          ...row,
+          partNumber: row.part_number,
+          costPrice: row.cost_price,
+          lowStockThreshold: row.low_stock_threshold,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        };
+      }
+      return undefined;
     } catch (error) {
       console.error('getSparePart error:', error);
       return undefined;
@@ -466,7 +493,15 @@ export class DatabaseStorage implements IStorage {
       'SELECT * FROM spare_parts WHERE garage_id = $1 AND (name ILIKE $2 OR part_number ILIKE $2)',
       [garageId, `%${query}%`]
     );
-    return result.rows;
+    // Map database fields to frontend-expected fields
+    return result.rows.map(row => ({
+      ...row,
+      partNumber: row.part_number,
+      costPrice: row.cost_price,
+      lowStockThreshold: row.low_stock_threshold,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
   }
 
   async createSparePart(part: Partial<SparePart>): Promise<SparePart> {
@@ -475,7 +510,16 @@ export class DatabaseStorage implements IStorage {
       'INSERT INTO spare_parts (id, garage_id, name, part_number, price, quantity, low_stock_threshold, barcode, created_at, cost_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
       [id, part.garage_id, part.name, part.part_number, part.price, part.quantity || 0, part.low_stock_threshold || 5, part.barcode, new Date(), part.cost_price]
     );
-    return result.rows[0];
+    const row = result.rows[0];
+    // Map database fields to frontend-expected fields
+    return {
+      ...row,
+      partNumber: row.part_number,
+      costPrice: row.cost_price,
+      lowStockThreshold: row.low_stock_threshold,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
   }
 
   async updateSparePart(id: string, part: Partial<SparePart>): Promise<SparePart> {
@@ -483,7 +527,16 @@ export class DatabaseStorage implements IStorage {
       'UPDATE spare_parts SET name = COALESCE($2, name), part_number = COALESCE($3, part_number), price = COALESCE($4, price), quantity = COALESCE($5, quantity), low_stock_threshold = COALESCE($6, low_stock_threshold), barcode = COALESCE($7, barcode), cost_price = COALESCE($8, cost_price) WHERE id = $1 RETURNING *',
       [id, part.name, part.part_number, part.price, part.quantity, part.low_stock_threshold, part.barcode, part.cost_price]
     );
-    return result.rows[0];
+    const row = result.rows[0];
+    // Map database fields to frontend-expected fields
+    return {
+      ...row,
+      partNumber: row.part_number,
+      costPrice: row.cost_price,
+      lowStockThreshold: row.low_stock_threshold,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
   }
 
   async deleteSparePart(id: string, garageId: string): Promise<void> {

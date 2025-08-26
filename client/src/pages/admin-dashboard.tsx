@@ -70,7 +70,7 @@ export default function AdminDashboard() {
     queryKey: ["/api/garages", garage?.id, "job-cards"],
     queryFn: async () => {
       if (!garage?.id) return [];
-      const response = await apiRequest("GET", `/api/garages/${garage.id}/job-cards?status=pending`);
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/job-cards`);
       return response.json();
     },
     enabled: !!garage?.id,
@@ -176,6 +176,18 @@ export default function AdminDashboard() {
     updateUserStatusMutation.mutate({ userId, status: newStatus });
   };
 
+  // Add unread notifications count query
+  const { data: unreadNotificationCount = 0 } = useQuery({
+    queryKey: ["/api/garages", garage?.id, "notifications", "unread-count"],
+    queryFn: async () => {
+      if (!garage?.id) return 0;
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/notifications/unread-count`);
+      const data = await response.json();
+      return data.count || 0;
+    },
+    enabled: !!garage?.id,
+  });
+
   // Show low stock alert once per session if there are items
   useEffect(() => {
     if (lowStockParts && lowStockParts.length > 0 && garage?.id) {
@@ -234,9 +246,9 @@ export default function AdminDashboard() {
               data-testid="button-notifications"
             >
               <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-              {(lowStockParts?.length || 0) > 0 && (
+              {unreadNotificationCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs">
-                  {lowStockParts?.length}
+                  {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
                 </span>
               )}
             </Button>
