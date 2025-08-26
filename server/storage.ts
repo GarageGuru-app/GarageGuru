@@ -198,6 +198,13 @@ export interface IStorage {
   getAccessRequests(garageId?: string): Promise<AccessRequest[]>;
   updateAccessRequest(id: string, request: Partial<AccessRequest>): Promise<AccessRequest>;
   checkExistingAccessRequest(email: string): Promise<AccessRequest | null>;
+  
+  // Notifications
+  createNotification(notification: any): Promise<any>;
+  getNotifications(garageId: string): Promise<any[]>;
+  getUnreadNotificationCount(garageId: string): Promise<number>;
+  markNotificationAsRead(id: string, garageId: string): Promise<void>;
+  markAllNotificationsAsRead(garageId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -875,6 +882,46 @@ export class DatabaseStorage implements IStorage {
       [id, ...values]
     );
     return result.rows[0];
+  }
+
+  // Notification methods
+  async createNotification(notification: any): Promise<any> {
+    const id = crypto.randomUUID();
+    const result = await pool.query(
+      'INSERT INTO notifications (id, garage_id, title, message, type, is_read, data, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [id, notification.garageId, notification.title, notification.message, notification.type, false, JSON.stringify(notification.data || {}), new Date()]
+    );
+    return result.rows[0];
+  }
+
+  async getNotifications(garageId: string): Promise<any[]> {
+    const result = await pool.query(
+      'SELECT * FROM notifications WHERE garage_id = $1 ORDER BY created_at DESC LIMIT 50',
+      [garageId]
+    );
+    return result.rows;
+  }
+
+  async getUnreadNotificationCount(garageId: string): Promise<number> {
+    const result = await pool.query(
+      'SELECT COUNT(*) as count FROM notifications WHERE garage_id = $1 AND is_read = false',
+      [garageId]
+    );
+    return parseInt(result.rows[0].count);
+  }
+
+  async markNotificationAsRead(id: string, garageId: string): Promise<void> {
+    await pool.query(
+      'UPDATE notifications SET is_read = true WHERE id = $1 AND garage_id = $2',
+      [id, garageId]
+    );
+  }
+
+  async markAllNotificationsAsRead(garageId: string): Promise<void> {
+    await pool.query(
+      'UPDATE notifications SET is_read = true WHERE garage_id = $1 AND is_read = false',
+      [garageId]
+    );
   }
 }
 
