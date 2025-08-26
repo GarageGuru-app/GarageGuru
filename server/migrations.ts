@@ -71,8 +71,7 @@ export async function runMigrations() {
         customer_name TEXT NOT NULL,
         phone TEXT,
         bike_number TEXT,
-        service_type TEXT NOT NULL,
-        description TEXT,
+        complaint TEXT NOT NULL,
         spare_parts JSONB DEFAULT '[]',
         service_charge DECIMAL DEFAULT 0,
         total_amount DECIMAL DEFAULT 0,
@@ -80,6 +79,11 @@ export async function runMigrations() {
         created_at TIMESTAMP DEFAULT NOW(),
         completed_at TIMESTAMP
       )
+    `);
+
+    // Add complaint column if it doesn't exist (for existing installations)
+    await pool.query(`
+      ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS complaint TEXT;
     `);
 
     // Create invoices table
