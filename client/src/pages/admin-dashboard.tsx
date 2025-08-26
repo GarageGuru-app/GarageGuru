@@ -540,7 +540,19 @@ export default function AdminDashboard() {
                       <p className="text-sm text-muted-foreground">{job.complaint}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">₹{job.total_amount || job.service_charge || 0}</p>
+                      <p className="font-medium">₹{(() => {
+                        // Calculate amount from spare parts if available
+                        if (job.spare_parts && typeof job.spare_parts === 'string') {
+                          try {
+                            const parts = JSON.parse(job.spare_parts);
+                            const partsTotal = parts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0);
+                            return partsTotal || job.total_amount || job.service_charge || 0;
+                          } catch (e) {
+                            return job.total_amount || job.service_charge || 0;
+                          }
+                        }
+                        return job.total_amount || job.service_charge || 0;
+                      })()}</p>
                       <p className="text-sm text-muted-foreground">{job.status}</p>
                     </div>
                   </div>
