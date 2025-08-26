@@ -26,15 +26,15 @@ export default function GarageSetup() {
   // Handle redirects in useEffect to avoid render-time navigation
   useEffect(() => {
     if (garage) {
-      navigate("/dashboard");
+      navigate("/admin-dashboard");
       return;
     }
     
-    if (user?.role !== 'garage_admin') {
-      navigate("/dashboard");
+    if (user && user.role !== 'garage_admin') {
+      navigate("/admin-dashboard");
       return;
     }
-  }, [garage, user, navigate]);
+  }, [garage, user?.role]);
   
   // Show loading or return null while redirecting
   if (garage || user?.role !== 'garage_admin') {

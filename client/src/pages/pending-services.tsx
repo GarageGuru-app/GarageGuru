@@ -400,11 +400,12 @@ export default function PendingServices() {
       </Dialog>
 
       {/* Checklist Completion Modal */}
-      <Dialog open={isChecklistOpen} onOpenChange={setIsChecklistOpen}>
-        <DialogContent className="max-w-md mx-auto">
-          <DialogHeader>
-            <DialogTitle>Complete Service Tasks</DialogTitle>
-          </DialogHeader>
+      {isChecklistOpen && (
+        <Dialog open={isChecklistOpen} onOpenChange={setIsChecklistOpen}>
+          <DialogContent className="max-w-md mx-auto">
+            <DialogHeader>
+              <DialogTitle>Complete Service Tasks</DialogTitle>
+            </DialogHeader>
           
           {checklistJob && (
             <div className="space-y-4">
@@ -483,7 +484,8 @@ export default function PendingServices() {
             </div>
           )}
         </DialogContent>
-      </Dialog>
+        </Dialog>
+      )}
     </div>
   );
 }
