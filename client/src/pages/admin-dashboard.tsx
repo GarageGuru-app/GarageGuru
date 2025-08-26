@@ -516,12 +516,12 @@ export default function AdminDashboard() {
                     data-testid={`job-card-${job.id}`}
                   >
                     <div>
-                      <p className="font-medium">{job.customerName}</p>
-                      <p className="text-sm text-muted-foreground">{job.bikeNumber}</p>
+                      <p className="font-medium">{job.customer_name}</p>
+                      <p className="text-sm text-muted-foreground">{job.bike_number}</p>
                       <p className="text-sm text-muted-foreground">{job.complaint}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">₹{job.totalAmount}</p>
+                      <p className="font-medium">₹{job.total_amount}</p>
                       <p className="text-sm text-muted-foreground">{job.status}</p>
                     </div>
                   </div>
