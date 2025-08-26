@@ -517,98 +517,76 @@ export default function AdminDashboard() {
           </Card>
         )}
 
-        {/* Recent Activity */}
+        {/* Recent Invoices */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="w-5 h-5" />
-              Recent Job Cards
+              Recent Invoices
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {pendingJobs && pendingJobs.length > 0 ? (
-              <div className="space-y-3">
-                {pendingJobs.slice(0, 5).map((job: any) => (
-                  <div 
-                    key={job.id}
-                    className="flex items-center justify-between p-3 bg-muted rounded-lg"
-                    data-testid={`job-card-${job.id}`}
+            {(() => {
+              // Fetch recent invoices
+              const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
+                queryKey: ["/api/garages", garage?.id, "invoices"],
+                queryFn: async () => {
+                  if (!garage?.id) return [];
+                  const response = await apiRequest("GET", `/api/garages/${garage.id}/invoices`);
+                  return response.json();
+                },
+                enabled: !!garage?.id,
+              });
+
+              if (invoicesLoading) {
+                return <div className="text-center py-8 text-muted-foreground">Loading recent invoices...</div>;
+              }
+
+              const recentInvoices = invoices.slice(0, 5);
+
+              return recentInvoices.length > 0 ? (
+                <div className="space-y-3">
+                  {recentInvoices.map((invoice: any) => (
+                    <div 
+                      key={invoice.id}
+                      className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                      data-testid={`invoice-${invoice.id}`}
+                    >
+                      <div>
+                        <p className="font-medium">{invoice.customer_name}</p>
+                        <p className="text-sm text-muted-foreground">{invoice.bike_number}</p>
+                        <p className="text-sm text-muted-foreground">#{invoice.invoice_number}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">₹{Number(invoice.total_amount || 0).toLocaleString()}</p>
+                        <p className="text-sm text-success font-medium">Completed</p>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/invoices")}
+                    className="w-full mt-4"
+                    data-testid="button-view-all-invoices"
                   >
-                    <div>
-                      <p className="font-medium">{job.customer_name}</p>
-                      <p className="text-sm text-muted-foreground">{job.bike_number}</p>
-                      <p className="text-sm text-muted-foreground">{job.complaint}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">₹{(() => {
-                        // Debug log for troubleshooting
-                        console.log('Job data:', { 
-                          id: job.id, 
-                          customer: job.customer_name,
-                          spare_parts: job.spare_parts, 
-                          total_amount: job.total_amount, 
-                          service_charge: job.service_charge 
-                        });
-                        
-                        // Calculate amount from spare parts if available
-                        if (job.spare_parts && typeof job.spare_parts === 'string') {
-                          try {
-                            const parts = JSON.parse(job.spare_parts);
-                            if (parts && parts.length > 0) {
-                              const partsTotal = parts.reduce((sum: number, part: any) => sum + (Number(part.price || 0) * Number(part.quantity || 0)), 0);
-                              if (partsTotal > 0) return partsTotal;
-                            }
-                          } catch (e) {
-                            console.log('Error parsing spare_parts JSON:', e);
-                          }
-                        }
-                        // If it's an array already (not stringified)
-                        if (job.spare_parts && Array.isArray(job.spare_parts) && job.spare_parts.length > 0) {
-                          const partsTotal = job.spare_parts.reduce((sum: number, part: any) => sum + (Number(part.price || 0) * Number(part.quantity || 0)), 0);
-                          if (partsTotal > 0) return partsTotal;
-                        }
-                        
-                        // Check stored amounts
-                        const totalAmount = Number(job.total_amount || 0);
-                        const serviceCharge = Number(job.service_charge || 0);
-                        
-                        if (totalAmount > 0) return totalAmount;
-                        if (serviceCharge > 0) return serviceCharge;
-                        
-                        // For completed jobs without amounts, show a default service charge
-                        if (job.status === 'completed') {
-                          return 200; // Default service charge for completed jobs
-                        }
-                        
-                        return 0;
-                      })()}</p>
-                      <p className="text-sm text-muted-foreground">{job.status}</p>
-                    </div>
-                  </div>
-                ))}
-                
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/pending-services")}
-                  className="w-full mt-4"
-                  data-testid="button-view-all-jobs"
-                >
-                  View All Pending Jobs
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Car className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No pending job cards</p>
-                <Button
-                  onClick={() => navigate("/job-card")}
-                  className="mt-4"
-                  data-testid="button-create-first-job"
-                >
-                  Create Your First Job Card
-                </Button>
-              </div>
-            )}
+                    View All Invoices
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No invoices generated yet</p>
+                  <Button
+                    onClick={() => navigate("/pending-services")}
+                    className="mt-4"
+                    data-testid="button-create-first-invoice"
+                  >
+                    Complete a Service to Generate Invoice
+                  </Button>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
