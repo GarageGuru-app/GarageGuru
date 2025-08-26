@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -23,15 +23,21 @@ export default function GarageSetup() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // If user already has garage, redirect to dashboard
-  if (garage) {
-    navigate("/dashboard");
-    return null;
-  }
+  // Handle redirects in useEffect to avoid render-time navigation
+  useEffect(() => {
+    if (garage) {
+      navigate("/dashboard");
+      return;
+    }
+    
+    if (user?.role !== 'garage_admin') {
+      navigate("/dashboard");
+      return;
+    }
+  }, [garage, user, navigate]);
   
-  // If not admin, redirect to dashboard
-  if (user?.role !== 'garage_admin') {
-    navigate("/dashboard");
+  // Show loading or return null while redirecting
+  if (garage || user?.role !== 'garage_admin') {
     return null;
   }
 
