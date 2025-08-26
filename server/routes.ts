@@ -1122,10 +1122,12 @@ export async function registerRoutes(app: Express): Promise<void> {
       });
       
       // Update job card status to completed
+      console.log('🔄 Updating job card status to completed for jobCardId:', invoice.jobCardId);
       const jobCard = await storage.updateJobCard(invoice.jobCardId, {
         status: 'completed',
         completedAt: new Date()
       });
+      console.log('✅ Job card status updated:', jobCard.status, 'completed_at:', jobCard.completed_at);
       
       // Update customer stats and check for milestones
       const customer = await storage.getCustomer(invoice.customerId, garageId);
