@@ -65,11 +65,13 @@ export default function ChangePasswordPage() {
       // Refresh user data to update must_change_password status
       await refreshUser();
       
-      // Redirect based on user role
+      // Redirect based on user role using proper routes
       if (user?.role === 'super_admin') {
         setLocation('/super-admin');
       } else if (user?.role === 'garage_admin') {
-        setLocation('/dashboard');
+        setLocation('/admin-dashboard');
+      } else if (user?.role === 'mechanic_staff') {
+        setLocation('/staff-dashboard');
       } else {
         setLocation('/dashboard');
       }
