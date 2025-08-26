@@ -358,9 +358,17 @@ export default function EditJobCard() {
                   type="number"
                   step="0.01"
                   min="0"
-                  placeholder="0.00"
-                  value={formData.serviceCharge}
-                  onChange={(e) => handleInputChange("serviceCharge", e.target.value)}
+                  placeholder="Enter service charge"
+                  value={formData.serviceCharge === "0" ? "" : formData.serviceCharge}
+                  onChange={(e) => handleInputChange("serviceCharge", e.target.value || "0")}
+                  onFocus={(e) => {
+                    if (e.target.value === "0") {
+                      e.target.value = "";
+                      handleInputChange("serviceCharge", "");
+                    }
+                  }}
+                  style={{ appearance: "textfield" }}
+                  className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
             </CardContent>
