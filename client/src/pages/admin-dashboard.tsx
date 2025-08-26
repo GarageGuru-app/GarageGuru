@@ -281,7 +281,7 @@ export default function AdminDashboard() {
                 <IndianRupee className="w-5 h-5 text-green-600" />
                 <div>
                   <p className="text-sm text-muted-foreground">Today's Revenue</p>
-                  <p className="text-2xl font-bold">₹{todayStats?.revenue || 0}</p>
+                  <p className="text-2xl font-bold">₹{Number(todayStats?.todayProfit || 0).toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -293,7 +293,7 @@ export default function AdminDashboard() {
                 <TrendingUp className="w-5 h-5 text-blue-600" />
                 <div>
                   <p className="text-sm text-muted-foreground">Total Revenue</p>
-                  <p className="text-2xl font-bold">₹{salesStats?.totalRevenue || 0}</p>
+                  <p className="text-2xl font-bold">₹{Number(salesStats?.totalProfit || 0).toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
