@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -153,16 +153,19 @@ export default function EditJobCard() {
     setIsSearching(false);
   }, [searchQuery, availableParts]);
 
-  // Calculate totals when spare parts or service charge changes
-  useEffect(() => {
+  // Calculate totals when spare parts or service charge changes - using useMemo to prevent loops
+  const calculatedTotal = React.useMemo(() => {
     const partsTotal = formData.spareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
     const serviceCharge = parseFloat(formData.serviceCharge || "0");
-    const newTotal = (partsTotal + serviceCharge).toString();
-    
-    if (formData.totalAmount !== newTotal) {
-      setFormData(prev => ({ ...prev, totalAmount: newTotal }));
-    }
+    return (partsTotal + serviceCharge).toString();
   }, [formData.spareParts, formData.serviceCharge]);
+
+  // Update total only when calculated value changes
+  useEffect(() => {
+    if (formData.totalAmount !== calculatedTotal) {
+      setFormData(prev => ({ ...prev, totalAmount: calculatedTotal }));
+    }
+  }, [calculatedTotal]); // Only depend on calculated total
 
   const handleInputChange = (field: keyof JobCardFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -313,6 +316,37 @@ export default function EditJobCard() {
                 <Textarea
                   value={formData.complaint}
                   onChange={(e) => handleInputChange("complaint", e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const textareaValue = e.currentTarget?.value || '';
+                      const lines = textareaValue.split('\n').filter(line => line.trim() !== '');
+                      const lastLine = textareaValue.split('\n').pop()?.trim();
+                      
+                      if (lastLine && lastLine !== '') {
+                        // Convert current content to checklist format
+                        const checklistItems = lines.map(line => 
+                          line.trim().startsWith('☐ ') || line.trim().startsWith('☑ ') ? line : `☐ ${line.trim()}`
+                        );
+                        
+                        // Add the new line as a checklist item if it's not empty
+                        if (lastLine && !checklistItems.some(item => item.includes(lastLine))) {
+                          checklistItems.push(`☐ ${lastLine}`);
+                        }
+                        
+                        const newValue = checklistItems.join('\n') + '\n☐ ';
+                        handleInputChange("complaint", newValue);
+                        
+                        // Position cursor at the end
+                        setTimeout(() => {
+                          const textarea = e.currentTarget;
+                          if (textarea) {
+                            textarea.selectionStart = textarea.selectionEnd = newValue.length;
+                          }
+                        }, 0);
+                      }
+                    }
+                  }}
                   placeholder="Describe the service or complaint..."
                   className="min-h-20"
                 />
