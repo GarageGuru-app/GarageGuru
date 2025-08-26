@@ -54,10 +54,7 @@ export default function ChangePasswordPage() {
         ? { newPassword: data.newPassword }
         : { currentPassword: data.currentPassword, newPassword: data.newPassword };
       
-      return apiRequest('/api/auth/change-password', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
+      return apiRequest('POST', '/api/auth/change-password', payload);
     },
     onSuccess: async () => {
       toast({
