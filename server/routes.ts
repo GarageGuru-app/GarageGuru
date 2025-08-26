@@ -684,7 +684,13 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       res.json({ 
         token, 
-        user: { ...user, password: undefined },
+        user: { 
+          ...user, 
+          password: undefined,
+          mustChangePassword: user.must_change_password || false,
+          firstLogin: user.first_login || false,
+          garageId: user.garage_id  // Map garage_id to garageId for frontend
+        },
         garage: garageId ? await storage.getGarage(garageId) : null
       });
     } catch (error) {
@@ -730,7 +736,13 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       res.json({ 
         token, 
-        user: { ...user, password: undefined },
+        user: { 
+          ...user, 
+          password: undefined,
+          mustChangePassword: user.must_change_password || false,
+          firstLogin: user.first_login || false,
+          garageId: user.garage_id  // Map garage_id to garageId for frontend
+        },
         garage
       });
     } catch (error: any) {
