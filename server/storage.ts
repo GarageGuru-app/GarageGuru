@@ -578,10 +578,15 @@ export class DatabaseStorage implements IStorage {
           SELECT COALESCE(SUM(total_amount), 0) 
           FROM invoices 
           WHERE invoices.customer_id = customers.id
+        ),
+        last_visit = (
+          SELECT MAX(created_at)
+          FROM invoices 
+          WHERE invoices.customer_id = customers.id
         )
         WHERE garage_id = $1
       `, [garageId]);
-      console.log(`✅ Synced visit counts for customers in garage ${garageId}`);
+      console.log(`✅ Synced visit counts and last visit dates for customers in garage ${garageId}`);
     } catch (error) {
       console.error('Error syncing customer visit counts:', error);
     }
