@@ -240,10 +240,42 @@ export default function JobCard() {
               <Textarea
                 value={formData.complaint}
                 onChange={(e) => handleInputChange("complaint", e.target.value)}
-                placeholder="Describe the issue in detail..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const currentValue = formData.complaint || '';
+                    const lines = currentValue.split('\n').filter(line => line.trim() !== '');
+                    const lastLine = e.currentTarget.value.split('\n').pop()?.trim();
+                    
+                    if (lastLine && lastLine !== '') {
+                      // Convert current content to checklist format
+                      const checklistItems = lines.map(line => 
+                        line.trim().startsWith('☐ ') || line.trim().startsWith('☑ ') ? line : `☐ ${line.trim()}`
+                      );
+                      
+                      // Add the new line as a checklist item if it's not empty
+                      if (lastLine && !checklistItems.some(item => item.includes(lastLine))) {
+                        checklistItems.push(`☐ ${lastLine}`);
+                      }
+                      
+                      const newValue = checklistItems.join('\n') + '\n☐ ';
+                      handleInputChange("complaint", newValue);
+                      
+                      // Position cursor at the end
+                      setTimeout(() => {
+                        const textarea = e.currentTarget;
+                        textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+                      }, 0);
+                    }
+                  }
+                }}
+                placeholder="Describe the issue in detail...&#10;Press Enter to create checklist items"
                 rows={4}
                 required
               />
+              <div className="text-xs text-muted-foreground mt-1">
+                Press Enter to create checklist items • Click ☐/☑ to toggle completion
+              </div>
             </CardContent>
           </Card>
 

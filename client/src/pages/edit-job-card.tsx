@@ -327,10 +327,61 @@ export default function EditJobCard() {
                       <FormControl>
                         <Textarea
                           {...field}
-                          placeholder="Describe the service or complaint..."
+                          placeholder="Describe the service or complaint...\nPress Enter to create checklist items"
                           className="min-h-20"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const currentValue = field.value || '';
+                              const lines = currentValue.split('\n').filter(line => line.trim() !== '');
+                              const lastLine = e.currentTarget.value.split('\n').pop()?.trim();
+                              
+                              if (lastLine && lastLine !== '') {
+                                // Convert current content to checklist format
+                                const checklistItems = lines.map(line => 
+                                  line.trim().startsWith('☐ ') || line.trim().startsWith('☑ ') ? line : `☐ ${line.trim()}`
+                                );
+                                
+                                // Add the new line as a checklist item if it's not empty
+                                if (lastLine && !checklistItems.some(item => item.includes(lastLine))) {
+                                  checklistItems.push(`☐ ${lastLine}`);
+                                }
+                                
+                                field.onChange(checklistItems.join('\n') + '\n☐ ');
+                                
+                                // Position cursor at the end
+                                setTimeout(() => {
+                                  const textarea = e.currentTarget;
+                                  textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+                                }, 0);
+                              }
+                            }
+                          }}
+                          onChange={(e) => {
+                            // Handle checkbox toggling when clicking on ☐ or ☑
+                            let value = e.target.value;
+                            const cursorPos = e.target.selectionStart || 0;
+                            const lines = value.split('\n');
+                            const currentLineIndex = value.substring(0, cursorPos).split('\n').length - 1;
+                            const currentLine = lines[currentLineIndex];
+                            
+                            // If user clicked on a checkbox, toggle it
+                            if (currentLine && (currentLine.includes('☐ ') || currentLine.includes('☑ '))) {
+                              if (currentLine.includes('☐ ')) {
+                                lines[currentLineIndex] = currentLine.replace('☐ ', '☑ ');
+                              } else if (currentLine.includes('☑ ')) {
+                                lines[currentLineIndex] = currentLine.replace('☑ ', '☐ ');
+                              }
+                              value = lines.join('\n');
+                            }
+                            
+                            field.onChange(value);
+                          }}
                         />
                       </FormControl>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Press Enter to create checklist items • Click ☐/☑ to toggle completion
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
