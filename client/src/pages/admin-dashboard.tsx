@@ -11,6 +11,7 @@ import { NotificationPanel } from "@/components/NotificationPanel";
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -573,6 +574,9 @@ export default function AdminDashboard() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-dismiss-alert">
+              Dismiss
+            </AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => navigate("/spare-parts")}
               data-testid="button-manage-stock"
