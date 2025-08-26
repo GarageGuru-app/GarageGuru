@@ -52,6 +52,7 @@ export default function PendingServices() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards", "pending"] });
       toast({
         title: "Success",
         description: "Service tasks updated successfully",

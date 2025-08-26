@@ -51,7 +51,10 @@ export default function Invoice() {
         title: "Success",
         description: "Invoice created and service completed successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id] });
+      // Invalidate specific queries to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards", "pending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "invoices"] });
       navigate("/admin-dashboard");
     },
     onError: (error) => {
