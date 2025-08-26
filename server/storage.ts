@@ -550,6 +550,29 @@ export class DatabaseStorage implements IStorage {
     return result.rows[0];
   }
 
+  // Utility function to sync customer visit counts based on existing invoices
+  async syncCustomerVisitCounts(garageId: string): Promise<void> {
+    try {
+      const result = await pool.query(`
+        UPDATE customers 
+        SET total_jobs = (
+          SELECT COUNT(*) 
+          FROM invoices 
+          WHERE invoices.customer_id = customers.id
+        ),
+        total_spent = (
+          SELECT COALESCE(SUM(total_amount), 0) 
+          FROM invoices 
+          WHERE invoices.customer_id = customers.id
+        )
+        WHERE garage_id = $1
+      `, [garageId]);
+      console.log(`✅ Synced visit counts for customers in garage ${garageId}`);
+    } catch (error) {
+      console.error('Error syncing customer visit counts:', error);
+    }
+  }
+
   // Analytics (simplified implementation)
   async getSalesStats(garageId: string): Promise<{
     totalInvoices: number;

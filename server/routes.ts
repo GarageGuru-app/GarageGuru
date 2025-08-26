@@ -1139,12 +1139,27 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       // Update customer stats and check for milestones
       const customer = await storage.getCustomer(invoice.customerId, garageId);
+      console.log('📊 Current customer data:', { 
+        id: customer?.id, 
+        name: customer?.name, 
+        totalJobs: customer?.totalJobs,
+        totalSpent: customer?.totalSpent 
+      });
+      
       if (customer) {
         const newTotalJobs = (customer.totalJobs || 0) + 1;
-        await storage.updateCustomer(customer.id, {
+        console.log('📊 Updating customer visit count:', { currentJobs: customer.totalJobs, newTotalJobs });
+        
+        const updatedCustomer = await storage.updateCustomer(customer.id, {
           totalJobs: newTotalJobs,
           totalSpent: String(Number(customer.totalSpent || 0) + Number(invoice.totalAmount)),
           lastVisit: new Date()
+        });
+        
+        console.log('📊 Customer updated:', { 
+          id: updatedCustomer.id, 
+          name: updatedCustomer.name, 
+          totalJobs: updatedCustomer.totalJobs 
         });
 
         // Create milestone notifications
@@ -1176,6 +1191,18 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error) {
       console.error('Error fetching garage staff:', error);
       res.status(500).json({ message: 'Failed to fetch garage staff' });
+    }
+  });
+
+  // Sync customer visit counts (utility endpoint)
+  app.post("/api/garages/:garageId/customers/sync-visits", authenticateToken, requireRole(['garage_admin']), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      await storage.syncCustomerVisitCounts(garageId);
+      res.json({ message: 'Customer visit counts synced successfully' });
+    } catch (error) {
+      console.error('Error syncing customer visit counts:', error);
+      res.status(500).json({ message: 'Failed to sync customer visit counts' });
     }
   });
 
