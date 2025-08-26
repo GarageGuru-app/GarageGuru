@@ -36,6 +36,14 @@ export default function Login() {
   const [mfaToken, setMfaToken] = useState("");
   const [mfaStep, setMfaStep] = useState<'request' | 'verify' | 'change'>('request');
 
+  // Regular forgot password states
+  const [forgotPasswordStep, setForgotPasswordStep] = useState<'request' | 'verify' | 'reset'>('request');
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetConfirmPassword, setResetConfirmPassword] = useState("");
+  const [isLoadingForgot, setIsLoadingForgot] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('🔥 [LOGIN] Form submitted, isLoading:', isLoading);
@@ -100,23 +108,60 @@ export default function Login() {
     }
 
     // Check if email is a super admin email
-    if (!SUPER_ADMIN_EMAILS.includes(forgotEmail)) {
+    if (SUPER_ADMIN_EMAILS.includes(forgotEmail)) {
+      // Redirect to MFA process for super admin
       toast({
-        title: "Access Restricted",
-        description: "Password reset is only available for super admin accounts. Please use the Super Admin Password Reset (MFA) option above.",
-        variant: "destructive",
+        title: "Super Admin Detected",
+        description: "Please use the Super Admin Password Reset (MFA) option for secure password reset.",
       });
+      setShowForgotPassword(false);
+      setShowMfaDialog(true);
       return;
     }
 
-    // Redirect to MFA process for super admin
-    toast({
-      title: "Super Admin Detected",
-      description: "Please use the Super Admin Password Reset (MFA) option for secure password reset.",
-    });
-    setShowForgotPassword(false);
-    setShowMfaDialog(true);
-    setForgotEmail("");
+    // Handle regular user forgot password
+    setIsLoadingForgot(true);
+    try {
+      const response = await apiRequest('POST', '/api/forgot-password/request', { 
+        email: forgotEmail 
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.isSuspended) {
+          toast({
+            title: "Account Suspended",
+            description: data.message,
+            variant: "destructive",
+          });
+          return;
+        }
+        if (data.isInactive) {
+          toast({
+            title: "Account Inactive",
+            description: data.message,
+            variant: "destructive",
+          });
+          return;
+        }
+        toast({
+          title: "Reset Code Sent",
+          description: data.message || "Check your email for the password reset code",
+        });
+        setForgotPasswordStep('verify');
+      } else {
+        throw new Error('Failed to send reset code');
+      }
+    } catch (error: any) {
+      const errorData = await error.response?.json?.() || {};
+      toast({
+        title: "Error",
+        description: errorData.message || "Failed to send reset code",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingForgot(false);
+    }
   };
 
   const handleMfaRequest = async () => {
@@ -191,6 +236,128 @@ export default function Login() {
         description: error instanceof Error ? error.message : "Invalid or expired OTP",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleForgotVerify = async () => {
+    if (!forgotOtp || forgotOtp.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid 6-digit code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoadingForgot(true);
+    try {
+      const response = await apiRequest('POST', '/api/forgot-password/verify', { 
+        email: forgotEmail,
+        code: forgotOtp
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setResetToken(data.resetToken);
+        setForgotPasswordStep('reset');
+        toast({
+          title: "Code Verified",
+          description: "Now enter your new password",
+        });
+      } else {
+        throw new Error('Invalid code');
+      }
+    } catch (error: any) {
+      const errorData = await error.response?.json?.() || {};
+      toast({
+        title: "Error",
+        description: errorData.message || "Invalid or expired code",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingForgot(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!resetPassword || resetPassword.length < 8) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!/[A-Z]/.test(resetPassword)) {
+      toast({
+        title: "Error",
+        description: "Password must contain at least one uppercase letter",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!/[a-z]/.test(resetPassword)) {
+      toast({
+        title: "Error",
+        description: "Password must contain at least one lowercase letter",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!/[0-9]/.test(resetPassword)) {
+      toast({
+        title: "Error",
+        description: "Password must contain at least one number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (resetPassword !== resetConfirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoadingForgot(true);
+    try {
+      const response = await apiRequest('POST', '/api/forgot-password/reset', { 
+        resetToken,
+        newPassword: resetPassword
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast({
+          title: "Success",
+          description: data.message || "Password reset successfully",
+        });
+        // Reset all state and close dialog
+        setShowForgotPassword(false);
+        setForgotPasswordStep('request');
+        setForgotEmail("");
+        setForgotOtp("");
+        setResetToken("");
+        setResetPassword("");
+        setResetConfirmPassword("");
+      } else {
+        throw new Error('Failed to reset password');
+      }
+    } catch (error: any) {
+      const errorData = await error.response?.json?.() || {};
+      toast({
+        title: "Error",
+        description: errorData.message || "Failed to reset password",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingForgot(false);
     }
   };
 
@@ -367,47 +534,159 @@ export default function Login() {
       </div>
 
       {/* Forgot Password Dialog */}
-      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+      <Dialog open={showForgotPassword} onOpenChange={(open) => {
+        setShowForgotPassword(open);
+        if (!open) {
+          // Reset state when dialog is closed
+          setForgotPasswordStep('request');
+          setForgotEmail("");
+          setForgotOtp("");
+          setResetToken("");
+          setResetPassword("");
+          setResetConfirmPassword("");
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="w-5 h-5" />
-              Forgot Password
+              {forgotPasswordStep === 'request' && 'Forgot Password'}
+              {forgotPasswordStep === 'verify' && 'Enter Verification Code'}
+              {forgotPasswordStep === 'reset' && 'Set New Password'}
             </DialogTitle>
             <DialogDescription>
-              Enter your email address and we'll send you instructions to reset your password.
+              {forgotPasswordStep === 'request' && 'Enter your email address to receive a password reset code.'}
+              {forgotPasswordStep === 'verify' && 'Enter the 6-digit code sent to your email address.'}
+              {forgotPasswordStep === 'reset' && 'Enter your new password below.'}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="forgot-email">Email Address</Label>
-              <Input
-                id="forgot-email"
-                type="email"
-                placeholder="Enter your email"
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                data-testid="input-forgot-email"
-              />
+          
+          {forgotPasswordStep === 'request' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="forgot-email">Email Address</Label>
+                <Input
+                  id="forgot-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  data-testid="input-forgot-email"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="flex-1"
+                  data-testid="button-cancel-forgot"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleForgotPassword}
+                  disabled={isLoadingForgot}
+                  className="flex-1"
+                  data-testid="button-send-reset"
+                >
+                  {isLoadingForgot ? 'Sending...' : 'Send Reset Code'}
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowForgotPassword(false)}
-                className="flex-1"
-                data-testid="button-cancel-forgot"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleForgotPassword}
-                className="flex-1"
-                data-testid="button-send-reset"
-              >
-                Send Reset Link
-              </Button>
+          )}
+          
+          {forgotPasswordStep === 'verify' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="forgot-otp">Verification Code</Label>
+                <Input
+                  id="forgot-otp"
+                  type="text"
+                  value={forgotOtp}
+                  onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
+                  className="text-center text-lg tracking-widest"
+                  data-testid="input-forgot-otp"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Code sent to {forgotEmail}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setForgotPasswordStep('request')}
+                  className="flex-1"
+                  data-testid="button-back-to-email"
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={handleForgotVerify}
+                  disabled={isLoadingForgot || forgotOtp.length !== 6}
+                  className="flex-1"
+                  data-testid="button-verify-code"
+                >
+                  {isLoadingForgot ? 'Verifying...' : 'Verify Code'}
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
+          
+          {forgotPasswordStep === 'reset' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="reset-password">New Password</Label>
+                <Input
+                  id="reset-password"
+                  type="password"
+                  value={resetPassword}
+                  onChange={(e) => setResetPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  data-testid="input-reset-password"
+                />
+                <div className="text-xs text-gray-600 mt-1">
+                  Password must contain:
+                  <ul className="list-disc list-inside ml-2">
+                    <li>At least 8 characters</li>
+                    <li>One uppercase letter</li>
+                    <li>One lowercase letter</li>
+                    <li>One number</li>
+                  </ul>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="reset-confirm-password">Confirm New Password</Label>
+                <Input
+                  id="reset-confirm-password"
+                  type="password"
+                  value={resetConfirmPassword}
+                  onChange={(e) => setResetConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  data-testid="input-reset-confirm-password"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setForgotPasswordStep('verify')}
+                  className="flex-1"
+                  data-testid="button-back-to-verify"
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={handlePasswordReset}
+                  disabled={isLoadingForgot || !resetPassword || !resetConfirmPassword}
+                  className="flex-1"
+                  data-testid="button-reset-password"
+                >
+                  {isLoadingForgot ? 'Resetting...' : 'Reset Password'}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

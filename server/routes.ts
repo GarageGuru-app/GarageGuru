@@ -1323,7 +1323,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     return bcrypt.hashSync(otp + salt, 10);
   };
 
-  // Helper function to send OTP email using Gmail
+  // Helper function to send OTP email using Gmail (Super Admin)
   const sendOtpEmail = async (otp: string) => {
     const gmailUser = process.env.GMAIL_USER;
     
@@ -1363,6 +1363,42 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   };
 
+  // Helper function to send OTP email to individual users (Staff/Admin)
+  const sendUserOtpEmail = async (email: string, otp: string, userName: string) => {
+    const gmailUser = process.env.GMAIL_USER;
+    
+    if (!gmailUser) {
+      throw new Error('Gmail service not configured');
+    }
+
+    const emailHTML = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">GarageGuru Password Reset</h2>
+        <p>Hello ${userName},</p>
+        <p>You requested a password reset for your GarageGuru account. Your verification code is:</p>
+        <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
+          ${otp}
+        </div>
+        <p><strong>⚠️ Security Notice:</strong></p>
+        <ul>
+          <li>This code expires in 10 minutes</li>
+          <li>Only use this code if you requested a password reset</li>
+          <li>Never share this code with anyone</li>
+        </ul>
+        <p>If you didn't request this reset, please ignore this email or contact your administrator.</p>
+        <p>Best regards,<br>GarageGuru Team</p>
+      </div>
+    `;
+
+    // Send OTP to user's email using Gmail service
+    const sent = await gmailService.sendOtpEmail(email, otp, 'password reset');
+    
+    if (!sent) {
+      console.log(`⚠️ OTP email may not have been sent to ${email}`);
+      throw new Error('Failed to send email');
+    }
+  };
+
   // Rate limiting storage (in production, use Redis)
   const rateLimits = new Map<string, { count: number; resetTime: number; locked?: boolean; lockTime?: number }>();
 
@@ -1392,7 +1428,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     limit.count++;
   };
 
-  // 1. Request OTP for password change
+  // 1. Request OTP for password change (Super Admin)
   app.post("/api/mfa/request", async (req, res) => {
     try {
       const { email, purpose } = req.body;
@@ -1444,7 +1480,202 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // 2. Verify OTP and get temporary token
+  // 1b. Request OTP for password reset (Staff/Admin)
+  app.post("/api/forgot-password/request", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+
+      // Check if user exists and get their status
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Return generic response to avoid email enumeration
+        return res.json({ ok: true, message: 'If your email is registered, you will receive a password reset code.' });
+      }
+
+      // Check if account is suspended
+      if (user.status === 'suspended') {
+        return res.status(403).json({ 
+          message: 'This account is suspended. Please contact the administrator for assistance.',
+          isSuspended: true 
+        });
+      }
+
+      // Check if account is active
+      if (user.status !== 'active') {
+        return res.status(403).json({ 
+          message: 'This account is not activated. Please contact the administrator.',
+          isInactive: true 
+        });
+      }
+
+      // Check rate limits
+      try {
+        checkRateLimit(email);
+      } catch (error: any) {
+        return res.status(429).json({ message: error.message });
+      }
+
+      // Generate OTP and salt
+      const otp = generateOtp();
+      const salt = crypto.randomBytes(16).toString('hex');
+      const hashedOtp = hashOtp(otp, salt);
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      // Invalidate any existing OTP for this email/purpose
+      const existingOtp = await storage.getOtpRecord(email, 'forgot_password');
+      if (existingOtp) {
+        await storage.updateOtpRecord(existingOtp.id, { used: true });
+      }
+
+      // Store new OTP record
+      await storage.createOtpRecord({
+        email,
+        hashed_otp: hashedOtp,
+        salt,
+        purpose: 'forgot_password',
+        expires_at: expiresAt
+      });
+
+      // Send OTP email to user
+      await sendUserOtpEmail(email, otp, user.name || 'User');
+
+      res.json({ 
+        ok: true, 
+        message: 'Password reset code sent to your email address.' 
+      });
+    } catch (error: any) {
+      console.error('Forgot password request error:', error);
+      res.status(500).json({ message: 'Failed to send password reset code' });
+    }
+  });
+
+  // 2. Verify OTP and get temporary token (Staff/Admin)
+  app.post("/api/forgot-password/verify", async (req, res) => {
+    try {
+      const { email, code } = req.body;
+
+      if (!email || !code) {
+        return res.status(400).json({ message: 'Email and code are required' });
+      }
+
+      // Check if user exists
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid or expired code' });
+      }
+
+      // Get OTP record
+      const otpRecord = await storage.getOtpRecord(email, 'forgot_password');
+      if (!otpRecord) {
+        return res.status(400).json({ message: 'Invalid or expired code' });
+      }
+
+      // Check attempts (max 5)
+      if (otpRecord.attempts >= 5) {
+        await storage.updateOtpRecord(otpRecord.id, { used: true });
+        return res.status(400).json({ message: 'Too many attempts. Request a new code.' });
+      }
+
+      // Verify OTP
+      const isValid = bcrypt.compareSync(code + otpRecord.salt, otpRecord.hashed_otp);
+      
+      if (!isValid) {
+        await storage.updateOtpRecord(otpRecord.id, { 
+          attempts: otpRecord.attempts + 1 
+        });
+        return res.status(400).json({ message: 'Invalid code' });
+      }
+
+      // Mark OTP as used
+      await storage.updateOtpRecord(otpRecord.id, { used: true });
+
+      // Generate temporary token (5 minutes)
+      const tempToken = jwt.sign({ 
+        email, 
+        userId: user.id,
+        purpose: 'forgot_password', 
+        type: 'otp_verified' 
+      }, JWT_SECRET, { expiresIn: '5m' });
+
+      res.json({ 
+        success: true,
+        resetToken: tempToken,
+        message: 'Code verified successfully. You can now reset your password.' 
+      });
+    } catch (error: any) {
+      console.error('OTP verification error:', error);
+      res.status(500).json({ message: 'Failed to verify code' });
+    }
+  });
+
+  // 3. Reset password with verified token (Staff/Admin)
+  app.post("/api/forgot-password/reset", async (req, res) => {
+    try {
+      const { resetToken, newPassword } = req.body;
+
+      if (!resetToken || !newPassword) {
+        return res.status(400).json({ message: 'Reset token and new password are required' });
+      }
+
+      // Verify password strength
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+      }
+      
+      if (!/[A-Z]/.test(newPassword)) {
+        return res.status(400).json({ message: 'Password must contain at least one uppercase letter' });
+      }
+      
+      if (!/[a-z]/.test(newPassword)) {
+        return res.status(400).json({ message: 'Password must contain at least one lowercase letter' });
+      }
+      
+      if (!/[0-9]/.test(newPassword)) {
+        return res.status(400).json({ message: 'Password must contain at least one number' });
+      }
+
+      // Verify temporary token
+      let decoded;
+      try {
+        decoded = jwt.verify(resetToken, JWT_SECRET) as any;
+      } catch (error) {
+        return res.status(400).json({ message: 'Invalid or expired reset token' });
+      }
+
+      if (decoded.purpose !== 'forgot_password' || decoded.type !== 'otp_verified') {
+        return res.status(400).json({ message: 'Invalid reset token' });
+      }
+
+      // Get user and check if new password is same as current
+      const user = await storage.getUserByEmail(decoded.email);
+      if (!user) {
+        return res.status(400).json({ message: 'User not found' });
+      }
+
+      // Check if new password is the same as current password
+      const isSamePassword = await bcrypt.compare(newPassword, user.password);
+      if (isSamePassword) {
+        return res.status(400).json({ message: 'New password cannot be the same as your current password' });
+      }
+
+      // Change password
+      await storage.changePassword(user.id, newPassword);
+
+      res.json({ 
+        success: true,
+        message: 'Password reset successfully. You can now login with your new password.' 
+      });
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      res.status(500).json({ message: 'Failed to reset password' });
+    }
+  });
+
+  // 2b. Verify OTP and get temporary token (Super Admin)
   app.post("/api/mfa/verify", async (req, res) => {
     try {
       const { email, code, purpose } = req.body;
@@ -1485,7 +1716,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         type: 'otp_verified' 
       }, JWT_SECRET, { expiresIn: '5m' });
 
-      res.json({ otp_verified_token: tempToken });
+      res.json({ token: tempToken });
     } catch (error: any) {
       console.error('OTP verification error:', error);
       res.status(500).json({ message: 'Failed to verify OTP' });
