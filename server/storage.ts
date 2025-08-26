@@ -458,8 +458,8 @@ export class DatabaseStorage implements IStorage {
 
   async updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard> {
     const result = await pool.query(
-      'UPDATE job_cards SET status = COALESCE($2, status), service_charge = COALESCE($3, service_charge), total_amount = COALESCE($4, total_amount), completed_at = COALESCE($5, completed_at) WHERE id = $1 RETURNING *',
-      [id, jobCard.status, jobCard.serviceCharge, jobCard.totalAmount, jobCard.completedAt]
+      'UPDATE job_cards SET complaint = COALESCE($2, complaint), spare_parts = COALESCE($3, spare_parts), service_charge = COALESCE($4, service_charge), total_amount = COALESCE($5, total_amount), status = COALESCE($6, status), completed_at = COALESCE($7, completed_at) WHERE id = $1 RETURNING *',
+      [id, jobCard.complaint, jobCard.spareParts ? JSON.stringify(jobCard.spareParts) : null, jobCard.serviceCharge, jobCard.totalAmount, jobCard.status, jobCard.completedAt]
     );
     return result.rows[0];
   }

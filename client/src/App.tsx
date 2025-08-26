@@ -14,6 +14,7 @@ import Register from "@/pages/register";
 import GarageSetup from "@/pages/garage-setup";
 import Dashboard from "@/pages/dashboard";
 import JobCard from "@/pages/job-card";
+import EditJobCard from "@/pages/edit-job-card";
 import PendingServices from "@/pages/pending-services";
 import Invoice from "@/pages/invoice";
 import Invoices from "@/pages/invoices";
@@ -71,6 +72,14 @@ function Router() {
         <ProtectedRoute>
           <Layout>
             <PendingServices />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/edit-job-card/:jobCardId">
+        <ProtectedRoute>
+          <Layout showFab={false}>
+            <EditJobCard />
           </Layout>
         </ProtectedRoute>
       </Route>
