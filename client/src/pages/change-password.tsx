@@ -50,6 +50,11 @@ export default function ChangePasswordPage() {
 
   const changePasswordMutation = useMutation({
     mutationFn: async (data: ChangePasswordForm) => {
+      // Client-side validation: Check if new password is same as current password
+      if (!isForced && data.newPassword === data.currentPassword) {
+        throw new Error("New password cannot be the same as your current password");
+      }
+
       const payload = isForced 
         ? { newPassword: data.newPassword }
         : { currentPassword: data.currentPassword, newPassword: data.newPassword };

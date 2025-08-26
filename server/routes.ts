@@ -787,6 +787,12 @@ export async function registerRoutes(app: Express): Promise<void> {
         }
       }
       
+      // Check if new password is the same as current password
+      const isSamePassword = await bcrypt.compare(newPassword, user.password);
+      if (isSamePassword) {
+        return res.status(400).json({ message: "New password cannot be the same as your current password" });
+      }
+      
       await storage.changePassword(user.id, newPassword);
       
       res.json({ message: "Password changed successfully" });

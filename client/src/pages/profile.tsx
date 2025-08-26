@@ -134,6 +134,16 @@ export default function Profile() {
       return;
     }
 
+    // Check if new password is same as current password
+    if (passwordForm.newPassword === passwordForm.currentPassword) {
+      toast({
+        title: "Error",
+        description: "New password cannot be the same as your current password",
+        variant: "destructive",
+      });
+      return;
+    }
+
     changePasswordMutation.mutate({
       currentPassword: passwordForm.currentPassword,
       newPassword: passwordForm.newPassword
