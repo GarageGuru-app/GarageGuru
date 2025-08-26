@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2, Save, Loader2 } from "lucide-react";
+import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import * as z from "zod";
@@ -35,6 +36,7 @@ export default function EditJobCard() {
   const { garage } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { startScanning } = useBarcodeScanner();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -173,6 +175,23 @@ export default function EditJobCard() {
     setSearchQuery("");
   };
 
+  const handleBarcodeScanned = (barcode: string) => {
+    const part = availableParts.find((p: any) => p.barcode === barcode);
+    if (part) {
+      addSparePart(part);
+      toast({
+        title: "Part Added",
+        description: `${part.name} added to job card`,
+      });
+    } else {
+      toast({
+        title: "Part Not Found",
+        description: "No spare part found with this barcode",
+        variant: "destructive",
+      });
+    }
+  };
+
   const removeSparePart = (index: number) => {
     const currentParts = form.getValues("spareParts") || [];
     form.setValue("spareParts", currentParts.filter((_, i) => i !== index));
@@ -231,9 +250,20 @@ export default function EditJobCard() {
           </Button>
           <h2 className="text-lg font-semibold">Edit Job Card</h2>
         </div>
-        <Badge variant="secondary" className="warning-bg warning-text">
-          Pending
-        </Badge>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => startScanning(handleBarcodeScanned)}
+            className="text-white hover:bg-white/10"
+            title="Scan Barcode/QR Code"
+          >
+            <QrCode className="w-5 h-5" />
+          </Button>
+          <Badge variant="secondary" className="warning-bg warning-text">
+            Pending
+          </Badge>
+        </div>
       </div>
 
       <div className="screen-content">
