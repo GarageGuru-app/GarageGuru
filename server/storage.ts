@@ -533,6 +533,20 @@ export class DatabaseStorage implements IStorage {
       [id, invoice.garageId, invoice.jobCardId, invoice.customerId, invoice.invoiceNumber, invoice.pdfUrl, invoice.whatsappSent || false, invoice.totalAmount || 0, invoice.partsTotal || 0, invoice.serviceCharge || 0, new Date()]
     );
     
+    // Update customer visit count and last visit date when invoice is created
+    if (invoice.customerId && invoice.garageId) {
+      try {
+        console.log(`📊 [INVOICE] Updating visit count for customer ${invoice.customerId}`);
+        await pool.query(
+          'UPDATE customers SET total_jobs = total_jobs + 1, last_visit = $1, total_spent = total_spent + $2 WHERE id = $3 AND garage_id = $4',
+          [new Date(), invoice.totalAmount || 0, invoice.customerId, invoice.garageId]
+        );
+        console.log(`✅ [INVOICE] Customer visit count updated successfully`);
+      } catch (error) {
+        console.error('❌ [INVOICE] Error updating customer visit count:', error);
+      }
+    }
+    
     // Ensure jobCardId is available in the returned invoice
     const createdInvoice = result.rows[0];
     if (createdInvoice && !createdInvoice.jobCardId && createdInvoice.job_card_id) {

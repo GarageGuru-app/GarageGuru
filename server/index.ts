@@ -4,6 +4,7 @@ import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { runMigrations, createSuperAdmin } from "./migrations";
+import { storage } from "./storage";
 
 const app = express();
 
@@ -62,6 +63,13 @@ app.use((req, res, next) => {
   try {
     await runMigrations();
     await createSuperAdmin();
+    
+    // Sync customer visit counts for all garages on startup
+    const garages = await storage.getAllGarages();
+    for (const garage of garages) {
+      await storage.syncCustomerVisitCounts(garage.id);
+      console.log(`✅ Synced visit counts for garage: ${garage.name}`);
+    }
   } catch (error) {
     console.error('Failed to initialize database:', error);
     process.exit(1);
