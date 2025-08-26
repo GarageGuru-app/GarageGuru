@@ -201,6 +201,20 @@ export async function runMigrations() {
       console.log('Note: status column may already exist');
     }
 
+    // Create notifications table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        garage_id VARCHAR NOT NULL REFERENCES garages(id),
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'info',
+        is_read BOOLEAN DEFAULT FALSE,
+        data JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
     // Create audit logs table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS audit_logs (
@@ -225,6 +239,7 @@ export async function runMigrations() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_invoices_garage_id ON invoices(garage_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_otp_records_email ON otp_records(email)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_access_requests_garage_id ON access_requests(garage_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_garage_id ON notifications(garage_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_logs_garage_id ON audit_logs(garage_id)`);
 
     console.log('✅ Database migrations completed successfully');
