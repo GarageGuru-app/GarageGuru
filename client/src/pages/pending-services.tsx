@@ -35,6 +35,24 @@ export default function PendingServices() {
     enabled: !!garage?.id,
   });
 
+  // Fetch all invoices to check for duplicates
+  const { data: existingInvoices } = useQuery({
+    queryKey: ["/api/garages", garage?.id, "invoices"],
+    queryFn: async () => {
+      if (!garage?.id) return [];
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/invoices`);
+      return response.json();
+    },
+    enabled: !!garage?.id,
+  });
+
+  // Helper function to check if invoice exists for job
+  const hasExistingInvoice = (jobId: string) => {
+    return existingInvoices?.some((invoice: any) => 
+      invoice.job_card_id === jobId || invoice.jobCardId === jobId
+    );
+  };
+
   const filteredJobs = pendingJobs.filter((job: any) =>
     job.customer_name?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
     job.bike_number?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
@@ -278,12 +296,19 @@ export default function PendingServices() {
                     {(() => {
                       const hasChecklist = job.complaint && (job.complaint.includes('☐') || job.complaint.includes('☑'));
                       const hasIncompleteItems = hasChecklist && job.complaint.includes('☐');
+                      const invoiceExists = hasExistingInvoice(job.id);
                       
                       return (
                         <Button
                           size="sm"
                           onClick={() => {
-                            if (hasIncompleteItems) {
+                            if (invoiceExists) {
+                              toast({
+                                title: "Invoice Already Exists",
+                                description: "This service already has an invoice. Cannot create duplicates.",
+                                variant: "destructive",
+                              });
+                            } else if (hasIncompleteItems) {
                               toast({
                                 title: "Incomplete Tasks",
                                 description: "Please complete all checklist items before generating invoice",
@@ -293,10 +318,15 @@ export default function PendingServices() {
                               navigate(`/invoice/${job.id}`);
                             }
                           }}
-                          disabled={hasIncompleteItems}
-                          className={hasIncompleteItems ? "opacity-50 cursor-not-allowed" : ""}
+                          disabled={hasIncompleteItems || invoiceExists}
+                          className={(hasIncompleteItems || invoiceExists) ? "opacity-50 cursor-not-allowed" : ""}
                         >
-                          {hasIncompleteItems ? (
+                          {invoiceExists ? (
+                            <>
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Invoice Created
+                            </>
+                          ) : hasIncompleteItems ? (
                             <>
                               <AlertCircle className="w-3 h-3 mr-1" />
                               Tasks Pending
@@ -387,13 +417,23 @@ export default function PendingServices() {
 
               {/* Action Button */}
               <Button 
-                className="w-full" 
                 onClick={() => {
-                  setIsDetailsOpen(false);
-                  navigate(`/invoice/${selectedJob.id}`);
+                  const invoiceExists = hasExistingInvoice(selectedJob.id);
+                  if (invoiceExists) {
+                    toast({
+                      title: "Invoice Already Exists",
+                      description: "This service already has an invoice. Cannot create duplicates.",
+                      variant: "destructive",
+                    });
+                  } else {
+                    setIsDetailsOpen(false);
+                    navigate(`/invoice/${selectedJob.id}`);
+                  }
                 }}
+                disabled={hasExistingInvoice(selectedJob?.id)}
+                className={hasExistingInvoice(selectedJob?.id) ? "opacity-50 cursor-not-allowed w-full" : "w-full"}
               >
-                Generate Invoice
+                {hasExistingInvoice(selectedJob?.id) ? "Invoice Already Created" : "Generate Invoice"}
               </Button>
             </div>
           )}
@@ -462,17 +502,26 @@ export default function PendingServices() {
                 {isChecklistComplete() && (
                   <Button 
                     onClick={() => {
-                      handleSaveChecklist();
-                      setTimeout(() => {
-                        setIsChecklistOpen(false);
-                        navigate(`/invoice/${checklistJob.id}`);
-                      }, 500);
+                      const invoiceExists = hasExistingInvoice(checklistJob.id);
+                      if (invoiceExists) {
+                        toast({
+                          title: "Invoice Already Exists",
+                          description: "This service already has an invoice. Cannot create duplicates.",
+                          variant: "destructive",
+                        });
+                      } else {
+                        handleSaveChecklist();
+                        setTimeout(() => {
+                          setIsChecklistOpen(false);
+                          navigate(`/invoice/${checklistJob.id}`);
+                        }, 500);
+                      }
                     }}
-                    disabled={updateJobCardMutation.isPending}
+                    disabled={updateJobCardMutation.isPending || hasExistingInvoice(checklistJob?.id)}
                     className="flex-1"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    Generate Invoice
+                    {hasExistingInvoice(checklistJob?.id) ? "Invoice Already Created" : "Generate Invoice"}
                   </Button>
                 )}
               </div>

@@ -1113,6 +1113,15 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { garageId } = req.params;
       const invoiceData = insertInvoiceSchema.parse({ ...req.body, garageId });
       
+      // Check if invoice already exists for this job card
+      const existingInvoice = await storage.getInvoiceByJobCardId(invoiceData.jobCardId);
+      if (existingInvoice) {
+        return res.status(400).json({ 
+          message: 'Invoice already exists for this job card',
+          existingInvoice 
+        });
+      }
+      
       // Set the correct local timestamp (Indian Standard Time)
       const istTime = new Date().toLocaleString("sv-SE", {timeZone: "Asia/Kolkata"});
       const localTimestamp = new Date(istTime);

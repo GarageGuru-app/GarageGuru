@@ -491,6 +491,11 @@ export class DatabaseStorage implements IStorage {
     return result.rows;
   }
 
+  async getInvoiceByJobCardId(jobCardId: string): Promise<Invoice | undefined> {
+    const result = await pool.query('SELECT * FROM invoices WHERE job_card_id = $1 LIMIT 1', [jobCardId]);
+    return result.rows[0];
+  }
+
   async createInvoice(invoice: Partial<Invoice>): Promise<Invoice> {
     const id = invoice.id || crypto.randomUUID();
     const result = await pool.query(

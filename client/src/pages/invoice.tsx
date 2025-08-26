@@ -57,10 +57,19 @@ export default function Invoice() {
       queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "invoices"] });
       navigate("/admin-dashboard");
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Invoice creation error:', error);
+      let errorMessage = "Failed to create invoice";
+      
+      if (error?.message?.includes("already exists")) {
+        errorMessage = "This service already has an invoice. Cannot create duplicate invoices.";
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create invoice",
+        description: errorMessage,
         variant: "destructive",
       });
     },
