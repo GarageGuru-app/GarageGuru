@@ -215,7 +215,7 @@ export default function PendingServices() {
                     {job.complaint && job.complaint.includes('☐') || job.complaint.includes('☑') ? (
                       // Render checklist items
                       <div className="space-y-1">
-                        {job.complaint.split('\n').filter(line => line.trim()).map((line, index) => {
+                        {job.complaint.split('\n').filter((line: string) => line.trim()).map((line: string, index: number) => {
                           const isCheckbox = line.includes('☐') || line.includes('☑');
                           if (isCheckbox) {
                             const isChecked = line.includes('☑');
