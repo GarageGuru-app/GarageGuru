@@ -42,16 +42,17 @@ export default function Invoice() {
   const createInvoiceMutation = useMutation({
     mutationFn: async (invoiceData: any) => {
       if (!garage?.id) throw new Error("No garage selected");
+      // Server automatically updates job card status to "completed" when invoice is created
       const response = await apiRequest("POST", `/api/garages/${garage.id}/invoices`, invoiceData);
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Invoice created successfully",
+        description: "Invoice created and service completed successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id] });
-      navigate("/pending-services");
+      navigate("/admin-dashboard");
     },
     onError: (error) => {
       toast({
