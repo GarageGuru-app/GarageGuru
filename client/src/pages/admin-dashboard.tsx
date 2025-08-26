@@ -234,14 +234,15 @@ export default function AdminDashboard() {
               )}
             </Button>
             
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={toggleTheme}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-primary ${theme === "dark" ? "bg-white/30" : "bg-white/20"}`}
+              className="text-primary-foreground hover:bg-white/10 p-1 sm:p-2"
               data-testid="button-theme-toggle"
             >
-              <span className="sr-only">Toggle dark mode</span>
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${theme === "dark" ? "translate-x-6" : "translate-x-1"}`} />
-            </button>
+              {theme === "dark" ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
+            </Button>
           </div>
         </div>
       </div>
