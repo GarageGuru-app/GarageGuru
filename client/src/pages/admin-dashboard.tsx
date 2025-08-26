@@ -353,12 +353,12 @@ export default function AdminDashboard() {
               
               <Button
                 variant="outline"
-                onClick={() => navigate("/sales")}
+                onClick={() => navigate("/invoices")}
                 className="h-20 flex flex-col items-center justify-center space-y-2"
-                data-testid="button-sales-reports"
+                data-testid="button-invoices"
               >
                 <FileText className="w-6 h-6" />
-                <span>Sales Reports</span>
+                <span>Invoices</span>
               </Button>
             </div>
           </CardContent>
