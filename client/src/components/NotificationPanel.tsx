@@ -10,13 +10,14 @@ import { formatDistanceToNow } from "date-fns";
 
 interface Notification {
   id: string;
-  garageId: string;
-  customerId: string;
+  garage_id: string;
+  customer_id?: string;
   title: string;
   message: string;
-  type: 'milestone' | 'alert' | 'reminder';
-  isRead: boolean;
-  createdAt: string;
+  type: 'milestone' | 'alert' | 'reminder' | 'low_stock';
+  is_read: boolean;
+  created_at: string;
+  data?: any;
   customer?: {
     name: string;
     phone: string;
@@ -71,6 +72,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'alert':
         return <AlertTriangle className="w-4 h-4 text-red-500" />;
+      case 'low_stock':
+        return <AlertTriangle className="w-4 h-4 text-orange-500" />;
       case 'reminder':
         return <Clock className="w-4 h-4 text-blue-500" />;
       default:
@@ -83,6 +86,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
       case 'milestone':
         return 'default';
       case 'alert':
+        return 'destructive';
+      case 'low_stock':
         return 'destructive';
       case 'reminder':
         return 'secondary';
@@ -99,7 +104,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <CardTitle className="text-lg font-semibold">Notifications</CardTitle>
           <div className="flex items-center space-x-2">
-            {notifications.some((n: Notification) => !n.isRead) && (
+            {notifications.some((n: Notification) => !n.is_read) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -132,10 +137,10 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                   <div
                     key={notification.id}
                     className={`p-4 hover:bg-muted/50 transition-colors cursor-pointer ${
-                      !notification.isRead ? 'bg-blue-50 dark:bg-blue-950/20' : ''
+                      !notification.is_read ? 'bg-blue-50 dark:bg-blue-950/20' : ''
                     }`}
                     onClick={() => {
-                      if (!notification.isRead) {
+                      if (!notification.is_read) {
                         markAsReadMutation.mutate(notification.id);
                       }
                     }}
@@ -168,9 +173,9 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                         )}
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                           </p>
-                          {!notification.isRead && (
+                          {!notification.is_read && (
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                           )}
                         </div>
