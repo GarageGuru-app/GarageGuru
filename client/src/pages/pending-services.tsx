@@ -7,18 +7,23 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Search, Bike, Phone, Calendar, Eye, Edit, AlertCircle } from "lucide-react";
+import { ArrowLeft, Search, Bike, Phone, Calendar, Eye, Edit, AlertCircle, CheckCircle, Share, Save, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 
 export default function PendingServices() {
   const [, navigate] = useLocation();
   const { garage } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [checklistJob, setChecklistJob] = useState<any>(null);
+  const [checklistItems, setChecklistItems] = useState<string>("");
 
   const { data: pendingJobs = [], isLoading } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards", "pending"],
@@ -35,6 +40,56 @@ export default function PendingServices() {
     job.bike_number?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
     job.phone?.includes(searchTerm)
   );
+
+  // Update job card mutation
+  const updateJobCardMutation = useMutation({
+    mutationFn: async ({ jobId, complaint }: { jobId: string; complaint: string }) => {
+      if (!garage?.id) throw new Error("No garage selected");
+      const response = await apiRequest("PUT", `/api/garages/${garage.id}/job-cards/${jobId}`, {
+        complaint
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards"] });
+      toast({
+        title: "Success",
+        description: "Service tasks updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update tasks",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleChecklistItem = (lineIndex: number) => {
+    const lines = checklistItems.split('\n');
+    if (lines[lineIndex]) {
+      if (lines[lineIndex].includes('☐')) {
+        lines[lineIndex] = lines[lineIndex].replace('☐', '☑');
+      } else if (lines[lineIndex].includes('☑')) {
+        lines[lineIndex] = lines[lineIndex].replace('☑', '☐');
+      }
+      setChecklistItems(lines.join('\n'));
+    }
+  };
+
+  const handleSaveChecklist = () => {
+    if (checklistJob) {
+      updateJobCardMutation.mutate({
+        jobId: checklistJob.id,
+        complaint: checklistItems
+      });
+    }
+  };
+
+  const isChecklistComplete = () => {
+    return checklistItems && !checklistItems.includes('☐');
+  };
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return 'No date';
@@ -210,10 +265,14 @@ export default function PendingServices() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/edit-job-card/${job.id}`)}
+                      onClick={() => {
+                        setChecklistJob(job);
+                        setChecklistItems(job.complaint || "");
+                        setIsChecklistOpen(true);
+                      }}
                     >
                       <Edit className="w-3 h-3 mr-1" />
-                      Edit
+                      Complete Service
                     </Button>
                     {(() => {
                       const hasChecklist = job.complaint && (job.complaint.includes('☐') || job.complaint.includes('☑'));
@@ -335,6 +394,92 @@ export default function PendingServices() {
               >
                 Generate Invoice
               </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Checklist Completion Modal */}
+      <Dialog open={isChecklistOpen} onOpenChange={setIsChecklistOpen}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle>Complete Service Tasks</DialogTitle>
+          </DialogHeader>
+          
+          {checklistJob && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                <strong>{checklistJob.customer_name}</strong> - {checklistJob.bike_number}
+              </div>
+              
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {checklistItems.split('\n').filter((line: string) => line.trim()).map((line: string, index: number) => {
+                  const isCheckbox = line.includes('☐') || line.includes('☑');
+                  if (!isCheckbox) return null;
+                  
+                  const isCompleted = line.includes('☑');
+                  const text = line.replace(/[☐☑]\s*/, '').trim();
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className="flex items-center space-x-3 p-2 rounded border cursor-pointer hover:bg-muted/50"
+                      onClick={() => toggleChecklistItem(index)}
+                    >
+                      <div className={`text-lg ${isCompleted ? 'text-green-600' : 'text-orange-500'}`}>
+                        {isCompleted ? '☑' : '☐'}
+                      </div>
+                      <div className={`flex-1 text-sm ${isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        {text}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={handleSaveChecklist}
+                  disabled={updateJobCardMutation.isPending}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {updateJobCardMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Progress
+                    </>
+                  )}
+                </Button>
+                
+                {isChecklistComplete() && (
+                  <Button 
+                    onClick={() => {
+                      handleSaveChecklist();
+                      setTimeout(() => {
+                        setIsChecklistOpen(false);
+                        navigate(`/invoice/${checklistJob.id}`);
+                      }, 500);
+                    }}
+                    disabled={updateJobCardMutation.isPending}
+                    className="flex-1"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Generate Invoice
+                  </Button>
+                )}
+              </div>
+              
+              {!isChecklistComplete() && (
+                <div className="text-center text-sm text-muted-foreground bg-orange-50 dark:bg-orange-900/20 p-2 rounded">
+                  Complete all tasks to generate invoice
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
