@@ -122,69 +122,68 @@ export default function Login() {
     // Handle regular user forgot password
     setIsLoadingForgot(true);
     try {
-      const response = await apiRequest('POST', '/api/forgot-password/request', { 
-        email: forgotEmail 
+      // Use raw fetch to handle error responses properly
+      const token = localStorage.getItem('auth-token');
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch('/api/forgot-password/request', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ email: forgotEmail }),
+        credentials: "include",
       });
 
       if (response.ok) {
         const data = await response.json();
-        if (data.isSuspended) {
-          toast({
-            title: "Account Suspended",
-            description: data.message,
-            variant: "destructive",
-          });
-          return;
-        }
-        if (data.isInactive) {
-          toast({
-            title: "Account Inactive",
-            description: data.message,
-            variant: "destructive",
-          });
-          return;
-        }
         toast({
           title: "Reset Code Sent",
           description: data.message || "Check your email for the password reset code",
         });
         setForgotPasswordStep('verify');
       } else {
-        // Handle error responses
-        const errorData = await response.json();
-        if (errorData.isSuspended) {
+        // Handle HTTP error responses (403, 400, etc.)
+        try {
+          const errorData = await response.json();
+          if (errorData.isSuspended) {
+            toast({
+              title: "Account Suspended", 
+              description: errorData.message,
+              variant: "destructive",
+            });
+            return;
+          }
+          if (errorData.isInactive) {
+            toast({
+              title: "Account Inactive",
+              description: errorData.message,
+              variant: "destructive",
+            });
+            return;
+          }
           toast({
-            title: "Account Suspended", 
-            description: errorData.message,
+            title: "Error",
+            description: errorData.message || 'Failed to send reset code',
             variant: "destructive",
           });
-          return;
-        }
-        if (errorData.isInactive) {
+        } catch (parseError) {
+          // If JSON parsing fails, show generic error
           toast({
-            title: "Account Inactive",
-            description: errorData.message,
+            title: "Error",
+            description: 'Failed to send reset code',
             variant: "destructive",
           });
-          return;
         }
-        throw new Error(errorData.message || 'Failed to send reset code');
       }
     } catch (error: any) {
       // Handle network errors or other exceptions
-      if (error.message && !error.response) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error", 
-          description: "Failed to send reset code",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: error.message || "Network error. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoadingForgot(false);
     }
