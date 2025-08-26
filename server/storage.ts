@@ -263,7 +263,16 @@ export class DatabaseStorage implements IStorage {
   async getGarage(id: string): Promise<Garage | undefined> {
     try {
       const result = await pool.query('SELECT * FROM garages WHERE id = $1', [id]);
-      return result.rows[0];
+      const garage = result.rows[0];
+      if (garage) {
+        // Convert snake_case to camelCase for frontend compatibility
+        return {
+          ...garage,
+          ownerName: garage.owner_name,
+          createdAt: garage.created_at
+        };
+      }
+      return garage;
     } catch (error) {
       console.error('getGarage error:', error);
       return undefined;
@@ -306,7 +315,14 @@ export class DatabaseStorage implements IStorage {
 
   async getCustomers(garageId: string): Promise<Customer[]> {
     const result = await pool.query('SELECT * FROM customers WHERE garage_id = $1 ORDER BY created_at DESC', [garageId]);
-    return result.rows;
+    return result.rows.map(customer => ({
+      ...customer,
+      bikeNumber: customer.bike_number,
+      totalJobs: customer.total_jobs,
+      totalSpent: customer.total_spent,
+      lastVisit: customer.last_visit,
+      createdAt: customer.created_at
+    }));
   }
 
   async getCustomer(id: string, garageId: string): Promise<Customer | undefined> {

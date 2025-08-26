@@ -447,18 +447,19 @@ export default function Profile() {
                 )}
                 <span>Dark Mode</span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={toggleTheme}
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-muted"
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                  theme === "dark" ? "bg-primary" : "bg-gray-300"
+                }`}
               >
+                <span className="sr-only">Toggle dark mode</span>
                 <span 
-                  className={`inline-block h-4 w-4 transform rounded-full bg-background transition ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
                     theme === "dark" ? "translate-x-6" : "translate-x-1"
                   }`} 
                 />
-              </Button>
+              </button>
             </div>
 
             <button 
