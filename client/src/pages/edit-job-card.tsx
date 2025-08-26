@@ -333,8 +333,9 @@ export default function EditJobCard() {
                             if (e.key === 'Enter') {
                               e.preventDefault();
                               const currentValue = field.value || '';
-                              const lines = currentValue.split('\n').filter(line => line.trim() !== '');
-                              const lastLine = e.currentTarget.value.split('\n').pop()?.trim();
+                              const textareaValue = e.currentTarget?.value || '';
+                              const lines = textareaValue.split('\n').filter(line => line.trim() !== '');
+                              const lastLine = textareaValue.split('\n').pop()?.trim();
                               
                               if (lastLine && lastLine !== '') {
                                 // Convert current content to checklist format
@@ -347,34 +348,21 @@ export default function EditJobCard() {
                                   checklistItems.push(`☐ ${lastLine}`);
                                 }
                                 
-                                field.onChange(checklistItems.join('\n') + '\n☐ ');
+                                const newValue = checklistItems.join('\n') + '\n☐ ';
+                                field.onChange(newValue);
                                 
                                 // Position cursor at the end
                                 setTimeout(() => {
                                   const textarea = e.currentTarget;
-                                  textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+                                  if (textarea) {
+                                    textarea.selectionStart = textarea.selectionEnd = newValue.length;
+                                  }
                                 }, 0);
                               }
                             }
                           }}
                           onChange={(e) => {
-                            // Handle checkbox toggling when clicking on ☐ or ☑
-                            let value = e.target.value;
-                            const cursorPos = e.target.selectionStart || 0;
-                            const lines = value.split('\n');
-                            const currentLineIndex = value.substring(0, cursorPos).split('\n').length - 1;
-                            const currentLine = lines[currentLineIndex];
-                            
-                            // If user clicked on a checkbox, toggle it
-                            if (currentLine && (currentLine.includes('☐ ') || currentLine.includes('☑ '))) {
-                              if (currentLine.includes('☐ ')) {
-                                lines[currentLineIndex] = currentLine.replace('☐ ', '☑ ');
-                              } else if (currentLine.includes('☑ ')) {
-                                lines[currentLineIndex] = currentLine.replace('☑ ', '☐ ');
-                              }
-                              value = lines.join('\n');
-                            }
-                            
+                            const value = e.target?.value || '';
                             field.onChange(value);
                           }}
                         />

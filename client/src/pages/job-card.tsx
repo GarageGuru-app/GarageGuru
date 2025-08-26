@@ -243,9 +243,9 @@ export default function JobCard() {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    const currentValue = formData.complaint || '';
-                    const lines = currentValue.split('\n').filter(line => line.trim() !== '');
-                    const lastLine = e.currentTarget.value.split('\n').pop()?.trim();
+                    const textareaValue = e.currentTarget?.value || '';
+                    const lines = textareaValue.split('\n').filter(line => line.trim() !== '');
+                    const lastLine = textareaValue.split('\n').pop()?.trim();
                     
                     if (lastLine && lastLine !== '') {
                       // Convert current content to checklist format
@@ -264,7 +264,9 @@ export default function JobCard() {
                       // Position cursor at the end
                       setTimeout(() => {
                         const textarea = e.currentTarget;
-                        textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+                        if (textarea) {
+                          textarea.selectionStart = textarea.selectionEnd = newValue.length;
+                        }
                       }, 0);
                     }
                   }
