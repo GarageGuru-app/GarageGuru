@@ -276,7 +276,7 @@ export default function Profile() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between py-2">
               <span className="text-muted-foreground">Owner Name</span>
-              <span className="font-medium">{garage?.owner_name || "N/A"}</span>
+              <span className="font-medium">{garage?.ownerName || "N/A"}</span>
             </div>
             <div className="flex items-center justify-between py-2">
               <span className="text-muted-foreground">Phone</span>
@@ -289,19 +289,37 @@ export default function Profile() {
             <div className="flex items-center justify-between py-2">
               <span className="text-muted-foreground">Joined</span>
               <span className="font-medium">
-                {garage?.created_at ? new Date(garage.created_at).toLocaleDateString() : "N/A"}
+                {garage?.createdAt ? new Date(garage.createdAt).toLocaleDateString() : "N/A"}
               </span>
             </div>
           </CardContent>
         </Card>
 
         {/* Logo Management */}
-        <LogoUploader 
-          currentLogoUrl={garage?.logo || ""} 
-          onLogoUpdated={(newLogoUrl) => {
-            // Logo will be updated via mutation in LogoUploader
-          }} 
-        />
+        {canEdit ? (
+          <LogoUploader 
+            currentLogoUrl={garage?.logo || ""} 
+            onLogoUpdated={(newLogoUrl) => {
+              // Logo will be updated via mutation in LogoUploader
+            }} 
+          />
+        ) : garage?.logo && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Garage Logo</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <img 
+                src={garage.logo} 
+                alt="Garage logo" 
+                className="mx-auto h-24 w-24 object-contain rounded-lg border-2 border-dashed border-muted-foreground/20"
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                Logo can only be changed by garage admin
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Settings */}
         <Card>

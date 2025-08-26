@@ -1113,8 +1113,6 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { garageId } = req.params;
       const invoiceData = insertInvoiceSchema.parse({ ...req.body, garageId });
       
-      console.log('📝 Creating invoice with data:', invoiceData);
-      
       // Set the correct local timestamp (Indian Standard Time)
       const istTime = new Date().toLocaleString("sv-SE", {timeZone: "Asia/Kolkata"});
       const localTimestamp = new Date(istTime);
@@ -1123,10 +1121,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         ...invoiceData
       });
       
-      console.log('📊 Invoice created successfully:', { id: invoice.id, jobCardId: invoice.jobCardId || invoice.job_card_id });
-      
       // Update job card status to completed
-      console.log('🔄 Updating job card status to completed for jobCardId:', invoice.jobCardId);
       const jobCard = await storage.updateJobCard(invoice.jobCardId, {
         status: 'completed',
         completedAt: new Date()
@@ -1331,6 +1326,12 @@ export async function registerRoutes(app: Express): Promise<void> {
       const userGarageId = (req as any).user.garage_id;
       if (userGarageId !== id) {
         return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Only garage admins can update garage settings (including logo)
+      const userRole = (req as any).user.role;
+      if (userRole !== 'garage_admin') {
+        return res.status(403).json({ message: 'Only garage admins can update garage settings' });
       }
       
       const garage = await storage.updateGarage(id, { logo });
