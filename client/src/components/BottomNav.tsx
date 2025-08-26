@@ -15,7 +15,7 @@ export default function BottomNav() {
   const { user, garage } = useAuth();
 
   const { data: pendingJobs } = useQuery({
-    queryKey: ["/api/garages", garage?.id, "job-cards"],
+    queryKey: ["/api/garages", garage?.id, "job-cards", "pending"],
     queryFn: async () => {
       if (!garage?.id) return [];
       const response = await apiRequest("GET", `/api/garages/${garage.id}/job-cards?status=pending`);
