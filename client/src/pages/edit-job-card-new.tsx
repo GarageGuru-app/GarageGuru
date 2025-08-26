@@ -347,8 +347,32 @@ export default function EditJobCard() {
                       }
                     }
                   }}
+                  onClick={(e) => {
+                    // Handle checkbox toggling when clicking on checkboxes
+                    const textarea = e.currentTarget;
+                    const cursorPos = textarea.selectionStart || 0;
+                    const textValue = textarea.value;
+                    const lines = textValue.split('\n');
+                    const currentLineIndex = textValue.substring(0, cursorPos).split('\n').length - 1;
+                    const currentLine = lines[currentLineIndex];
+                    
+                    if (currentLine && (currentLine.includes('☐ ') || currentLine.includes('☑ '))) {
+                      const clickX = e.nativeEvent.offsetX;
+                      // If click is within first 20 pixels (where checkbox would be)
+                      if (clickX <= 20) {
+                        e.preventDefault();
+                        let updatedLines = [...lines];
+                        if (currentLine.includes('☐ ')) {
+                          updatedLines[currentLineIndex] = currentLine.replace('☐ ', '☑ ');
+                        } else if (currentLine.includes('☑ ')) {
+                          updatedLines[currentLineIndex] = currentLine.replace('☑ ', '☐ ');
+                        }
+                        handleInputChange("complaint", updatedLines.join('\n'));
+                      }
+                    }
+                  }}
                   placeholder="Describe the service or complaint..."
-                  className="min-h-20"
+                  className="min-h-20 cursor-text"
                 />
               </div>
 

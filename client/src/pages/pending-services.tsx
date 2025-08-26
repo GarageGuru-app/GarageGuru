@@ -7,13 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Search, Bike, Phone, Calendar, Eye, Edit } from "lucide-react";
+import { ArrowLeft, Search, Bike, Phone, Calendar, Eye, Edit, AlertCircle } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 
 export default function PendingServices() {
   const [, navigate] = useLocation();
   const { garage } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -154,9 +156,38 @@ export default function PendingServices() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-foreground mb-3 line-clamp-2">
-                    {job.complaint}
-                  </p>
+                  <div className="text-sm text-foreground mb-3">
+                    {job.complaint && job.complaint.includes('☐') || job.complaint.includes('☑') ? (
+                      // Render checklist items
+                      <div className="space-y-1">
+                        {job.complaint.split('\n').filter(line => line.trim()).map((line, index) => {
+                          const isCheckbox = line.includes('☐') || line.includes('☑');
+                          if (isCheckbox) {
+                            const isChecked = line.includes('☑');
+                            const text = line.replace(/[☐☑]\s*/, '').trim();
+                            return (
+                              <div key={index} className="flex items-center space-x-2 text-xs">
+                                <span className={isChecked ? 'text-green-600' : 'text-orange-500'}>
+                                  {isChecked ? '☑' : '☐'}
+                                </span>
+                                <span className={isChecked ? 'line-through text-muted-foreground' : ''}>
+                                  {text}
+                                </span>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div key={index} className="text-xs text-muted-foreground">
+                              {line}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      // Regular text
+                      <p className="line-clamp-2">{job.complaint}</p>
+                    )}
+                  </div>
 
                   {job.spareParts && job.spareParts.length > 0 && (
                     <div className="text-xs text-muted-foreground mb-3">
@@ -184,12 +215,38 @@ export default function PendingServices() {
                       <Edit className="w-3 h-3 mr-1" />
                       Edit
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => navigate(`/invoice/${job.id}`)}
-                    >
-                      Generate Invoice
-                    </Button>
+                    {(() => {
+                      const hasChecklist = job.complaint && (job.complaint.includes('☐') || job.complaint.includes('☑'));
+                      const hasIncompleteItems = hasChecklist && job.complaint.includes('☐');
+                      
+                      return (
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (hasIncompleteItems) {
+                              toast({
+                                title: "Incomplete Tasks",
+                                description: "Please complete all checklist items before generating invoice",
+                                variant: "destructive",
+                              });
+                            } else {
+                              navigate(`/invoice/${job.id}`);
+                            }
+                          }}
+                          disabled={hasIncompleteItems}
+                          className={hasIncompleteItems ? "opacity-50 cursor-not-allowed" : ""}
+                        >
+                          {hasIncompleteItems ? (
+                            <>
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              Tasks Pending
+                            </>
+                          ) : (
+                            "Generate Invoice"
+                          )}
+                        </Button>
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>
