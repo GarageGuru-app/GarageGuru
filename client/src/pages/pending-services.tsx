@@ -285,12 +285,22 @@ export default function PendingServices() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
+                        navigate(`/job-card/${job.id}`);
+                      }}
+                    >
+                      <Edit className="w-3 h-3 mr-1" />
+                      Edit Job Card
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
                         setChecklistJob(job);
                         setChecklistItems(job.complaint || "");
                         setIsChecklistOpen(true);
                       }}
                     >
-                      <Edit className="w-3 h-3 mr-1" />
+                      <CheckCircle className="w-3 h-3 mr-1" />
                       Complete Service
                     </Button>
                     {(() => {
