@@ -81,10 +81,43 @@ export async function runMigrations() {
       )
     `);
 
-    // Add complaint column if it doesn't exist (for existing installations)
-    await pool.query(`
-      ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS complaint TEXT;
-    `);
+    // Handle migration from service_type/description to complaint column
+    try {
+      // Check if service_type column exists
+      const checkServiceType = await pool.query(`
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_name = 'job_cards' AND column_name = 'service_type'
+      `);
+      
+      if (checkServiceType.rows.length > 0) {
+        // Old structure exists, migrate to new structure
+        await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS complaint TEXT`);
+        
+        // Update complaint column with service_type + description
+        await pool.query(`
+          UPDATE job_cards 
+          SET complaint = COALESCE(service_type, '') || 
+                         CASE WHEN description IS NOT NULL AND description != '' 
+                              THEN ' - ' || description 
+                              ELSE '' END
+          WHERE complaint IS NULL
+        `);
+        
+        // Make complaint NOT NULL after populating it
+        await pool.query(`ALTER TABLE job_cards ALTER COLUMN complaint SET NOT NULL`);
+        
+        // Drop old columns
+        await pool.query(`ALTER TABLE job_cards DROP COLUMN IF EXISTS service_type`);
+        await pool.query(`ALTER TABLE job_cards DROP COLUMN IF EXISTS description`);
+      } else {
+        // New installation, just ensure complaint column exists
+        await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS complaint TEXT NOT NULL DEFAULT ''`);
+      }
+    } catch (error) {
+      console.error('Migration error for job_cards:', error);
+      // Fallback: just add complaint column if it doesn't exist
+      await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS complaint TEXT`);
+    }
 
     // Create invoices table
     await pool.query(`
