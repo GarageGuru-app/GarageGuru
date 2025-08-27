@@ -305,15 +305,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getAllGarages(): Promise<Garage[]> {
-    try {
-      const result = await pool.query('SELECT * FROM garages ORDER BY name');
-      return result.rows;
-    } catch (error) {
-      console.error('getAllGarages error:', error);
-      return [];
-    }
-  }
 
   async updateGarage(id: string, garage: Partial<Garage>): Promise<Garage> {
     const result = await pool.query(

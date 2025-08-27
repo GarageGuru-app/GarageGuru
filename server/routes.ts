@@ -176,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       // Create garage first
       const garage = await storage.createGarage({
         name: "Ananth Automotive garage",
-        ownerName: "Govind Naidu", 
+        owner_name: "Govind Naidu", 
         phone: "7288856665",
         email: "gorla.ananthkalyan@gmail.com",
         logo: "https://res.cloudinary.com/dcueubsl8/image/upload/v1754845196/garage-logos/sjrppoab6sslhvm5rl7a.jpg"
@@ -187,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         email: "gorla.ananthkalyan@gmail.com",
         name: "Ananth",
         role: "garage_admin",
-        garageId: garage.id,
+        garage_id: garage.id,
         password: "password123"
       });
 
@@ -584,7 +584,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       // Create garage first
       const garage = await storage.createGarage({
         name: garageName || "Default Garage",
-        ownerName: ownerName || name,
+        owner_name: ownerName || name,
         phone: phone || "0000000000",
         email: email
       });
@@ -688,7 +688,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           ...user, 
           password: undefined,
           mustChangePassword: user.must_change_password || false,
-          firstLogin: user.first_login || false,
+          firstLogin: user.firstLogin || false,
           garageId: user.garage_id  // Map garage_id to garageId for frontend
         },
         garage: garageId ? await storage.getGarage(garageId) : null
@@ -740,7 +740,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           ...user, 
           password: undefined,
           mustChangePassword: user.must_change_password || false,
-          firstLogin: user.first_login || false,
+          firstLogin: user.firstLogin || false,
           garageId: user.garage_id  // Map garage_id to garageId for frontend
         },
         garage
@@ -1080,12 +1080,12 @@ export async function registerRoutes(app: Express): Promise<void> {
       const jobCard = await storage.createJobCard({
         ...jobCardData,
         customerId: customer.id,
-        spareParts: (jobCardData.spareParts || []) as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>
+        spare_parts: (jobCardData.spareParts || []) as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>
       } as any);
       
       // Update spare parts quantities
-      if (jobCard.spareParts && Array.isArray(jobCard.spareParts)) {
-        for (const part of jobCard.spareParts) {
+      if (jobCard.spare_parts && Array.isArray(jobCard.spare_parts)) {
+        for (const part of jobCard.spare_parts) {
           const sparePart = await storage.getSparePart(part.id, garageId);
           if (sparePart) {
             await storage.updateSparePart(part.id, {
@@ -1109,7 +1109,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       const jobCard = await storage.updateJobCard(id, {
         ...updateData,
-        spareParts: updateData.spareParts?.map((part: any) => ({
+        spare_parts: updateData.spareParts?.map((part: any) => ({
           id: part.id,
           partNumber: part.partNumber,
           name: part.name,
