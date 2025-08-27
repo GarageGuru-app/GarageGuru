@@ -32,6 +32,17 @@ export default function CompletedServices() {
     enabled: !!garage?.id,
   });
 
+  // Fetch invoices to get actual invoice amounts
+  const { data: invoices } = useQuery({
+    queryKey: ["/api/garages", garage?.id, "invoices"],
+    queryFn: async () => {
+      if (!garage?.id) return [];
+      const response = await apiRequest("GET", `/api/garages/${garage.id}/invoices`);
+      return await response.json();
+    },
+    enabled: !!garage?.id,
+  });
+
   // Filter completed job cards based on search criteria
   const filteredJobCards = completedJobCards?.filter((jobCard: any) => {
     const matchesSearch = searchQuery === "" || 
@@ -57,6 +68,13 @@ export default function CompletedServices() {
   };
 
   const calculateTotal = (jobCard: any) => {
+    // First, try to find the corresponding invoice for this job card
+    const invoice = invoices?.find((inv: any) => inv.job_card_id === jobCard.id);
+    if (invoice && invoice.total_amount) {
+      return Number(invoice.total_amount);
+    }
+    
+    // Fallback to manual calculation if no invoice found
     const partsTotal = Array.isArray(jobCard.spare_parts) 
       ? jobCard.spare_parts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0)
       : 0;
@@ -128,6 +146,26 @@ export default function CompletedServices() {
       </div>
 
       <div className="screen-content space-y-4">
+        {/* Revenue Summary */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Revenue from Completed Services</p>
+                <p className="text-2xl font-bold text-primary">
+                  ₹{filteredJobCards.reduce((sum: number, jobCard: any) => sum + calculateTotal(jobCard), 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Showing {filteredJobCards.length} services</p>
+                <p className="text-sm text-muted-foreground">
+                  {filteredJobCards.filter((job: any) => invoices?.find((inv: any) => inv.job_card_id === job.id)).length} with invoices
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Search and Filters */}
         <Card>
           <CardContent className="p-4 space-y-4">
