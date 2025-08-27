@@ -39,28 +39,6 @@ export default function Dashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLowStockAlert, setShowLowStockAlert] = useState(false);
 
-  // Debug garage data
-  useEffect(() => {
-    console.log('Dashboard - Garage data:', garage);
-    if (garage) {
-      console.log('Dashboard - Garage logo:', garage.logo);
-      console.log('Dashboard - Has logo?', !!garage.logo);
-      
-      // Test the logo URL accessibility
-      if (garage.logo) {
-        fetch(garage.logo, { method: 'HEAD' })
-          .then(response => {
-            console.log('Dashboard - Logo URL test:', response.ok ? 'Success' : 'Failed', response.status);
-            if (!response.ok) {
-              console.error('Dashboard - Logo URL not accessible:', response.status, response.statusText);
-            }
-          })
-          .catch(error => {
-            console.error('Dashboard - Logo URL fetch error:', error);
-          });
-      }
-    }
-  }, [garage]);
 
   const { data: pendingJobs } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards"],
@@ -180,11 +158,6 @@ export default function Dashboard() {
                 src={garage.logo} 
                 alt="Garage Logo" 
                 className="w-full h-full object-cover"
-                onLoad={() => console.log('Dashboard - Logo image loaded successfully')}
-                onError={(e) => {
-                  console.error('Dashboard - Logo image failed to load:', e);
-                  console.error('Dashboard - Failed URL:', garage.logo);
-                }}
               />
             ) : (
               <Settings className="w-5 h-5 text-white" />

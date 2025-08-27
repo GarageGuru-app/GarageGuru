@@ -29,21 +29,15 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   pdf.rect(0, 0, pageWidth, 45, 'F');
   
   // Add garage logo if available
-  console.log('PDF Generator - Garage data:', garage);
-  console.log('PDF Generator - Garage logo URL:', garage.logo);
-  
   if (garage.logo) {
     try {
-      console.log('PDF Generator - Attempting to fetch logo from:', garage.logo);
       const response = await fetch(garage.logo);
-      console.log('PDF Generator - Logo fetch response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch logo: ${response.status}`);
       }
       
       const blob = await response.blob();
-      console.log('PDF Generator - Logo blob size:', blob.size, 'bytes');
       
       if (blob.size < 500000) {
         const canvas = document.createElement('canvas');
@@ -52,29 +46,20 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
         
         const logoData = await new Promise<string>((resolve, reject) => {
           img.onload = () => {
-            console.log('PDF Generator - Logo image loaded successfully');
             canvas.width = 40;
             canvas.height = 40;
             ctx?.drawImage(img, 0, 0, 40, 40);
             resolve(canvas.toDataURL('image/jpeg', 0.8));
           };
-          img.onerror = (error) => {
-            console.error('PDF Generator - Logo image load failed:', error);
-            reject(error);
-          };
+          img.onerror = reject;
           img.src = URL.createObjectURL(blob);
         });
         
         pdf.addImage(logoData, 'JPEG', 20, 5, 20, 20);
-        console.log('PDF Generator - Logo added to PDF successfully');
-      } else {
-        console.warn('PDF Generator - Logo file too large:', blob.size, 'bytes');
       }
     } catch (error) {
-      console.error('PDF Generator - Failed to load garage logo:', error);
+      console.error('Failed to load garage logo:', error);
     }
-  } else {
-    console.log('PDF Generator - No garage logo available');
   }
   
   // Header text (white on blue background)
@@ -209,7 +194,7 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   
   formData.append('file', pdfFile);
   formData.append('upload_preset', uploadPreset);
-  formData.append('resource_type', 'auto'); // Let Cloudinary auto-detect
+  formData.append('resource_type', 'raw'); // Use raw for PDF files
   formData.append('format', 'pdf'); // Explicitly specify format
   
   if (filename) {
@@ -220,7 +205,7 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   
   try {
     const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`,
+      `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
       {
         method: 'POST',
         body: formData,
@@ -236,18 +221,15 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
     const data = await response.json();
     console.log('Cloudinary upload successful:', data);
     
-    // Return the secure_url - try different approaches for better PDF access
+    // Return the secure_url with proper PDF download configuration
     const pdfUrl = data.secure_url;
-    console.log('Original Cloudinary URL:', pdfUrl);
     
-    // Try different URL formats to ensure PDF accessibility
+    // For raw PDFs, ensure proper URL format with download attachment flag
     const urlParts = pdfUrl.split('/upload/');
     if (urlParts.length === 2) {
-      // Method 1: Try with resource_type and format specification
-      const improvedUrl = `${urlParts[0]}/upload/fl_attachment/${urlParts[1]}`;
-      console.log('Improved PDF URL:', improvedUrl);
-      
-      // Test the URL accessibility
+      // Add fl_attachment to force download as PDF with proper filename
+      const filename = urlParts[1].split('/').pop() || 'invoice';
+      const improvedUrl = `${urlParts[0]}/upload/fl_attachment:${filename}.pdf/${urlParts[1]}`;
       return improvedUrl;
     }
     
