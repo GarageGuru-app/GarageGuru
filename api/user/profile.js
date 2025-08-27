@@ -39,11 +39,19 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'User not found' });
     }
 
+    // Get garage info if user has one
+    let garage = null;
+    if (user.garage_id) {
+      const garageResult = await pool.query('SELECT * FROM garages WHERE id = $1', [user.garage_id]);
+      garage = garageResult.rows[0];
+    }
+
     // Return user data without password
     const { password: _, ...userWithoutPassword } = user;
 
     res.json({
-      user: userWithoutPassword
+      user: userWithoutPassword,
+      garage
     });
   } catch (error) {
     console.error('Profile error:', error);

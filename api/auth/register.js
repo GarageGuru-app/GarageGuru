@@ -45,6 +45,10 @@ export default async function handler(req, res) {
       [userId, email, hashedPassword, name, 'garage_admin', garageId, new Date()]
     );
 
+    // Get created garage
+    const garageResult = await pool.query('SELECT * FROM garages WHERE id = $1', [garageId]);
+    const garage = garageResult.rows[0];
+
     // Generate JWT token
     const token = jwt.sign(
       { 
@@ -65,6 +69,7 @@ export default async function handler(req, res) {
         role: 'garage_admin',
         garage_id: garageId
       },
+      garage,
       token
     });
   } catch (error) {

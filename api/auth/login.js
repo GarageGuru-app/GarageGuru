@@ -21,16 +21,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
+    console.log('Login attempt for:', email);
+
     // Get user from database
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
+
+    console.log('User found:', !!user);
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     // Check password
+    console.log('Comparing password. Length:', password.length);
     const isValidPassword = await bcrypt.compare(password, user.password);
+    console.log('Password valid:', isValidPassword);
+
     if (!isValidPassword) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -47,11 +54,22 @@ export default async function handler(req, res) {
       { expiresIn: '24h' }
     );
 
+    console.log('JWT token generated successfully');
+
+    // Get garage info if user has one
+    let garage = null;
+    if (user.garage_id) {
+      const garageResult = await pool.query('SELECT * FROM garages WHERE id = $1', [user.garage_id]);
+      garage = garageResult.rows[0];
+      console.log('Garage found:', !!garage);
+    }
+
     // Return user data without password
     const { password: _, ...userWithoutPassword } = user;
 
     res.json({
       user: userWithoutPassword,
+      garage,
       token
     });
   } catch (error) {
