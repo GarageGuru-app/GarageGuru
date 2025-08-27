@@ -196,10 +196,11 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
   
-  console.log('Cloudinary upload - Cloud name:', cloudName ? 'Set' : 'Missing');
-  console.log('Cloudinary upload - Upload preset:', uploadPreset ? 'Set' : 'Missing');
-  console.log('Cloudinary upload - PDF blob size:', pdfBlob.size);
-  console.log('Cloudinary upload - Filename:', filename);
+  console.log('🔄 Starting Cloudinary upload...');
+  console.log('🔧 Cloud name:', cloudName ? `Set (${cloudName})` : 'Missing');
+  console.log('🔧 Upload preset:', uploadPreset ? `Set (${uploadPreset})` : 'Missing');
+  console.log('📄 PDF blob size:', pdfBlob.size, 'bytes');
+  console.log('📝 Filename:', filename);
   
   if (!cloudName || !uploadPreset) {
     console.error('Cloudinary configuration missing:', { cloudName: !!cloudName, uploadPreset: !!uploadPreset });
@@ -225,22 +226,38 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   }
   
   try {
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    );
+    console.log('🚀 Sending request to Cloudinary...');
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`;
+    console.log('📡 Upload URL:', uploadUrl);
+    
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    console.log('📥 Response status:', response.status);
+    console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Cloudinary response error:', response.status, errorText);
-      throw new Error(`Failed to upload PDF: ${response.status} ${errorText}`);
+      console.error('❌ Cloudinary response error:', response.status, errorText);
+      
+      // Parse error details if possible
+      let errorDetails = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorDetails = errorJson.error?.message || errorText;
+        console.error('❌ Parsed error:', errorJson);
+      } catch (e) {
+        console.error('❌ Raw error text:', errorText);
+      }
+      
+      throw new Error(`Failed to upload PDF: ${response.status} - ${errorDetails}`);
     }
     
     const data = await response.json();
-    console.log('Cloudinary upload successful:', data);
+    console.log('✅ Cloudinary upload successful!');
+    console.log('📊 Upload data:', data);
     
     // Return the secure_url with proper PDF download configuration
     const pdfUrl = data.secure_url;
@@ -264,8 +281,15 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
     
     return finalUrl;
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
-    throw new Error('Failed to upload PDF to cloud storage');
+    console.error('❌ Cloudinary upload error:', error);
+    console.error('❌ Error type:', error instanceof Error ? 'Error' : typeof error);
+    console.error('❌ Error message:', error instanceof Error ? error.message : String(error));
+    
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('❌ Network error - possible CORS or connectivity issue');
+      throw new Error('Network error: Unable to connect to cloud storage. Please check your internet connection.');
+    }
+    
+    throw new Error(`Cloud upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
