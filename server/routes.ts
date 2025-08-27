@@ -954,11 +954,17 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { garageId } = req.params;
       const partData = insertSparePartSchema.parse({ ...req.body, garageId });
       
-      // Ensure the garageId is properly set for the database insert (snake_case field)
-      const partWithGarageId = { ...partData, garage_id: garageId };
-      console.log('Creating spare part with garageId:', garageId, 'Data:', partWithGarageId);
+      // Map frontend camelCase fields to database snake_case fields
+      const mappedData = {
+        ...partData,
+        garage_id: garageId,
+        part_number: partData.partNumber,
+        cost_price: partData.costPrice,
+        low_stock_threshold: partData.lowStockThreshold
+      };
+      console.log('Creating spare part with garageId:', garageId, 'Data:', mappedData);
       
-      const sparePart = await storage.createSparePart(partWithGarageId);
+      const sparePart = await storage.createSparePart(mappedData);
       res.json(sparePart);
     } catch (error) {
       console.error('Spare part creation error:', error);
@@ -979,9 +985,18 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { id } = req.params;
       const updateData = insertSparePartSchema.partial().parse(req.body);
       
-      const sparePart = await storage.updateSparePart(id, updateData);
+      // Map frontend camelCase fields to database snake_case fields
+      const mappedData = {
+        ...updateData,
+        part_number: updateData.partNumber,
+        cost_price: updateData.costPrice,
+        low_stock_threshold: updateData.lowStockThreshold
+      };
+      
+      const sparePart = await storage.updateSparePart(id, mappedData);
       res.json(sparePart);
     } catch (error) {
+      console.error('Spare part update error:', error);
       res.status(500).json({ message: 'Failed to update spare part' });
     }
   });
