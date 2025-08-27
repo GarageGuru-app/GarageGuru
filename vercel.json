@@ -2,13 +2,6 @@
   "version": 2,
   "builds": [
     {
-      "src": "dist/index.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 30
-      }
-    },
-    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -16,18 +9,24 @@
       }
     }
   ],
+  "functions": {
+    "dist/index.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 30
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "dist/index.js"
+      "dest": "/dist/index.js"
     },
     {
       "src": "/test-pdf-download",
-      "dest": "dist/index.js"
+      "dest": "/dist/index.js"
     },
     {
       "src": "/invoice/download/(.*)",
-      "dest": "dist/index.js"
+      "dest": "/dist/index.js"
     },
     {
       "src": "/(.*)",

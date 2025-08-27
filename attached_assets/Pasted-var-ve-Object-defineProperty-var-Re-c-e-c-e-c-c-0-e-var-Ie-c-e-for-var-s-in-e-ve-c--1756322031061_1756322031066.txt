@@ -1,0 +1,718 @@
+var ve=Object.defineProperty;var Re=(c,e)=>()=>(c&&(e=c(c=0)),e);var Ie=(c,e)=>{for(var s in e)ve(c,s,{get:e[s],enumerable:!0})};var pe={};Ie(pe,{GmailEmailService:()=>X,default:()=>je});import De from"nodemailer";var X,qe,je,se=Re(()=>{"use strict";X=class c{static instance;transporter=null;isConfigured=!1;constructor(){this.setupGmailTransporter()}static getInstance(){return c.instance||(c.instance=new c),c.instance}setupGmailTransporter(){let e=process.env.GMAIL_USER,s=process.env.GMAIL_APP_PASSWORD;e&&s?(this.transporter=De.createTransport({service:"gmail",auth:{user:e,pass:s}}),this.isConfigured=!0,console.log("\u{1F4E7} Gmail SMTP configured successfully")):console.log("\u{1F4E7} Gmail SMTP not configured - missing credentials")}async sendOtpEmail(e,s,n="password reset"){if(!this.isConfigured)return console.log("\u{1F4E7} Gmail SMTP not configured - logging OTP instead"),console.log(`\u{1F4E7} OTP for ${e}: ${s} (${n})`),!1;try{let d={from:`"GarageGuru System" <${process.env.GMAIL_USER}>`,to:e,subject:n.includes("notification")?"GarageGuru Super Admin Password Changed - Security Alert":n.includes("user password")?"GarageGuru Password Reset Code":`GarageGuru Super Admin ${n.charAt(0).toUpperCase()+n.slice(1)} Code`,html:`
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            ${n.includes("notification")?`
+              <h2 style="color: #333;">Security Alert: Password Changed</h2>
+              <p>A super admin password has been successfully changed.</p>
+              <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+              <p>If you did not make this change, please contact support immediately.</p>
+            `:`
+              <h2 style="color: #333;">GarageGuru ${n.charAt(0).toUpperCase()+n.slice(1)}</h2>
+              <p>Your ${n} verification code is:</p>
+              <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
+                ${s}
+              </div>
+              <p><strong>\u26A0\uFE0F Security Notice:</strong></p>
+              <ul>
+                <li>This code expires in 10 minutes</li>
+                <li>Only use this code if you requested a ${n}</li>
+                <li>Never share this code with anyone</li>
+              </ul>
+              <p>If you didn't request this ${n}, please contact support immediately.</p>
+            `}
+          </div>
+        `,text:n.includes("notification")?`Security Alert: A super admin password has been changed at ${new Date().toLocaleString()}. If you did not make this change, please contact support immediately.`:`Your GarageGuru ${n} code is: ${s}. This code expires in 10 minutes. If you didn't request this ${n}, please contact support.`};return console.log(`\u{1F4E7} Sending OTP email via Gmail to: ${e}`),await this.transporter.sendMail(d),console.log("\u{1F4E7} OTP email sent successfully via Gmail"),!0}catch(d){return console.error("\u{1F4E7} Gmail OTP send failed:",d),console.log(`\u{1F4E7} OTP for ${e}: ${s} (${n})`),!1}}async sendAccessRequestNotification(e,s){if(!this.isConfigured)return console.log("\u{1F4E7} Gmail SMTP not configured - logging request instead"),this.logAccessRequest(s),!1;try{let n={from:`"GarageGuru System" <${process.env.GMAIL_USER}>`,to:e,subject:`GarageGuru Admin - New Access Request from ${s.name}`,html:this.generateAccessRequestEmail(s),text:this.generateAccessRequestText(s)};return console.log(`\u{1F4E7} Sending email via Gmail SMTP to: ${e}`),await this.transporter.sendMail(n),console.log("\u{1F4E7} Access request email sent successfully via Gmail"),!0}catch(n){return console.error("\u{1F4E7} Gmail SMTP send failed:",n),n.code==="EAUTH"&&(console.log(`
+\u{1F6A8} GMAIL AUTHENTICATION ERROR \u{1F6A8}`),console.log("========================================"),console.log("Fix: Generate App-Specific Password"),console.log("1. Go to Google Account settings"),console.log("2. Security \u2192 2-Step Verification"),console.log("3. App passwords \u2192 Generate new password"),console.log("4. Use that password as GMAIL_APP_PASSWORD"),console.log(`========================================
+`)),this.logAccessRequest(s),!1}}generateAccessRequestEmail(e){return`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GarageGuru Admin - Access Request</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header with Logo -->
+          <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px 20px; text-align: center;">
+            <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4L9 8H15L12 4Z" fill="#1e40af"/>
+                <path d="M8 10V18C8 19.1 8.9 20 10 20H14C15.1 20 16 19.1 16 18V10H8Z" fill="#3b82f6"/>
+                <circle cx="10" cy="14" r="1" fill="white"/>
+                <circle cx="14" cy="14" r="1" fill="white"/>
+                <rect x="11" y="16" width="2" height="2" fill="white"/>
+              </svg>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">GarageGuru</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Automotive Management System</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #1e40af; margin: 0 0 20px 0; font-size: 24px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
+              \u{1F511} New Access Request
+            </h2>
+            
+            <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+              <h3 style="margin: 0 0 15px 0; color: #1e40af; font-size: 18px;">Request Details</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151; width: 100px;">\u{1F464} Name:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${e.name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F4E7} Email:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${e.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F3AF} Role:</td>
+                  <td style="padding: 8px 0; color: #1f2937; text-transform: uppercase; font-weight: bold;">${e.requestType}</td>
+                </tr>
+                ${e.garageId&&e.garageName?`
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F3EA} Garage:</td>
+                  <td style="padding: 8px 0; color: #1f2937;"><strong>${e.garageName}</strong><br><small style="color: #6b7280;">Owner: ${e.garageOwner}</small></td>
+                </tr>
+                `:""}
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u23F0 Time:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${e.timestamp}</td>
+                </tr>
+                ${e.message?`
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151; vertical-align: top;">\u{1F4AC} Message:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${e.message}</td>
+                </tr>
+                `:""}
+              </table>
+            </div>
+
+            <div style="background: #3b82f6; padding: 25px; border-radius: 12px; margin: 25px 0; text-align: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+              <h4 style="margin: 0 0 15px 0; color: white; font-size: 20px;">\u26A1 ACTION REQUIRED</h4>
+              <div style="background: white; padding: 25px; border-radius: 8px; margin: 15px 0;">
+                <p style="margin: 0 0 10px 0; font-size: 16px; color: #1f2937; font-weight: bold;">Review and Process This Request</p>
+                <p style="margin: 0; font-size: 14px; color: #6b7280;">Use the Super Admin Dashboard to approve or deny this access request</p>
+              </div>
+              <p style="margin: 10px 0 0 0; color: white; font-size: 14px; font-weight: bold;">
+                ${e.requestType.toUpperCase()} ACCESS REQUEST
+              </p>
+            </div>
+
+            <div style="background: #fef3c7; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+              <h4 style="margin: 0 0 15px 0; color: #92400e; font-size: 16px;">\u{1F4DD} How to Process This Request</h4>
+              <ol style="margin: 0; padding-left: 20px; color: #78350f;">
+                <li style="margin-bottom: 8px;">Log in to the Super Admin Dashboard</li>
+                <li style="margin-bottom: 8px;">Go to the "Access Requests" tab</li>
+                <li style="margin-bottom: 8px;">Review the request details</li>
+                <li style="margin-bottom: 8px;">Click "Approve" to create account and send credentials</li>
+                <li>Or click "Deny" to reject the request</li>
+              </ol>
+              <p style="margin: 15px 0 0 0; font-size: 13px; color: #78350f; font-style: italic;">
+                \u{1F4E7} Email notifications will be sent automatically to the user based on your decision.
+              </p>
+            </div>
+          </div>
+
+          <!-- Professional Signature/Footer -->
+          <div style="background: #f9fafb; padding: 30px; border-top: 1px solid #e5e7eb;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h3 style="margin: 0 0 10px 0; color: #1e40af; font-size: 20px;">Ananth Automotive Garage</h3>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">Professional Automotive Service & Management</p>
+            </div>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="text-align: center; padding: 10px; border-right: 1px solid #e5e7eb; width: 33.33%;">
+                    <div style="color: #3b82f6; font-size: 20px; margin-bottom: 5px;">\u{1F4E7}</div>
+                    <div style="font-size: 12px; color: #6b7280;">Email</div>
+                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">ananthautomotivegarage@gmail.com</div>
+                  </td>
+                  <td style="text-align: center; padding: 10px; border-right: 1px solid #e5e7eb; width: 33.33%;">
+                    <div style="color: #10b981; font-size: 20px; margin-bottom: 5px;">\u{1F527}</div>
+                    <div style="font-size: 12px; color: #6b7280;">Service</div>
+                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">Professional Automotive</div>
+                  </td>
+                  <td style="text-align: center; padding: 10px; width: 33.33%;">
+                    <div style="color: #f59e0b; font-size: 20px; margin-bottom: 5px;">\u26A1</div>
+                    <div style="font-size: 12px; color: #6b7280;">System</div>
+                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">GarageGuru Platform</div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+                This is an automated notification from GarageGuru Management System.<br>
+                Powered by Ananth Automotive Garage - Excellence in Automotive Service
+              </p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `}generateAccessRequestText(e){return`
+\u{1F511} NEW ACCESS REQUEST - GARAGEGURU
+
+Request Details:
+\u{1F464} Name: ${e.name}
+\u{1F4E7} Email: ${e.email}
+\u{1F3AF} Requested Role: ${e.requestType.toUpperCase()}
+${e.garageId&&e.garageName?`\u{1F3EA} Selected Garage: ${e.garageName} (Owner: ${e.garageOwner})`:""}
+\u23F0 Time: ${e.timestamp}
+${e.message?`\u{1F4AC} Message: ${e.message}`:""}
+
+\u26A1 ACTION REQUIRED: Review and Process Request
+
+To Process This Request:
+1. Log in to the Super Admin Dashboard
+2. Go to the "Access Requests" tab  
+3. Review the request details
+4. Click "Approve" to create account and send credentials
+5. Or click "Deny" to reject the request
+
+\u{1F4E7} Email notifications will be sent automatically to the user.
+
+---
+GarageGuru Management System
+Access Control Notification
+    `}async sendAccessApprovalNotification(e,s){if(!this.isConfigured)return console.log("\u{1F4E7} Gmail SMTP not configured - logging approval instead"),console.log(`\u2705 ACCESS APPROVED for ${s.email} as ${s.role}`),!1;try{console.log(`\u{1F4E7} Sending approval notification via Gmail to: ${e}`);let n={from:`"GarageGuru System" <${process.env.GMAIL_USER}>`,to:e,subject:"\u{1F389} Access Approved - GarageGuru Account Created",text:this.generateApprovalEmailText(s),html:this.generateApprovalEmailHTML(s)};return await this.transporter.sendMail(n),console.log("\u{1F4E7} Approval notification sent successfully via Gmail"),!0}catch(n){return console.error("\u{1F4E7} Failed to send approval notification:",n),!1}}async sendAccessDenialNotification(e,s){if(!this.isConfigured)return console.log("\u{1F4E7} Gmail SMTP not configured - logging denial instead"),console.log(`\u274C ACCESS DENIED for ${e}`),!1;try{console.log(`\u{1F4E7} Sending denial notification via Gmail to: ${e}`);let n={from:`"GarageGuru System" <${process.env.GMAIL_USER}>`,to:e,subject:"\u274C Access Request Update - GarageGuru",text:this.generateDenialEmailText(s),html:this.generateDenialEmailHTML(s)};return await this.transporter.sendMail(n),console.log("\u{1F4E7} Denial notification sent successfully via Gmail"),!0}catch(n){return console.error("\u{1F4E7} Failed to send denial notification:",n),!1}}generateApprovalEmailHTML(e){return`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GarageGuru - Access Approved</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 20px; text-align: center;">
+            <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+              <span style="font-size: 40px;">\u{1F389}</span>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Welcome to GarageGuru!</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Your Access Has Been Approved</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #10b981; margin: 0 0 20px 0; font-size: 24px;">\u{1F38A} Congratulations ${e.name}!</h2>
+            
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Your access request has been <strong style="color: #10b981;">approved</strong>! You can now log in to the GarageGuru system with your new account.
+            </p>
+            
+            <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+              <h3 style="margin: 0 0 15px 0; color: #10b981; font-size: 18px;">\u{1F511} Your Login Credentials</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151; width: 100px;">\u{1F4E7} Email:</td>
+                  <td style="padding: 8px 0; color: #1f2937; font-family: monospace; background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">${e.email}</td>
+                </tr>
+                ${e.temporaryPassword?`
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F512} Password:</td>
+                  <td style="padding: 8px 0; color: #1f2937; font-family: monospace; background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">${e.temporaryPassword}</td>
+                </tr>
+                `:`
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F512} Password:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">Use your existing password</td>
+                </tr>
+                `}
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F464} Role:</td>
+                  <td style="padding: 8px 0; color: #1f2937; text-transform: capitalize;">${e.role.replace("_"," ")}</td>
+                </tr>
+              </table>
+            </div>
+            
+            ${e.temporaryPassword?`
+            <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+              <h4 style="margin: 0 0 10px 0; color: #d97706; font-size: 16px;">\u26A0\uFE0F Important Security Notice</h4>
+              <p style="color: #92400e; font-size: 14px; margin: 0; line-height: 1.5;">
+                This is a <strong>temporary password</strong>. For security reasons, you will be prompted to change your password when you first log in. Please choose a strong, unique password.
+              </p>
+            </div>
+            `:`
+            <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+              <h4 style="margin: 0 0 10px 0; color: #1e40af; font-size: 16px;">\u2139\uFE0F Account Updated</h4>
+              <p style="color: #1e3a8a; font-size: 14px; margin: 0; line-height: 1.5;">
+                Your existing account has been updated with new access permissions. You can log in using your current password.
+              </p>
+            </div>
+            `}
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL||"https://your-domain.replit.app"}/login" 
+                 style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);">
+                \u{1F680} Login to GarageGuru
+              </a>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 20px 0 0 0;">
+              If you have any questions or need assistance, please contact the system administrator.
+            </p>
+          </div>
+          
+          <!-- Footer -->
+          <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+              This email was sent from GarageGuru Management System<br>
+              &copy; 2025 GarageGuru. All rights reserved.
+            </p>
+          </div>
+          
+        </div>
+      </body>
+      </html>
+    `}generateApprovalEmailText(e){return`
+\u{1F389} WELCOME TO GARAGEGURU - ACCESS APPROVED!
+
+Congratulations ${e.name}!
+
+Your access request has been APPROVED! You can now log in to the GarageGuru system.
+
+\u{1F511} LOGIN CREDENTIALS:
+\u{1F4E7} Email: ${e.email}
+\u{1F512} Password: ${e.temporaryPassword?e.temporaryPassword:"Use your existing password"}
+\u{1F464} Role: ${e.role.replace("_"," ")}
+
+${e.temporaryPassword?`\u26A0\uFE0F IMPORTANT SECURITY NOTICE:
+This is a temporary password. You will be prompted to change your password when you first log in.`:`\u2139\uFE0F ACCOUNT UPDATED:
+Your existing account has been updated with new access permissions. You can log in using your current password.`}
+
+\u{1F680} LOGIN NOW:
+${process.env.FRONTEND_URL||"https://your-domain.replit.app"}/login
+
+If you have any questions, please contact the system administrator.
+
+---
+GarageGuru Management System
+\xA9 2025 GarageGuru. All rights reserved.
+    `}generateDenialEmailHTML(e){return`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GarageGuru - Access Request Update</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px 20px; text-align: center;">
+            <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+              <span style="font-size: 40px;">\u{1F4CB}</span>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">GarageGuru</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Access Request Update</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #ef4444; margin: 0 0 20px 0; font-size: 24px;">Access Request Status</h2>
+            
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Dear ${e.name},
+            </p>
+            
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Thank you for your interest in the GarageGuru Management System. After careful review, we are unable to approve your request for <strong>${e.requestType}</strong> access at this time.
+            </p>
+            
+            <div style="background: #fef2f2; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+              <h3 style="margin: 0 0 15px 0; color: #ef4444; font-size: 18px;">\u{1F4CB} Next Steps</h3>
+              <ul style="color: #374151; margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Contact the system administrator for more information</li>
+                <li style="margin-bottom: 8px;">Ensure you have the correct authorization from your organization</li>
+                <li style="margin-bottom: 8px;">You may submit a new request in the future if circumstances change</li>
+              </ul>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 20px 0 0 0;">
+              If you believe this decision was made in error or have questions, please contact the system administrator.
+            </p>
+          </div>
+          
+          <!-- Footer -->
+          <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+              This email was sent from GarageGuru Management System<br>
+              &copy; 2025 GarageGuru. All rights reserved.
+            </p>
+          </div>
+          
+        </div>
+      </body>
+      </html>
+    `}async sendEmail(e,s,n){if(!this.isConfigured)return console.log("\u{1F4E7} Gmail SMTP not configured - logging email instead"),console.log(`\u{1F4E7} Email to: ${e}`),console.log(`\u{1F4E7} Subject: ${s}`),!1;try{let d={from:`"GarageGuru System" <${process.env.GMAIL_USER}>`,to:e,subject:s,html:n,text:n.replace(/<[^>]*>/g,"")};return console.log(`\u{1F4E7} Sending email via Gmail to: ${e}`),await this.transporter.sendMail(d),console.log("\u{1F4E7} Email sent successfully via Gmail"),!0}catch(d){return console.error("\u{1F4E7} Gmail email send failed:",d),!1}}generateDenialEmailText(e){return`
+GARAGEGURU - ACCESS REQUEST UPDATE
+
+Dear ${e.name},
+
+Thank you for your interest in the GarageGuru Management System. 
+
+After careful review, we are unable to approve your request for ${e.requestType.toUpperCase()} access at this time.
+
+\u{1F4CB} NEXT STEPS:
+\u2022 Contact the system administrator for more information
+\u2022 Ensure you have the correct authorization from your organization  
+\u2022 You may submit a new request in the future if circumstances change
+
+If you believe this decision was made in error or have questions, please contact the system administrator.
+
+---
+GarageGuru Management System
+\xA9 2025 GarageGuru. All rights reserved.
+    `}logAccessRequest(e){console.log(`
+\u{1F511} NEW ACCESS REQUEST \u{1F511}`),console.log("================================"),console.log(`\u{1F4E7} Email: ${e.email}`),console.log(`\u{1F464} Name: ${e.name}`),console.log(`\u{1F3AF} Requested Role: ${e.requestType}`),console.log(`\u{1F4AC} Message: ${e.message||"No message provided"}`),console.log(`\u23F0 Time: ${e.timestamp}`),console.log(`================================
+`)}async sendTemporaryPasswordEmail(e,s,n){if(!this.isConfigured)return console.log("\u{1F4E7} Gmail SMTP not configured - logging temporary password instead"),console.log(`\u{1F4E7} Temporary password for ${e}: ${n}`),!1;try{let d={from:`"GarageGuru System" <${process.env.GMAIL_USER}>`,to:e,subject:"GarageGuru - Your Account Access Approved",html:`
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #007bff;">Account Access Approved!</h2>
+            <p>Hello ${s},</p>
+            <p>Great news! Your access request to GarageGuru has been <strong>approved</strong>.</p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #333;">Your Login Credentials:</h3>
+              <p><strong>Email:</strong> ${e}</p>
+              <p><strong>Temporary Password:</strong> <code style="background: #e9ecef; padding: 4px 8px; border-radius: 4px;">${n}</code></p>
+            </div>
+
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h4 style="margin-top: 0; color: #856404;">\u26A0\uFE0F Important Security Notice:</h4>
+              <ul style="margin-bottom: 0; color: #856404;">
+                <li>This is a temporary password that you <strong>must change</strong> on first login</li>
+                <li>You will be automatically redirected to change your password</li>
+                <li>Choose a strong password with at least 8 characters, including uppercase, lowercase, and numbers</li>
+              </ul>
+            </div>
+
+            <p style="margin-top: 30px;">
+              <a href="${process.env.FRONTEND_URL||"https://garageguru.app"}/login" 
+                 style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Login to GarageGuru
+              </a>
+            </p>
+
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              If you have any questions or need assistance, please contact your system administrator.
+            </p>
+          </div>
+        `};return await this.transporter.sendMail(d),console.log("\u{1F4E7} Temporary password email sent successfully to:",e),!0}catch(d){return console.error("\u{1F4E7} Failed to send temporary password email:",d),!1}}async sendApprovalEmail(e,s,n){if(!this.isConfigured)return console.log("\u{1F4E7} Gmail SMTP not configured - logging approval instead"),console.log(`\u{1F4E7} Approval notification for ${e}: role ${n}`),!1;try{let d=n==="garage_admin"?"Garage Administrator":"Mechanic Staff",y={from:`"GarageGuru System" <${process.env.GMAIL_USER}>`,to:e,subject:"GarageGuru - Your Access Request Approved",html:`
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #28a745;">Access Request Approved!</h2>
+            <p>Hello ${s},</p>
+            <p>Great news! Your access request to GarageGuru has been <strong>approved</strong>.</p>
+            
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #155724;">Your Account Details:</h3>
+              <p style="margin-bottom: 0; color: #155724;"><strong>Role:</strong> ${d}</p>
+            </div>
+
+            <p>You can now access GarageGuru using your existing login credentials.</p>
+
+            <p style="margin-top: 30px;">
+              <a href="${process.env.FRONTEND_URL||"https://garageguru.app"}/login" 
+                 style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Login to GarageGuru
+              </a>
+            </p>
+
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              If you have any questions or need assistance, please contact your system administrator.
+            </p>
+          </div>
+        `};return await this.transporter.sendMail(y),console.log("\u{1F4E7} Approval email sent successfully to:",e),!0}catch(d){return console.error("\u{1F4E7} Failed to send approval email:",d),!1}}},qe=X.getInstance(),je=qe});import ie from"express";import{createServer as Ye}from"http";import Ve from"cors";import{Pool as Ne}from"pg";var ce=process.env.SUPABASE_DATABASE_URL;if(!ce)throw new Error("SUPABASE_DATABASE_URL must be set.");var l=new Ne({connectionString:ce,ssl:{rejectUnauthorized:!1},connectionTimeoutMillis:3e4,idleTimeoutMillis:3e4,max:20});l.on("connect",()=>{console.log("Connected to PostgreSQL database")});l.on("error",c=>{console.error("PostgreSQL connection error:",c)});import D from"crypto";import Ce from"bcrypt";var Z=class{async ping(){try{return(await l.query("SELECT 1 as ping")).rows[0]?.ping===1}catch(e){return console.error("Database ping failed:",e),!1}}async getUserByEmail(e){try{return(await l.query("SELECT * FROM users WHERE email = $1 LIMIT 1",[e])).rows[0]}catch(s){console.error("getUserByEmail error:",s);return}}async getUserById(e){try{return(await l.query("SELECT * FROM users WHERE id = $1 LIMIT 1",[e])).rows[0]}catch(s){console.error("getUserById error:",s);return}}async createUser(e){let s=e.id||D.randomUUID();return(await l.query("INSERT INTO users (id, email, password, role, garage_id, name, must_change_password, first_login, status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",[s,e.email,e.password,e.role,e.garage_id,e.name,e.must_change_password||!1,e.first_login!==!1,e.status||"active",new Date])).rows[0]}async createGarage(e){let s=e.id||D.randomUUID();return(await l.query("INSERT INTO garages (id, name, owner_name, phone, email, logo, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",[s,e.name,e.owner_name,e.phone,e.email,e.logo,new Date])).rows[0]}async getGarage(e){try{let n=(await l.query("SELECT * FROM garages WHERE id = $1",[e])).rows[0];return n&&{...n,ownerName:n.owner_name,createdAt:n.created_at}}catch(s){console.error("getGarage error:",s);return}}async getGarageStaff(e){try{return(await l.query(`SELECT id, email, name, role, status, garage_id, created_at 
+         FROM users 
+         WHERE garage_id = $1 AND role = 'mechanic_staff'
+         ORDER BY created_at DESC`,[e])).rows}catch(s){return console.error("getGarageStaff error:",s),[]}}async getAllGarages(){try{return(await l.query("SELECT * FROM garages ORDER BY name")).rows}catch(e){return console.error("getAllGarages error:",e),[]}}async updateGarage(e,s){return(await l.query("UPDATE garages SET name = COALESCE($2, name), owner_name = COALESCE($3, owner_name), phone = COALESCE($4, phone), email = COALESCE($5, email), logo = COALESCE($6, logo) WHERE id = $1 RETURNING *",[e,s.name,s.owner_name,s.phone,s.email,s.logo])).rows[0]}async getCustomers(e){return(await l.query("SELECT * FROM customers WHERE garage_id = $1 ORDER BY created_at DESC",[e])).rows.map(n=>({...n,bikeNumber:n.bike_number,totalJobs:n.total_jobs,totalSpent:n.total_spent,lastVisit:n.last_visit,createdAt:n.created_at}))}async getCustomer(e,s){try{let d=(await l.query("SELECT * FROM customers WHERE id = $1 AND garage_id = $2",[e,s])).rows[0];return d?{...d,bikeNumber:d.bike_number,totalJobs:d.total_jobs,totalSpent:d.total_spent,lastVisit:d.last_visit,createdAt:d.created_at}:void 0}catch(n){console.error("getCustomer error:",n);return}}async searchCustomers(e,s){return(await l.query("SELECT * FROM customers WHERE garage_id = $1 AND (name ILIKE $2 OR phone ILIKE $2 OR bike_number ILIKE $2)",[e,`%${s}%`])).rows}async createCustomer(e){let s=e.id||D.randomUUID();return(await l.query("INSERT INTO customers (id, garage_id, name, phone, bike_number, total_jobs, total_spent, last_visit, created_at, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",[s,e.garageId,e.name,e.phone,e.bikeNumber,e.totalJobs||0,e.totalSpent||0,e.lastVisit,new Date,e.notes])).rows[0]}async updateCustomer(e,s){let d=(await l.query("UPDATE customers SET name = COALESCE($2, name), phone = COALESCE($3, phone), bike_number = COALESCE($4, bike_number), total_jobs = COALESCE($5, total_jobs), total_spent = COALESCE($6, total_spent), last_visit = COALESCE($7, last_visit), notes = COALESCE($8, notes) WHERE id = $1 RETURNING *",[e,s.name,s.phone,s.bikeNumber||s.bike_number,s.totalJobs||s.total_jobs,s.totalSpent||s.total_spent,s.lastVisit||s.last_visit,s.notes])).rows[0];return{...d,bikeNumber:d.bike_number,totalJobs:d.total_jobs,totalSpent:d.total_spent,lastVisit:d.last_visit,createdAt:d.created_at}}async updateUserGarage(e,s){return(await l.query("UPDATE users SET garage_id = $2 WHERE id = $1 RETURNING *",[e,s])).rows[0]}async updateUser(e,s){let n=Object.keys(s).filter(h=>h!=="id"),d=n.map(h=>s[h]),y=n.map((h,A)=>`${h} = $${A+2}`).join(", ");return(await l.query(`UPDATE users SET ${y} WHERE id = $1 RETURNING *`,[e,...d])).rows[0]}async changePassword(e,s){let n=await Ce.hash(s,10);await l.query("UPDATE users SET password = $2, must_change_password = FALSE WHERE id = $1",[e,n])}async getSpareParts(e){return(await l.query("SELECT * FROM spare_parts WHERE garage_id = $1 ORDER BY created_at DESC",[e])).rows.map(n=>({...n,partNumber:n.part_number,costPrice:n.cost_price,lowStockThreshold:n.low_stock_threshold,createdAt:n.created_at,updatedAt:n.updated_at}))}async getLowStockParts(e){let n=(await l.query("SELECT * FROM spare_parts WHERE garage_id = $1 AND quantity <= low_stock_threshold",[e])).rows;for(let d of n)try{(await l.query("SELECT id FROM notifications WHERE garage_id = $1 AND type = $2 AND data->>'partId' = $3 AND created_at > NOW() - INTERVAL '24 hours'",[e,"low_stock",d.id])).rows.length===0&&await this.createNotification({garageId:e,title:"Low Stock Alert",message:`${d.name} (${d.part_number||"No part number"}) is running low. Only ${d.quantity} left (threshold: ${d.low_stock_threshold})`,type:"low_stock",data:{partId:d.id,partName:d.name,quantity:d.quantity,threshold:d.low_stock_threshold}})}catch(y){console.error("Error creating low stock notification:",y)}return n.map(d=>({...d,partNumber:d.part_number,costPrice:d.cost_price,lowStockThreshold:d.low_stock_threshold,createdAt:d.created_at,updatedAt:d.updated_at}))}async getSparePart(e,s){try{let n=await l.query("SELECT * FROM spare_parts WHERE id = $1 AND garage_id = $2",[e,s]);if(n.rows[0]){let d=n.rows[0];return{...d,partNumber:d.part_number,costPrice:d.cost_price,lowStockThreshold:d.low_stock_threshold,createdAt:d.created_at,updatedAt:d.updated_at}}return}catch(n){console.error("getSparePart error:",n);return}}async searchSpareParts(e,s){return(await l.query("SELECT * FROM spare_parts WHERE garage_id = $1 AND (name ILIKE $2 OR part_number ILIKE $2)",[e,`%${s}%`])).rows.map(d=>({...d,partNumber:d.part_number,costPrice:d.cost_price,lowStockThreshold:d.low_stock_threshold,createdAt:d.created_at,updatedAt:d.updated_at}))}async createSparePart(e){let s=e.id||D.randomUUID(),d=(await l.query("INSERT INTO spare_parts (id, garage_id, name, part_number, price, quantity, low_stock_threshold, barcode, created_at, cost_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",[s,e.garage_id,e.name,e.part_number,e.price,e.quantity||0,e.low_stock_threshold||5,e.barcode,new Date,e.cost_price])).rows[0];return{...d,partNumber:d.part_number,costPrice:d.cost_price,lowStockThreshold:d.low_stock_threshold,createdAt:d.created_at,updatedAt:d.updated_at}}async updateSparePart(e,s){let d=(await l.query("UPDATE spare_parts SET name = COALESCE($2, name), part_number = COALESCE($3, part_number), price = COALESCE($4, price), quantity = COALESCE($5, quantity), low_stock_threshold = COALESCE($6, low_stock_threshold), barcode = COALESCE($7, barcode), cost_price = COALESCE($8, cost_price) WHERE id = $1 RETURNING *",[e,s.name,s.part_number,s.price,s.quantity,s.low_stock_threshold,s.barcode,s.cost_price])).rows[0];return{...d,partNumber:d.part_number,costPrice:d.cost_price,lowStockThreshold:d.low_stock_threshold,createdAt:d.created_at,updatedAt:d.updated_at}}async deleteSparePart(e,s){await l.query("DELETE FROM spare_parts WHERE id = $1 AND garage_id = $2",[e,s])}async getJobCards(e,s){let n="SELECT * FROM job_cards WHERE garage_id = $1",d=[e];return s&&(n+=" AND status = $2",d.push(s)),n+=" ORDER BY created_at DESC",(await l.query(n,d)).rows}async getJobCard(e,s){try{return(await l.query("SELECT * FROM job_cards WHERE id = $1 AND garage_id = $2",[e,s])).rows[0]}catch(n){console.error("getJobCard error:",n);return}}async createJobCard(e){let s=e.id||D.randomUUID();return(await l.query("INSERT INTO job_cards (id, garage_id, customer_id, customer_name, phone, bike_number, complaint, status, spare_parts, service_charge, total_amount, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *",[s,e.garageId,e.customerId,e.customerName,e.phone,e.bikeNumber,e.complaint,e.status||"pending",JSON.stringify(e.spareParts),e.serviceCharge||0,e.totalAmount||0,new Date])).rows[0]}async updateJobCard(e,s){return(await l.query("UPDATE job_cards SET complaint = COALESCE($2, complaint), spare_parts = COALESCE($3, spare_parts), service_charge = COALESCE($4, service_charge), total_amount = COALESCE($5, total_amount), status = COALESCE($6, status), completed_at = COALESCE($7, completed_at), completed_by = COALESCE($8, completed_by), completion_notes = COALESCE($9, completion_notes), work_summary = COALESCE($10, work_summary) WHERE id = $1 RETURNING *",[e,s.complaint,s.spareParts?JSON.stringify(s.spareParts):null,s.serviceCharge,s.totalAmount,s.status,s.completedAt,s.completed_by,s.completion_notes,s.work_summary])).rows[0]}async getInvoices(e){return(await l.query(`
+      SELECT 
+        i.*,
+        c.name as customer_name,
+        c.bike_number,
+        c.phone,
+        c.total_jobs as visit_count
+      FROM invoices i
+      LEFT JOIN customers c ON i.customer_id = c.id
+      WHERE i.garage_id = $1 
+      ORDER BY i.created_at DESC
+    `,[e])).rows}async getCustomerInvoices(e,s){return(await l.query("SELECT * FROM invoices WHERE customer_id = $1 AND garage_id = $2 ORDER BY created_at DESC",[e,s])).rows}async getInvoiceByJobCardId(e){return(await l.query("SELECT * FROM invoices WHERE job_card_id = $1 LIMIT 1",[e])).rows[0]}async createInvoice(e){let s=e.id||D.randomUUID(),n=await l.query("INSERT INTO invoices (id, garage_id, job_card_id, customer_id, invoice_number, download_token, whatsapp_sent, total_amount, parts_total, service_charge, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *",[s,e.garageId,e.jobCardId,e.customerId,e.invoiceNumber,e.pdfUrl,e.whatsappSent||!1,e.totalAmount||0,e.partsTotal||0,e.serviceCharge||0,new Date]);if(e.customerId&&e.garageId)try{console.log(`\u{1F4CA} [INVOICE] Updating visit count for customer ${e.customerId}`),await l.query("UPDATE customers SET total_jobs = total_jobs + 1, last_visit = $1, total_spent = total_spent + $2 WHERE id = $3 AND garage_id = $4",[new Date,e.totalAmount||0,e.customerId,e.garageId]),console.log("\u2705 [INVOICE] Customer visit count updated successfully")}catch(y){console.error("\u274C [INVOICE] Error updating customer visit count:",y)}let d=n.rows[0];return d&&!d.jobCardId&&d.job_card_id&&(d.jobCardId=d.job_card_id),d}async updateInvoice(e,s){return(await l.query("UPDATE invoices SET whatsapp_sent = COALESCE($2, whatsapp_sent), download_token = COALESCE($3, download_token) WHERE id = $1 RETURNING *",[e,s.whatsapp_sent,s.download_token])).rows[0]}async syncCustomerVisitCounts(e){try{let s=await l.query(`
+        UPDATE customers 
+        SET total_jobs = (
+          SELECT COUNT(*) 
+          FROM invoices 
+          WHERE invoices.customer_id = customers.id
+        ),
+        total_spent = (
+          SELECT COALESCE(SUM(total_amount), 0) 
+          FROM invoices 
+          WHERE invoices.customer_id = customers.id
+        ),
+        last_visit = (
+          SELECT MAX(created_at)
+          FROM invoices 
+          WHERE invoices.customer_id = customers.id
+        )
+        WHERE garage_id = $1
+      `,[e]);console.log(`\u2705 Synced visit counts and last visit dates for customers in garage ${e}`)}catch(s){console.error("Error syncing customer visit counts:",s)}}async getSalesStats(e){let n=(await l.query("SELECT COUNT(*) as total_invoices, COALESCE(SUM(parts_total), 0) as total_parts_total, COALESCE(SUM(service_charge), 0) as total_service_charges, COALESCE(SUM(total_amount), 0) as total_profit FROM invoices WHERE garage_id = $1",[e])).rows[0];return{totalInvoices:parseInt(n.total_invoices),totalPartsTotal:parseFloat(n.total_parts_total),totalServiceCharges:parseFloat(n.total_service_charges),totalProfit:parseFloat(n.total_profit)}}async getTodaySalesStats(e){let s=new Date;s.setHours(0,0,0,0);let n=new Date(s);n.setDate(n.getDate()+1);let y=(await l.query(`SELECT 
+        COUNT(*) as today_invoices,
+        COALESCE(SUM(parts_total), 0) as today_parts,
+        COALESCE(SUM(service_charge), 0) as today_service,
+        COALESCE(SUM(total_amount), 0) as today_profit
+       FROM invoices 
+       WHERE garage_id = $1 AND created_at >= $2 AND created_at < $3`,[e,s.toISOString(),n.toISOString()])).rows[0];return{todayProfit:parseFloat(y.today_profit||0),todayInvoices:parseInt(y.today_invoices||0),todayService:parseFloat(y.today_service||0),todayParts:parseFloat(y.today_parts||0)}}async getSalesDataByDateRange(e,s,n){return(await l.query(`SELECT 
+        DATE(created_at) as date,
+        DATE(created_at) as period,
+        COALESCE(SUM(total_amount), 0) as revenue,
+        COALESCE(SUM(total_amount), 0) as total_sales,
+        COALESCE(SUM(service_charge), 0) as service_charges,
+        COALESCE(SUM(parts_total), 0) as parts_revenue,
+        COALESCE(SUM(total_amount), 0) as profit,
+        COUNT(*) as count,
+        COUNT(*) as invoice_count
+       FROM invoices 
+       WHERE garage_id = $1 AND DATE(created_at) BETWEEN $2 AND $3
+       GROUP BY DATE(created_at)
+       ORDER BY DATE(created_at) ASC`,[e,s,n])).rows.map(y=>({date:y.date,period:y.period,revenue:parseFloat(y.revenue||0),totalSales:parseFloat(y.total_sales||0),serviceCharges:parseFloat(y.service_charges||0),partsRevenue:parseFloat(y.parts_revenue||0),profit:parseFloat(y.profit||0),count:parseInt(y.count||0),invoiceCount:parseInt(y.invoice_count||0)}))}async getMonthlySalesData(e){return(await l.query(`SELECT 
+        EXTRACT(MONTH FROM created_at) as month,
+        EXTRACT(YEAR FROM created_at) as year,
+        COALESCE(SUM(service_charge), 0) as service_charges,
+        COUNT(*) as invoice_count
+       FROM invoices 
+       WHERE garage_id = $1 
+       GROUP BY EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)
+       ORDER BY year DESC, month DESC
+       LIMIT 12`,[e])).rows.map(n=>({month:new Date(0,n.month-1).toLocaleString("default",{month:"short"}),year:parseInt(n.year),serviceCharges:parseFloat(n.service_charges),invoiceCount:parseInt(n.invoice_count)}))}async getAllGarages(){return(await l.query("SELECT * FROM garages ORDER BY created_at DESC")).rows}async getAllUsers(){return(await l.query("SELECT * FROM users ORDER BY created_at DESC")).rows}async getUsersByGarage(e){return(await l.query("SELECT * FROM users WHERE garage_id = $1 ORDER BY created_at DESC",[e])).rows}async updateUserRole(e,s,n){if(s==="mechanic_staff"){let h=await l.query("SELECT garage_id FROM users WHERE id = $1",[e]);if(h.rows[0]?.garage_id){let A=await l.query("SELECT COUNT(*) as count FROM users WHERE garage_id = $1 AND role = $2",[h.rows[0].garage_id,"garage_admin"]);if(parseInt(A.rows[0].count)<=1)throw new Error("Cannot demote the last admin in the garage")}}let d=await l.query("UPDATE users SET role = $1 WHERE id = $2 RETURNING *",[s,e]),y=await l.query("SELECT email, garage_id FROM users WHERE id = $1",[n]),R=d.rows[0];return await this.createAuditLog({actor_id:n,actor_email:y.rows[0]?.email||"system",target_user_id:e,target_email:R.email,action:"role_change",details:{new_role:s,previous_role:R.role},garage_id:R.garage_id||y.rows[0]?.garage_id}),d.rows[0]}async createOtpRecord(e){let s=D.randomUUID();return(await l.query("INSERT INTO otp_records (id, email, hashed_otp, salt, purpose, attempts, used, expires_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",[s,e.email,e.hashed_otp,e.salt,e.purpose,e.attempts||0,e.used||!1,e.expires_at])).rows[0]}async getOtpRecord(e,s){return(await l.query("SELECT * FROM otp_records WHERE email = $1 AND purpose = $2 AND used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1",[e,s])).rows[0]}async updateOtpRecord(e,s){let n=Object.keys(s).filter(h=>h!=="id"),d=n.map(h=>s[h]),y=n.map((h,A)=>`${h} = $${A+2}`).join(", ");return(await l.query(`UPDATE otp_records SET ${y} WHERE id = $1 RETURNING *`,[e,...d])).rows[0]}async createAuditLog(e){let s=D.randomUUID();return(await l.query("INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, target_email, action, details, garage_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",[s,e.actor_id,e.actor_email,e.target_user_id,e.target_email,e.action,JSON.stringify(e.details),e.garage_id])).rows[0]}async getAuditLogs(e){let s="SELECT * FROM audit_logs",n=[];return e&&(s+=" WHERE garage_id = $1",n=[e]),s+=" ORDER BY created_at DESC LIMIT 100",(await l.query(s,n)).rows}async createAccessRequest(e){let s=D.randomUUID();return(await l.query("INSERT INTO access_requests (id, garage_id, user_id, email, name, requested_role, status, note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",[s,e.garage_id,e.user_id,e.email,e.name,e.requested_role,e.status||"pending",e.note])).rows[0]}async checkExistingAccessRequest(e){return(await l.query("SELECT * FROM access_requests WHERE email = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1",[e,"pending"])).rows[0]||null}async getAccessRequests(e){let s="SELECT * FROM access_requests",n=[];return e&&(s+=" WHERE garage_id = $1",n=[e]),s+=" ORDER BY created_at DESC",(await l.query(s,n)).rows}async updateAccessRequest(e,s){let n=Object.keys(s).filter(h=>h!=="id"),d=n.map(h=>s[h]);n.includes("status")&&(s.status==="approved"||s.status==="denied")&&(n.includes("processed_at")||(n.push("processed_at"),d.push(new Date)));let y=n.map((h,A)=>`${h} = $${A+2}`).join(", ");return(await l.query(`UPDATE access_requests SET ${y} WHERE id = $1 RETURNING *`,[e,...d])).rows[0]}async createNotification(e){let s=D.randomUUID();return(await l.query("INSERT INTO notifications (id, garage_id, title, message, type, is_read, data, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",[s,e.garageId,e.title,e.message,e.type,!1,JSON.stringify(e.data||{}),new Date])).rows[0]}async getNotifications(e){return(await l.query("SELECT * FROM notifications WHERE garage_id = $1 ORDER BY created_at DESC LIMIT 50",[e])).rows}async getUnreadNotificationCount(e){let s=await l.query("SELECT COUNT(*) as count FROM notifications WHERE garage_id = $1 AND is_read = false",[e]);return parseInt(s.rows[0].count)}async markNotificationAsRead(e,s){await l.query("UPDATE notifications SET is_read = true WHERE id = $1 AND garage_id = $2",[e,s])}async markAllNotificationsAsRead(e){await l.query("UPDATE notifications SET is_read = true WHERE garage_id = $1 AND is_read = false",[e])}},u=new Z;import $ from"bcrypt";import F from"jsonwebtoken";import{sql as q}from"drizzle-orm";import{pgTable as j,text as E,varchar as T,integer as J,decimal as W,timestamp as P,boolean as V,jsonb as ee}from"drizzle-orm/pg-core";import{createInsertSchema as G}from"drizzle-zod";import{z as v}from"zod";var B=j("garages",{id:T("id").primaryKey().default(q`gen_random_uuid()`),name:E("name").notNull(),ownerName:E("owner_name").notNull(),phone:E("phone").notNull(),email:E("email").notNull(),logo:E("logo"),createdAt:P("created_at").defaultNow()}),de=j("users",{id:T("id").primaryKey().default(q`gen_random_uuid()`),email:E("email").notNull().unique(),password:E("password").notNull(),role:E("role").notNull(),garageId:T("garage_id").references(()=>B.id),name:E("name").notNull(),firstLogin:V("first_login").default(!0),mustChangePassword:V("must_change_password").default(!1),status:E("status").notNull().default("active"),createdAt:P("created_at").defaultNow()}),K=j("customers",{id:T("id").primaryKey().default(q`gen_random_uuid()`),garageId:T("garage_id").notNull().references(()=>B.id),name:E("name").notNull(),phone:E("phone").notNull(),bikeNumber:E("bike_number").notNull(),notes:E("notes"),totalJobs:J("total_jobs").default(0),totalSpent:W("total_spent",{precision:10,scale:2}).default("0"),lastVisit:P("last_visit"),createdAt:P("created_at").defaultNow()}),xe=j("spare_parts",{id:T("id").primaryKey().default(q`gen_random_uuid()`),garageId:T("garage_id").notNull().references(()=>B.id),partNumber:E("part_number").notNull().unique(),name:E("name").notNull(),price:W("price",{precision:10,scale:2}).notNull(),costPrice:W("cost_price",{precision:10,scale:2}).notNull().default("0"),quantity:J("quantity").notNull().default(0),lowStockThreshold:J("low_stock_threshold").default(2),barcode:E("barcode"),createdAt:P("created_at").defaultNow()}),le=j("job_cards",{id:T("id").primaryKey().default(q`gen_random_uuid()`),garageId:T("garage_id").notNull().references(()=>B.id),customerId:T("customer_id").notNull().references(()=>K.id),customerName:E("customer_name").notNull(),phone:E("phone").notNull(),bikeNumber:E("bike_number").notNull(),complaint:E("complaint").notNull(),status:E("status").notNull().default("pending"),spareParts:ee("spare_parts").$type().default([]),serviceCharge:W("service_charge",{precision:10,scale:2}).default("0"),totalAmount:W("total_amount",{precision:10,scale:2}).default("0"),createdAt:P("created_at").defaultNow(),completedAt:P("completed_at"),completedBy:T("completed_by").references(()=>de.id),completionNotes:E("completion_notes"),workSummary:E("work_summary")}),Pe=j("invoices",{id:T("id").primaryKey().default(q`gen_random_uuid()`),garageId:T("garage_id").notNull().references(()=>B.id),jobCardId:T("job_card_id").notNull().references(()=>le.id),customerId:T("customer_id").notNull().references(()=>K.id),invoiceNumber:E("invoice_number").notNull(),downloadToken:E("download_token"),whatsappSent:V("whatsapp_sent").default(!1),totalAmount:W("total_amount",{precision:10,scale:2}).notNull(),partsTotal:W("parts_total",{precision:10,scale:2}).notNull(),serviceCharge:W("service_charge",{precision:10,scale:2}).notNull(),createdAt:P("created_at",{withTimezone:!0}).defaultNow()}),ue=G(B).omit({id:!0,createdAt:!0}),it=G(de).omit({id:!0,createdAt:!0}),ge=G(K).omit({id:!0,createdAt:!0,totalJobs:!0,totalSpent:!0,lastVisit:!0}),te=G(xe).omit({id:!0,createdAt:!0}).extend({partNumber:v.string().min(1,"Part number is required"),name:v.string().min(1,"Part name is required"),price:v.union([v.string().refine(c=>parseFloat(c)>0,"Selling price must be greater than 0"),v.number().positive("Selling price must be greater than 0").transform(String)]),costPrice:v.union([v.string().refine(c=>parseFloat(c)>=0,"Cost price must be 0 or greater"),v.number().min(0,"Cost price must be 0 or greater").transform(String)]).optional().default("0"),quantity:v.number().int().min(0,"Quantity must be 0 or greater")}),ae=G(le).omit({id:!0,createdAt:!0,completedAt:!0,status:!0,customerId:!0,completedBy:!0}).extend({customerName:v.string().min(1,"Customer name is required"),phone:v.string().min(1,"Phone number is required"),bikeNumber:v.string().min(1,"Bike number is required"),spareParts:v.array(v.object({id:v.string(),partNumber:v.string().nullable().optional(),name:v.string(),quantity:v.number(),price:v.number()})).optional().default([]),serviceCharge:v.union([v.string(),v.number().transform(String)]).optional(),totalAmount:v.union([v.string(),v.number().transform(String)]).optional()}),me=G(Pe).omit({id:!0,createdAt:!0}),Oe=j("notifications",{id:T("id").primaryKey().default(q`gen_random_uuid()`),garageId:T("garage_id").notNull().references(()=>B.id),customerId:T("customer_id").references(()=>K.id),type:T("type").notNull(),title:T("title").notNull(),message:E("message").notNull(),isRead:V("is_read").default(!1),data:ee("data"),createdAt:P("created_at").defaultNow()}),ct=G(Oe).omit({id:!0,createdAt:!0}),Le=j("otp_records",{id:T("id").primaryKey().default(q`gen_random_uuid()`),email:E("email").notNull(),hashedOtp:E("hashed_otp").notNull(),salt:E("salt").notNull(),purpose:E("purpose").notNull(),attempts:J("attempts").default(0),used:V("used").default(!1),expiresAt:P("expires_at").notNull(),createdAt:P("created_at").defaultNow()}),$e=j("audit_logs",{id:T("id").primaryKey().default(q`gen_random_uuid()`),actorId:T("actor_id").notNull(),actorEmail:E("actor_email").notNull(),targetUserId:T("target_user_id"),targetEmail:E("target_email"),action:E("action").notNull(),details:ee("details"),garageId:T("garage_id").references(()=>B.id),createdAt:P("created_at").defaultNow()}),Ue=j("access_requests",{id:T("id").primaryKey().default(q`gen_random_uuid()`),garageId:T("garage_id").notNull().references(()=>B.id),userId:T("user_id").notNull(),email:E("email").notNull(),name:E("name").notNull(),requestedRole:E("requested_role").notNull(),status:E("status").notNull().default("pending"),note:E("note"),processedBy:T("processed_by"),processedAt:P("processed_at"),createdAt:P("created_at").defaultNow()}),dt=G(Le).omit({id:!0,createdAt:!0}),lt=G($e).omit({id:!0,createdAt:!0}),ut=G(Ue).omit({id:!0,createdAt:!0});se();import ye from"crypto";var M=process.env.JWT_SECRET||"GarageGuru2025ProductionJWTSecret!";function Ge(){let e="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%",s="",n="abcdefghijklmnopqrstuvwxyz",d="ABCDEFGHIJKLMNOPQRSTUVWXYZ",y="0123456789",R="!@#$%";s+=n[Math.floor(Math.random()*n.length)],s+=d[Math.floor(Math.random()*d.length)],s+=y[Math.floor(Math.random()*y.length)],s+=R[Math.floor(Math.random()*R.length)];for(let h=4;h<12;h++)s+=e[Math.floor(Math.random()*e.length)];return s.split("").sort(()=>Math.random()-.5).join("")}var Y=["gorla.ananthkalyan@gmail.com","ananthautomotivegarage@gmail.com"],re=X.getInstance(),f=async(c,e,s)=>{let n=c.headers.authorization,d=n&&n.split(" ")[1];if(!d)return e.status(401).json({message:"Access token required"});try{let y=F.verify(d,M),R=await u.getUserByEmail(y.email);if(!R)return e.status(401).json({message:"User not found"});c.user=R,s()}catch{return e.status(403).json({message:"Invalid token"})}},O=c=>(e,s,n)=>{if(!e.user||!c.includes(e.user.role))return s.status(403).json({message:"Insufficient permissions"});n()},w=(c,e,s)=>{if(c.user.role==="super_admin"){s();return}let n=c.params.garageId||c.params.id||c.body.garageId;if(!n||n!==c.user.garage_id)return e.status(403).json({message:"Access denied to this garage"});s()};async function fe(c){c.get("/health",(r,a)=>{a.json({status:"ok",timestamp:new Date().toISOString(),service:"garage-guru-backend",environment:process.env.NODE_ENV||"development"})}),c.get("/api/db/ping",async(r,a)=>{try{let t=await u.ping(),o=await l.query("SELECT 1 as ping, NOW() as timestamp, version() as db_version");a.json({success:!0,ping:o.rows[0].ping,timestamp:o.rows[0].timestamp,database_version:o.rows[0].db_version,storage_ping:t,database_url:process.env.DATABASE_URL?"configured":"missing"})}catch(t){console.error("Database ping error:",t),a.status(500).json({success:!1,error:t.message,database_url:process.env.DATABASE_URL?"configured":"missing"})}}),c.get("/api/debug/database",async(r,a)=>{try{let t=await l.query("SELECT NOW() as current_time"),o=await u.getAllUsers(),i=await u.getAllGarages();a.json({databaseConnected:!0,currentTime:t.rows[0],userCount:o.length,garageCount:i.length,sampleUser:o[0]?{email:o[0].email,role:o[0].role}:null,sampleGarage:i[0]?{name:i[0].name}:null})}catch(t){console.error("Database debug error:",t),a.json({databaseConnected:!1,error:t.message,needsSchemaPush:t.message.includes("relation")||t.message.includes("table")})}}),c.post("/api/setup/seed-database",async(r,a)=>{try{let t=await u.getAllUsers();if(t.length>0)return a.json({message:"Database already seeded",userCount:t.length});let o=await u.createGarage({name:"Ananth Automotive garage",ownerName:"Govind Naidu",phone:"7288856665",email:"gorla.ananthkalyan@gmail.com",logo:"https://res.cloudinary.com/dcueubsl8/image/upload/v1754845196/garage-logos/sjrppoab6sslhvm5rl7a.jpg"}),i=await u.createUser({email:"gorla.ananthkalyan@gmail.com",name:"Ananth",role:"garage_admin",garageId:o.id,password:"password123"});a.json({message:"Database seeded successfully - login ready",garage:{id:o.id,name:o.name},user:{id:i.id,email:i.email,role:i.role},loginCredentials:{email:"gorla.ananthkalyan@gmail.com",password:"password123"}})}catch(t){console.error("Database seeding error:",t),a.status(500).json({error:t.message})}}),process.env.NODE_ENV==="production"&&c.get("/",(r,a)=>{a.json({message:"Garage Guru Backend API",status:"running",timestamp:new Date().toISOString(),version:"1.0.0",endpoints:{health:"/health",auth:"/api/auth/*",garages:"/api/garages/*"}})});let e=process.env.SUPER_ADMIN_EMAIL||"ananthautomotivegarage@gmail.com";c.get("/api/garages",async(r,a)=>{try{let{purpose:t}=r.query,o=await u.getAllGarages();if(t==="staff_access"){let i=o.filter(g=>g.name&&g.owner_name);a.json(i)}else a.json(o)}catch{a.status(500).json({message:"Failed to fetch garages"})}}),c.post("/api/garages",f,async(r,a)=>{try{let{name:t,ownerName:o,phone:i,email:g}=r.body;if(!r.user||r.user.role!=="garage_admin")return a.status(403).json({message:"Only garage admins can create garages"});if(!t||!o||!i)return a.status(400).json({message:"Name, owner name, and phone are required"});let m=await u.createGarage({name:t,owner_name:o,phone:i,email:g||r.user.email});await u.updateUserGarage(r.user.id,m.id),a.json(m)}catch(t){console.error("Create garage error:",t),a.status(500).json({message:"Failed to create garage"})}}),c.post("/api/auth/request-access",async(r,a)=>{try{let{email:t,name:o,requestType:i,message:g,garageId:m}=r.body;if(!t||!o)return a.status(400).json({message:"Email and name are required."});if(i==="staff"&&!m)return a.status(400).json({message:"Garage selection is required for staff access requests. Please select a garage to continue."});if(await u.getUserByEmail(t))return a.status(400).json({message:"User with this email already has access to the system. Please login instead."});if((await u.getAccessRequests()).find(H=>H.email===t&&H.status==="pending"))return a.status(400).json({message:"You already have a pending access request. Please wait for super admin approval."});let C=await u.createAccessRequest({garage_id:m||null,user_id:null,email:t,name:o,requested_role:i||"staff",status:"pending",note:g}),_="",b="";if(m){let H=await u.getGarage(m);H&&(_=H.name,b=H.owner_name)}let N={email:t,name:o,requestType:i||"staff",message:g,garageId:m,garageName:_,garageOwner:b,requestId:C.id,timestamp:new Date().toLocaleString()},L=X.getInstance(),U=!1,x="";if(i==="staff"&&m){if(await u.getGarage(m)){let Q=(await u.getUsersByGarage(m)).find(Se=>Se.role==="garage_admin");Q?(U=await L.sendAccessRequestNotification(Q.email,N),x=U?`Access request sent to garage admin (${Q.email}). You will receive an email notification once your request is reviewed.`:"Access request saved for garage admin review. You will receive an email notification once your request is reviewed."):(U=await L.sendAccessRequestNotification(e,N),x=U?"Access request sent to super admin (no garage admin found). You will receive an email notification once your request is reviewed.":"Access request saved for super admin review. You will receive an email notification once your request is reviewed.")}}else U=await L.sendAccessRequestNotification(e,N),x=U?"Access request sent to super admin. You will receive an email notification once your request is reviewed.":"Access request saved for super admin review. You will receive an email notification once your request is reviewed.";a.json({message:x})}catch(t){console.error("Access request error:",t),a.status(500).json({message:"Internal server error"})}}),c.get("/api/access-requests",f,async(r,a)=>{try{let{garageId:t}=r.query;if(r.user?.role==="super_admin"){let o=await u.getAccessRequests(t);a.json(o)}else if(r.user?.role==="garage_admin"&&r.user.garage_id){let o=await u.getAccessRequests(r.user.garage_id);a.json(o.filter(i=>i.requested_role==="staff"))}else return a.status(403).json({message:"Insufficient permissions"})}catch(t){console.error("Get access requests error:",t),a.status(500).json({message:"Internal server error"})}}),c.post("/api/access-requests/:id/process",f,async(r,a)=>{try{let{id:t}=r.params,{action:o,role:i}=r.body,m=(await u.getAccessRequests()).find(p=>p.id===t);if(!m)return a.status(404).json({message:"Access request not found"});if(m.status!=="pending")return a.status(400).json({message:"Request has already been processed"});if(r.user?.role==="garage_admin"){if(m.requested_role!=="staff"||m.garage_id!==r.user.garage_id)return a.status(403).json({message:"Insufficient permissions to process this request"})}else if(r.user?.role!=="super_admin")return a.status(403).json({message:"Insufficient permissions"});if(o==="approve"){let p=await u.getUserByEmail(m.email),I,S=null;if(p){let _=i||(m.requested_role==="admin"?"garage_admin":"mechanic_staff");p.role!==_?I=await u.updateUser(p.id,{role:_,garage_id:m.garage_id||p.garage_id}):I=p}else{S=Ge();let _=await $.hash(S,10),b={email:m.email,password:_,name:m.name,role:i||(m.requested_role==="admin"?"garage_admin":"mechanic_staff"),garage_id:m.garage_id,must_change_password:!0};I=await u.createUser(b)}await u.updateAccessRequest(t,{status:"approved",user_id:I.id,processed_by:r.user.email,processed_at:new Date}),await X.getInstance().sendAccessApprovalNotification(m.email,{name:m.name,role:I.role,email:m.email,temporaryPassword:S}),a.json({message:"Access request approved and user created successfully"})}else o==="deny"?(await u.updateAccessRequest(t,{status:"denied",processed_by:r.user.email,processed_at:new Date}),await X.getInstance().sendAccessDenialNotification(m.email,{name:m.name,requestType:m.requested_role}),a.json({message:"Access request denied"})):a.status(400).json({message:'Invalid action. Use "approve" or "deny"'})}catch(t){console.error("Process access request error:",t),a.status(500).json({message:"Internal server error"})}}),c.post("/api/auth/generate-codes",f,O(["super_admin"]),async(r,a)=>{try{let t=Date.now().toString(36),o=Math.random().toString(36).substring(2,8).toUpperCase(),i=Math.random().toString(36).substring(2,8).toUpperCase(),g=`GARAGE-ADMIN-2025-${o}`,m=`GARAGE-STAFF-2025-${i}`;console.log(`
+\u{1F511} NEW ACTIVATION CODES GENERATED \u{1F511}`),console.log("==================================="),console.log(`\u{1F534} Admin Code: ${g}`),console.log(`\u{1F535} Staff Code: ${m}`),console.log(`\u23F0 Generated: ${new Date().toLocaleString()}`),console.log(`===================================
+`),console.log("\u{1F4A1} To use these codes, update your environment variables:"),console.log(`ADMIN_ACTIVATION_CODE=${g}`),console.log(`STAFF_ACTIVATION_CODE=${m}
+`),a.json({adminCode:g,staffCode:m,message:"New activation codes generated. Update environment variables to activate."})}catch(t){console.error("Code generation error:",t),a.status(500).json({message:"Internal server error"})}}),c.post("/api/auth/register-simple",async(r,a)=>{try{let{email:t,password:o,name:i,garageName:g,ownerName:m,phone:p}=r.body;if((await u.getAllUsers()).length>0)return a.status(400).json({message:"System already has users. Use activation codes."});let S=await u.createGarage({name:g||"Default Garage",ownerName:m||i,phone:p||"0000000000",email:t}),C=await u.createUser({email:t,name:i,role:"garage_admin",garage_id:S.id,password:o}),_=F.sign({email:C.email,id:C.id},M);a.json({token:_,user:{...C,password:void 0},garage:S})}catch(t){console.error("Simple registration error:",t),a.status(500).json({message:t.message})}}),c.post("/api/auth/register",async(r,a)=>{try{let{email:t,password:o,name:i,activationCode:g,garageName:m,ownerName:p,phone:I}=r.body;if(t===e){let x=await u.createUser({email:t,name:i,role:"super_admin",garage_id:null,password:o}),H=F.sign({email:x.email,id:x.id},M);return a.json({token:H,user:{...x,password:void 0},garage:null})}if(!/^[A-Z0-9]{8}$/.test(g))return a.status(400).json({message:"Invalid activation code format. Use the 8-character code provided by super admin."});let C=r.body.requestedRole==="admin"||r.body.isAdminRequest===!0?"garage_admin":"mechanic_staff";if(await u.getUserByEmail(t))return a.status(400).json({message:"User already exists"});let b=await $.hash(o,10),N=null;C==="garage_admin"?N=(await u.createGarage({name:m,owner_name:p||i,phone:I,email:t})).id:C==="mechanic_staff"&&r.body.selectedGarageId&&(N=r.body.selectedGarageId);let L=await u.createUser({email:t,password:b,name:i,role:C,garage_id:N}),U=F.sign({email:L.email,id:L.id},M);a.json({token:U,user:{...L,password:void 0,mustChangePassword:L.must_change_password||!1,firstLogin:L.first_login||!1,garageId:L.garage_id},garage:N?await u.getGarage(N):null})}catch(t){console.error("Registration error:",t),a.status(500).json({message:"Internal server error"})}}),c.post("/api/auth/login",async(r,a)=>{try{console.log("Login attempt for:",r.body?.email);let{email:t,password:o}=r.body;if(!t||!o)return console.log("Missing email or password:",{email:!!t,password:!!o}),a.status(400).json({message:"Email and password required"});let i=await u.getUserByEmail(t);if(console.log("User found:",i?"Yes":"No"),!i)return a.status(401).json({message:"Invalid credentials"});console.log("Comparing password. Length:",o.length);let g=await $.compare(o,i.password);if(console.log("Password valid:",g?"Yes":"No"),!g)return a.status(401).json({message:"Invalid credentials"});let m=F.sign({email:i.email,id:i.id},M);console.log("JWT token generated successfully");let p=null;i.garage_id&&(p=await u.getGarage(i.garage_id),console.log("Garage found:",p?"Yes":"No")),a.json({token:m,user:{...i,password:void 0,mustChangePassword:i.must_change_password||!1,firstLogin:i.first_login||!1,garageId:i.garage_id},garage:p})}catch(t){console.error("Login error details:",{message:t.message,stack:t.stack,name:t.name}),a.status(500).json({message:"Internal server error",error:process.env.NODE_ENV==="development"?t.message:void 0})}}),c.post("/api/auth/change-password",f,async(r,a)=>{try{let{currentPassword:t,newPassword:o}=r.body;if(!o)return a.status(400).json({message:"New password is required"});if(o.length<8)return a.status(400).json({message:"New password must be at least 8 characters long"});let i=await u.getUserByEmail(r.user.email);if(!i)return a.status(404).json({message:"User not found"});if(!i.must_change_password){if(!t)return a.status(400).json({message:"Current password is required"});if(!await $.compare(t,i.password))return a.status(401).json({message:"Current password is incorrect"})}if(await $.compare(o,i.password))return a.status(400).json({message:"New password cannot be the same as your current password"});await u.changePassword(i.id,o),a.json({message:"Password changed successfully"})}catch(t){console.error("Change password error:",t),a.status(500).json({message:"Internal server error"})}}),c.get("/api/user/profile",f,async(r,a)=>{try{let t=null;r.user.garage_id&&(t=await u.getGarage(r.user.garage_id)),a.json({user:{...r.user,password:void 0,garageId:r.user.garage_id},garage:t})}catch{a.status(500).json({message:"Internal server error"})}}),c.put("/api/garages/:id",f,O(["garage_admin"]),w,async(r,a)=>{try{let{id:t}=r.params,o=ue.partial().parse(r.body),i=await u.updateGarage(t,o);a.json(i)}catch{a.status(500).json({message:"Failed to update garage"})}}),c.get("/api/garages/:garageId/customers",f,w,async(r,a)=>{try{let{garageId:t}=r.params,o=await u.getCustomers(t);a.json(o)}catch{a.status(500).json({message:"Failed to fetch customers"})}}),c.post("/api/garages/:garageId/customers",f,w,async(r,a)=>{try{let{garageId:t}=r.params,o=ge.parse({...r.body,garageId:t}),i=await u.createCustomer(o);a.json(i)}catch(t){t.message&&t.message.includes("already exists")?a.status(409).json({message:t.message,type:"duplicate_bike_number"}):(console.error("Error creating customer:",t),a.status(500).json({message:"Failed to create customer"}))}}),c.get("/api/garages/:garageId/customers/search",f,w,async(r,a)=>{try{let{garageId:t}=r.params,{q:o}=r.query;if(!o||typeof o!="string")return a.json([]);let i=await u.searchCustomers(t,o);a.json(i)}catch{a.status(500).json({message:"Failed to search customers"})}}),c.get("/api/garages/:garageId/spare-parts/search",f,w,async(r,a)=>{try{let{garageId:t}=r.params,{q:o}=r.query;if(!o||typeof o!="string")return a.json([]);let i=await u.searchSpareParts(t,o);a.json(i)}catch{a.status(500).json({message:"Failed to search spare parts"})}}),c.get("/api/garages/:garageId/customers/:customerId/invoices",f,w,async(r,a)=>{try{let{garageId:t,customerId:o}=r.params,i=await u.getCustomerInvoices(o,t);a.json(i)}catch{a.status(500).json({message:"Failed to fetch customer invoices"})}}),c.put("/api/garages/:garageId/invoices/:id",f,w,async(r,a)=>{try{let{id:t}=r.params,o=r.body,i=await u.updateInvoice(t,o);a.json(i)}catch{a.status(500).json({message:"Failed to update invoice"})}}),c.get("/api/garages/:garageId/spare-parts",f,w,async(r,a)=>{try{let{garageId:t}=r.params,o=await u.getSpareParts(t);a.json(o)}catch(t){console.error("Error in spare parts endpoint:",t),a.status(500).json({message:"Failed to fetch spare parts"})}}),c.get("/api/garages/:garageId/spare-parts/low-stock",f,w,async(r,a)=>{try{let{garageId:t}=r.params,o=await u.getLowStockParts(t);a.json(o)}catch(t){console.error("Error in low stock endpoint:",t),a.status(500).json({message:"Failed to fetch low stock parts"})}}),c.post("/api/garages/:garageId/spare-parts",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t}=r.params,o=te.parse({...r.body,garageId:t}),i={...o,garage_id:t,part_number:o.partNumber,price:parseFloat(o.price),cost_price:parseFloat(o.costPrice||"0"),low_stock_threshold:o.lowStockThreshold||2};console.log("Creating spare part with garageId:",t,"Data:",i);let g=await u.createSparePart(i);a.json(g)}catch(t){console.error("Spare part creation error:",t),t instanceof Error?t.message.includes("already exists")?a.status(409).json({message:t.message}):a.status(400).json({message:t.message}):a.status(500).json({message:"Failed to create spare part"})}}),c.put("/api/garages/:garageId/spare-parts/:id",f,O(["garage_admin"]),w,async(r,a)=>{try{let{id:t}=r.params,o=te.partial().parse(r.body),i={...o,part_number:o.partNumber,price:o.price?parseFloat(o.price):void 0,cost_price:o.costPrice?parseFloat(o.costPrice):void 0,low_stock_threshold:o.lowStockThreshold},g=await u.updateSparePart(t,i);a.json(g)}catch(t){console.error("Spare part update error:",t),t instanceof Error?t.message.includes("duplicate key")||t.message.includes("unique constraint")?a.status(409).json({message:"Part number already exists. Please use a different part number."}):a.status(400).json({message:t.message}):a.status(500).json({message:"Failed to update spare part"})}}),c.delete("/api/garages/:garageId/spare-parts/:id",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t,id:o}=r.params;await u.deleteSparePart(o,t),a.json({success:!0})}catch{a.status(500).json({message:"Failed to delete spare part"})}}),c.get("/api/garages/:garageId/job-cards",f,w,async(r,a)=>{try{let{garageId:t}=r.params,{status:o}=r.query,i=await u.getJobCards(t,o);a.json(i)}catch{a.status(500).json({message:"Failed to fetch job cards"})}}),c.get("/api/garages/:garageId/job-cards/:id",f,w,async(r,a)=>{try{let{garageId:t,id:o}=r.params,i=await u.getJobCard(o,t);if(!i)return a.status(404).json({message:"Job card not found"});if(typeof i.spare_parts=="string")try{i.spare_parts=JSON.parse(i.spare_parts)}catch{i.spare_parts=[]}a.json(i)}catch(t){console.error("Error fetching job card:",t),a.status(500).json({message:"Failed to fetch job card"})}}),c.post("/api/garages/:garageId/job-cards",f,w,async(r,a)=>{try{let{garageId:t}=r.params,o=ae.parse({...r.body,garageId:t}),i=await u.getCustomers(t).then(m=>m.find(p=>p.phone===o.phone&&p.bike_number===o.bikeNumber));i||(i=await u.createCustomer({garageId:t,name:o.customerName,phone:o.phone,bikeNumber:o.bikeNumber}));let g=await u.createJobCard({...o,customerId:i.id,spareParts:o.spareParts||[]});if(g.spareParts&&Array.isArray(g.spareParts))for(let m of g.spareParts){let p=await u.getSparePart(m.id,t);p&&await u.updateSparePart(m.id,{quantity:p.quantity-m.quantity})}a.json(g)}catch(t){console.error("Job card creation error:",t),a.status(500).json({message:"Failed to create job card"})}}),c.put("/api/garages/:garageId/job-cards/:id",f,w,async(r,a)=>{try{let{id:t}=r.params,o=ae.partial().parse(r.body),i=await u.updateJobCard(t,{...o,spareParts:o.spareParts?.map(g=>({id:g.id,partNumber:g.partNumber,name:g.name,quantity:g.quantity,price:Number(g.price||g.sellingPrice||0)}))});a.json(i)}catch{a.status(500).json({message:"Failed to update job card"})}}),c.get("/api/garages/:garageId/invoices",f,w,async(r,a)=>{try{let{garageId:t}=r.params,o=await u.getInvoices(t);a.json(o)}catch{a.status(500).json({message:"Failed to fetch invoices"})}}),c.post("/api/garages/:garageId/invoices",f,w,async(r,a)=>{try{let{garageId:t}=r.params,o=me.parse({...r.body,garageId:t}),i=await u.getInvoiceByJobCardId(o.jobCardId);if(i)return a.status(400).json({message:"Invoice already exists for this job card",existingInvoice:i});let g=new Date().toLocaleString("sv-SE",{timeZone:"Asia/Kolkata"}),m=new Date(g),p=await u.createInvoice({...o}),I=r.user,S={status:"completed",completedAt:new Date,completed_by:I?.id,completion_notes:r.body.completionNotes||null,work_summary:r.body.workSummary||`Service completed - Invoice ${o.invoiceNumber} generated`},C=await u.updateJobCard(p.jobCardId,S);console.log("\u2705 Job card status updated:",C.status,"completed_at:",C.completed_at);let _=await u.getCustomer(p.customerId,t);if(console.log("\u{1F4CA} Current customer data:",{id:_?.id,name:_?.name,totalJobs:_?.totalJobs,totalSpent:_?.totalSpent}),_){let b=(_.totalJobs||0)+1;console.log("\u{1F4CA} Updating customer visit count:",{currentJobs:_.totalJobs,newTotalJobs:b});let N=await u.updateCustomer(_.id,{totalJobs:b,totalSpent:String(Number(_.totalSpent||0)+Number(p.totalAmount)),lastVisit:new Date});console.log("\u{1F4CA} Customer updated:",{id:N.id,name:N.name,totalJobs:N.totalJobs}),(b===50||b===100||b>=150&&b%50===0)&&await u.createNotification({garageId:t,customerId:_.id,type:"milestone",title:`Customer Milestone - ${b} Visits!`,message:`${_.name} has reached ${b} service visits. Consider offering a loyalty reward!`,data:{visits:b,customerName:_.name}})}a.json(p)}catch(t){console.error("Invoice creation error:",t),a.status(500).json({message:"Failed to create invoice",error:t instanceof Error?t.message:"Unknown error"})}}),c.get("/test-pdf-download",async(r,a)=>{try{let t=`
+TEST INVOICE: INV-TEST-001
+Date: ${new Date().toLocaleDateString()}
+
+Garage: Test Garage
+Phone: 1234567890
+
+Customer: Test Customer  
+Phone: 9876543210
+Vehicle: TS09EA1234
+
+Service: Test Service
+Service Charge: \u20B9500
+Parts Total: \u20B9300
+Total Amount: \u20B9800
+
+Thank you for choosing our service!
+This is a test PDF download.
+      `;a.setHeader("Content-Type","text/plain"),a.setHeader("Content-Disposition",'attachment; filename="test-invoice.txt"'),a.send(t)}catch(t){console.error("Test PDF download error:",t),a.status(500).json({message:"Failed to generate test PDF"})}}),c.get("/invoice/download/:token",async(r,a)=>{try{let{token:t}=r.params,o=await l.query(`
+        SELECT i.*, j.*, c.name as customer_name, c.phone, c.bike_number, g.name as garage_name, g.phone as garage_phone
+        FROM invoices i
+        JOIN job_cards j ON i.job_card_id = j.id
+        JOIN customers c ON i.customer_id = c.id  
+        JOIN garages g ON i.garage_id = g.id
+        WHERE i.download_token = $1
+      `,[t]);if(o.rows.length===0)return a.status(404).json({message:"Invoice not found or link expired"});let i=o.rows[0],g=`
+INVOICE: ${i.invoice_number}
+Date: ${new Date(i.created_at).toLocaleDateString()}
+
+Garage: ${i.garage_name}
+Phone: ${i.garage_phone}
+
+Customer: ${i.customer_name}
+Phone: ${i.phone}
+Vehicle: ${i.bike_number}
+
+Service: ${i.complaint}
+Service Charge: \u20B9${i.service_charge}
+Parts Total: \u20B9${i.parts_total}
+Total Amount: \u20B9${i.total_amount}
+
+Thank you for choosing our service!
+      `;a.setHeader("Content-Type","application/pdf"),a.setHeader("Content-Disposition",`attachment; filename="invoice-${i.invoice_number}.pdf"`),a.setHeader("Content-Type","text/plain"),a.send(g)}catch(t){console.error("PDF download error:",t),a.status(500).json({message:"Failed to generate PDF"})}}),c.patch("/api/invoices/:id",f,async(r,a)=>{try{let{id:t}=r.params,{whatsapp_sent:o,download_token:i}=r.body,g=await u.updateInvoice(t,{whatsapp_sent:o,download_token:i});a.json(g)}catch(t){console.error("Invoice update error:",t),a.status(500).json({message:"Failed to update invoice"})}}),c.get("/api/garages/:garageId/staff",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t}=r.params,o=await u.getGarageStaff(t);a.json(o)}catch(t){console.error("Error fetching garage staff:",t),a.status(500).json({message:"Failed to fetch garage staff"})}}),c.post("/api/garages/:garageId/customers/sync-visits",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t}=r.params;await u.syncCustomerVisitCounts(t),a.json({message:"Customer visit counts synced successfully"})}catch(t){console.error("Error syncing customer visit counts:",t),a.status(500).json({message:"Failed to sync customer visit counts"})}}),c.get("/api/garages/:garageId/sales/stats",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t}=r.params,o=await u.getSalesStats(t);a.json(o)}catch{a.status(500).json({message:"Failed to fetch sales stats"})}}),c.get("/api/garages/:garageId/sales/today",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t}=r.params,o=await u.getTodaySalesStats(t);a.json(o)}catch{a.status(500).json({message:"Failed to fetch today sales stats"})}}),c.get("/api/garages/:garageId/sales/monthly",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t}=r.params,o=await u.getMonthlySalesData(t);a.json(o)}catch{a.status(500).json({message:"Failed to fetch monthly sales data"})}}),c.get("/api/garages/:garageId/sales/analytics",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t}=r.params,{startDate:o,endDate:i,groupBy:g="month"}=r.query;if(!o||!i)return a.status(400).json({message:"Start date and end date are required"});let m=await u.getSalesDataByDateRange(t,o,i);a.json(m)}catch(t){console.error("Sales analytics error:",t),a.status(500).json({message:"Failed to fetch sales analytics"})}}),c.get("/api/garages/:garageId/customers/analytics",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t}=r.params,{startDate:o,endDate:i,groupBy:g="month"}=r.query;if(!o||!i)return a.status(400).json({message:"Start date and end date are required"});let m=await u.getCustomerAnalytics(t);a.json(m)}catch(t){console.error("Customer analytics error:",t),a.status(500).json({message:"Failed to fetch customer analytics"})}}),c.get("/api/garages/:garageId/customers/top-by-services",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t}=r.params,{startDate:o,endDate:i,limit:g="10"}=r.query;if(!o||!i)return a.status(400).json({message:"Start date and end date are required"});let m=await u.getTopCustomersByServices(t);a.json(m)}catch(t){console.error("Top customers by services error:",t),a.status(500).json({message:"Failed to fetch top customers by services"})}}),c.get("/api/garages/:garageId/customers/top-by-revenue",f,O(["garage_admin"]),w,async(r,a)=>{try{let{garageId:t}=r.params,{startDate:o,endDate:i,limit:g="10"}=r.query;if(!o||!i)return a.status(400).json({message:"Start date and end date are required"});let m=await u.getTopCustomersByRevenue(t);a.json(m)}catch(t){console.error("Top customers by revenue error:",t),a.status(500).json({message:"Failed to fetch top customers by revenue"})}}),c.get("/api/garages/:garageId/notifications",f,w,async(r,a)=>{try{let{garageId:t}=r.params,o=await u.getNotifications(t);a.json(o)}catch{a.status(500).json({message:"Failed to fetch notifications"})}}),c.get("/api/garages/:garageId/notifications/unread-count",f,w,async(r,a)=>{try{let{garageId:t}=r.params,o=await u.getUnreadNotificationCount(t);a.json({count:o})}catch{a.status(500).json({message:"Failed to fetch unread notification count"})}}),c.put("/api/garages/:garageId/notifications/:id/read",f,w,async(r,a)=>{try{let{id:t}=r.params;await u.markNotificationAsRead(t,r.params.garageId),a.json({success:!0})}catch{a.status(500).json({message:"Failed to mark notification as read"})}}),c.put("/api/garages/:garageId/notifications/mark-all-read",f,w,async(r,a)=>{try{let{garageId:t}=r.params;await u.markAllNotificationsAsRead(t),a.json({success:!0})}catch{a.status(500).json({message:"Failed to mark all notifications as read"})}}),c.put("/api/garages/:id",f,async(r,a)=>{try{let{id:t}=r.params,{logo:o}=r.body;if(r.user.garage_id!==t)return a.status(403).json({message:"Access denied"});if(r.user.role!=="garage_admin")return a.status(403).json({message:"Only garage admins can update garage settings"});let m=await u.updateGarage(t,{logo:o});a.json(m)}catch(t){console.error("Garage update error:",t),a.status(500).json({message:"Failed to update garage"})}});let s=()=>Math.floor(1e5+Math.random()*9e5).toString(),n=(r,a)=>$.hashSync(r+a,10),d=async r=>{if(!process.env.GMAIL_USER)throw new Error("Gmail service not configured");let t=`
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">GarageGuru Password Reset</h2>
+        <p>Your password reset verification code is:</p>
+        <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
+          ${r}
+        </div>
+        <p><strong>\u26A0\uFE0F Security Notice:</strong></p>
+        <ul>
+          <li>This code expires in 10 minutes</li>
+          <li>Only use this code if you requested a password reset</li>
+          <li>Never share this code with anyone</li>
+        </ul>
+        <p>If you didn't request this reset, please contact support immediately.</p>
+      </div>
+    `,o=`Your GarageGuru password reset code is: ${r}. This code expires in 10 minutes. If you didn't request this reset, please contact support.`,i=Y.map(p=>re.sendOtpEmail(p,r,"password reset"));(await Promise.all(i)).every(p=>p)||console.log("\u26A0\uFE0F Some OTP emails may not have been sent via Gmail")},y=async(r,a,t)=>{if(!process.env.GMAIL_USER)throw new Error("Gmail service not configured");let i=`
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">GarageGuru Password Reset</h2>
+        <p>Hello ${t},</p>
+        <p>You requested a password reset for your GarageGuru account. Your verification code is:</p>
+        <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
+          ${a}
+        </div>
+        <p><strong>\u26A0\uFE0F Security Notice:</strong></p>
+        <ul>
+          <li>This code expires in 10 minutes</li>
+          <li>Only use this code if you requested a password reset</li>
+          <li>Never share this code with anyone</li>
+        </ul>
+        <p>If you didn't request this reset, please ignore this email or contact your administrator.</p>
+        <p>Best regards,<br>GarageGuru Team</p>
+      </div>
+    `;if(!await re.sendOtpEmail(r,a,"user password reset"))throw console.log(`\u26A0\uFE0F OTP email may not have been sent to ${r}`),new Error("Failed to send email")},R=new Map,h=(r,a=3,t=60*60*1e3)=>{let o=Date.now(),i=R.get(r);if(i?.locked&&i.lockTime&&o<i.lockTime)throw new Error("Account locked. Try again in 15 minutes.");if(!i||o>i.resetTime){R.set(r,{count:1,resetTime:o+t});return}if(i.count>=a)throw R.set(r,{...i,locked:!0,lockTime:o+15*60*1e3}),new Error("Too many requests. Account locked for 15 minutes.");i.count++};c.post("/api/mfa/request",async(r,a)=>{try{let{email:t,purpose:o}=r.body;if(o!=="password_change")return a.status(400).json({message:"Invalid purpose"});if(!Y.includes(t))return a.json({ok:!0});try{h(t)}catch(S){return a.status(429).json({message:S.message})}let i=s(),g=ye.randomBytes(16).toString("hex"),m=n(i,g),p=new Date(Date.now()+10*60*1e3),I=await u.getOtpRecord(t,o);I&&await u.updateOtpRecord(I.id,{used:!0}),await u.createOtpRecord({email:t,hashed_otp:m,salt:g,purpose:o,expires_at:p}),await d(i),a.json({ok:!0})}catch(t){console.error("OTP request error:",t),a.status(500).json({message:"Failed to send OTP"})}}),c.post("/api/forgot-password/request",async(r,a)=>{try{let{email:t}=r.body;if(!t)return a.status(400).json({message:"Email is required"});let o=await u.getUserByEmail(t);if(!o)return a.json({ok:!0,message:"If your email is registered, you will receive a password reset code."});if(o.status==="suspended")return a.status(403).json({message:"This account is suspended. Please contact the administrator for assistance.",isSuspended:!0});if(o.status!=="active")return a.status(403).json({message:"This account is not activated. Please contact the administrator.",isInactive:!0});try{h(t)}catch(S){return a.status(429).json({message:S.message})}let i=s(),g=ye.randomBytes(16).toString("hex"),m=n(i,g),p=new Date(Date.now()+10*60*1e3),I=await u.getOtpRecord(t,"forgot_password");I&&await u.updateOtpRecord(I.id,{used:!0}),await u.createOtpRecord({email:t,hashed_otp:m,salt:g,purpose:"forgot_password",expires_at:p}),await y(t,i,o.name||"User"),a.json({ok:!0,message:"Password reset code sent to your email address."})}catch(t){console.error("Forgot password request error:",t),a.status(500).json({message:"Failed to send password reset code"})}}),c.post("/api/forgot-password/verify",async(r,a)=>{try{let{email:t,code:o}=r.body;if(!t||!o)return a.status(400).json({message:"Email and code are required"});let i=await u.getUserByEmail(t);if(!i)return a.status(400).json({message:"Invalid or expired code"});let g=await u.getOtpRecord(t,"forgot_password");if(!g)return a.status(400).json({message:"Invalid or expired code"});if(g.attempts>=5)return await u.updateOtpRecord(g.id,{used:!0}),a.status(400).json({message:"Too many attempts. Request a new code."});if(!$.compareSync(o+g.salt,g.hashed_otp))return await u.updateOtpRecord(g.id,{attempts:g.attempts+1}),a.status(400).json({message:"Invalid code"});await u.updateOtpRecord(g.id,{used:!0});let p=F.sign({email:t,userId:i.id,purpose:"forgot_password",type:"otp_verified"},M,{expiresIn:"5m"});a.json({success:!0,resetToken:p,message:"Code verified successfully. You can now reset your password."})}catch(t){console.error("OTP verification error:",t),a.status(500).json({message:"Failed to verify code"})}}),c.post("/api/forgot-password/reset",async(r,a)=>{try{let{resetToken:t,newPassword:o}=r.body;if(!t||!o)return a.status(400).json({message:"Reset token and new password are required"});if(o.length<8)return a.status(400).json({message:"Password must be at least 8 characters long"});if(!/[A-Z]/.test(o))return a.status(400).json({message:"Password must contain at least one uppercase letter"});if(!/[a-z]/.test(o))return a.status(400).json({message:"Password must contain at least one lowercase letter"});if(!/[0-9]/.test(o))return a.status(400).json({message:"Password must contain at least one number"});let i;try{i=F.verify(t,M)}catch{return a.status(400).json({message:"Invalid or expired reset token"})}if(i.purpose!=="forgot_password"||i.type!=="otp_verified")return a.status(400).json({message:"Invalid reset token"});let g=await u.getUserByEmail(i.email);if(!g)return a.status(400).json({message:"User not found"});if(await $.compare(o,g.password))return a.status(400).json({message:"New password cannot be the same as your current password"});await u.changePassword(g.id,o),a.json({success:!0,message:"Password reset successfully. You can now login with your new password."})}catch(t){console.error("Password reset error:",t),a.status(500).json({message:"Failed to reset password"})}}),c.post("/api/mfa/verify",async(r,a)=>{try{let{email:t,code:o,purpose:i}=r.body;if(!Y.includes(t))return a.status(400).json({message:"Invalid request"});let g=await u.getOtpRecord(t,i);if(!g)return a.status(400).json({message:"Invalid or expired code"});if(g.attempts>=5)return await u.updateOtpRecord(g.id,{used:!0}),a.status(400).json({message:"Too many attempts. Request a new code."});if(!$.compareSync(o+g.salt,g.hashed_otp))return await u.updateOtpRecord(g.id,{attempts:g.attempts+1}),a.status(400).json({message:"Invalid code"});await u.updateOtpRecord(g.id,{used:!0});let p=F.sign({email:t,purpose:i,type:"otp_verified"},M,{expiresIn:"5m"});a.json({token:p})}catch(t){console.error("OTP verification error:",t),a.status(500).json({message:"Failed to verify OTP"})}}),c.post("/api/password/change",async(r,a)=>{try{let{email:t,otp_verified_token:o,new_password:i}=r.body;if(!Y.includes(t))return a.status(400).json({message:"Invalid request"});let g;try{g=F.verify(o,M)}catch{return a.status(400).json({message:"Invalid or expired token"})}if(g.email!==t||g.purpose!=="password_change"||g.type!=="otp_verified")return a.status(400).json({message:"Invalid token"});if(!i||i.length<8)return a.status(400).json({message:"Password must be at least 8 characters long"});let m=await l.query("SELECT password FROM users WHERE email = $1",[t]);if(m.rows.length>0&&await $.compare(i,m.rows[0].password))return a.status(400).json({message:"New password cannot be the same as your current password"});let p=await $.hash(i,12);await l.query("UPDATE users SET password = $1 WHERE email = $2",[p,t]);let S=(await l.query("SELECT * FROM users WHERE email = $1",[t])).rows[0],C=F.sign({email:S.email,id:S.id},M);try{let _=Y.map(b=>re.sendOtpEmail(b,"SECURITY ALERT","password change notification"));await Promise.all(_),console.log("\u{1F4E7} Security notifications sent to all super admin emails")}catch(_){console.error("Failed to send security notifications:",_)}a.json({success:!0,token:C,user:{id:S.id,email:S.email,name:S.name,role:S.role}})}catch(t){console.error("Password change error:",t),a.status(500).json({message:"Failed to change password"})}});let A=(r,a,t)=>{if(!r.user||!Y.includes(r.user.email))return a.status(403).json({message:"Access denied. Super admin access required."});t()};c.get("/api/super-admin/garages",f,A,async(r,a)=>{try{let t=await u.getAllGarages(),o=await Promise.all(t.map(async b=>{let N=await u.getUsersByGarage(b.id),L=N.filter(x=>x.role==="garage_admin").length,U=N.filter(x=>x.role==="mechanic_staff").length;return{...b,userCount:N.length,adminCount:L,staffCount:U,users:N.map(x=>({...x,password:void 0}))}})),i=await u.getAllUsers(),g=i.length,m=t.length,p=new Date,I=new Date(p.getTime()-7*24*60*60*1e3),S=new Date(p.getTime()-30*24*60*60*1e3),C=i.filter(b=>new Date(b.created_at)>I).length,_=i.filter(b=>new Date(b.created_at)>S).length;a.json({garages:o,stats:{totalGarages:m,totalUsers:g,newUsers7Days:C,newUsers30Days:_}})}catch(t){console.error("Get garages error:",t),a.status(500).json({message:"Failed to fetch garages"})}}),c.get("/api/super-admin/garages/:garageId/users",f,A,async(r,a)=>{try{let{garageId:t}=r.params,i=(await u.getUsersByGarage(t)).map(g=>({...g,password:void 0}));a.json(i)}catch(t){console.error("Get garage users error:",t),a.status(500).json({message:"Failed to fetch users"})}}),c.post("/api/super-admin/users/:userId/toggle-role",f,A,async(r,a)=>{try{let{userId:t}=r.params,o=await l.query("SELECT * FROM users WHERE id = $1",[t]);if(!o.rows[0])return a.status(404).json({message:"User not found"});let i=o.rows[0];if(i.role==="super_admin")return a.status(400).json({message:"Cannot modify super admin accounts"});let g=i.role==="garage_admin"?"mechanic_staff":"garage_admin",m=await u.updateUserRole(t,g,r.user.id);a.json({...m,password:void 0})}catch(t){console.error("Toggle role error:",t),a.status(400).json({message:t.message||"Failed to toggle role"})}}),c.get("/api/super-admin/access-requests",f,A,async(r,a)=>{try{let{garageId:t}=r.query,o=await u.getAccessRequests(t);a.json(o)}catch(t){console.error("Get access requests error:",t),a.status(500).json({message:"Failed to fetch access requests"})}}),c.post("/api/super-admin/access-requests/:requestId",f,A,async(r,a)=>{try{let{requestId:t}=r.params,{status:o,note:i}=r.body;if(!["approved","denied"].includes(o))return a.status(400).json({message:"Invalid status"});let g=await u.updateAccessRequest(t,{status:o,note:i,processed_by:r.user.id});a.json(g)}catch(t){console.error("Process access request error:",t),a.status(500).json({message:"Failed to process request"})}}),c.get("/api/super-admin/audit-logs",f,A,async(r,a)=>{try{let{garageId:t}=r.query,o=await u.getAuditLogs(t);a.json(o)}catch(t){console.error("Get audit logs error:",t),a.status(500).json({message:"Failed to fetch audit logs"})}}),c.patch("/api/users/:id/status",f,async(r,a)=>{try{let{id:t}=r.params,{status:o}=r.body;if(!["active","suspended"].includes(o))return a.status(400).json({message:'Invalid status. Must be "active" or "suspended"'});let i=await u.getUserById(t);if(!i)return a.status(404).json({message:"User not found"});if(r.user.role==="super_admin"){if(!["garage_admin","mechanic_staff"].includes(i.role))return a.status(403).json({message:"Cannot change status of super admin users"})}else if(r.user.role==="garage_admin"){if(i.role!=="mechanic_staff")return a.status(403).json({message:"Garage admin can only manage mechanic staff"});if(i.garage_id!==r.user.garage_id)return a.status(403).json({message:"Can only manage staff in your own garage"})}else return a.status(403).json({message:"Insufficient permissions"});let g=await u.updateUser(t,{status:o});try{let m=(await Promise.resolve().then(()=>(se(),pe))).default,p=o==="active"?"activated":"suspended",I=`Account Status Update - ${p.charAt(0).toUpperCase()+p.slice(1)}`,S=`
+          <h2>Account Status Update</h2>
+          <p>Hello ${i.name||i.email},</p>
+          <p>Your account status has been <strong>${p}</strong>.</p>
+          ${o==="suspended"?"<p>If you believe this is an error, please contact your administrator.</p>":"<p>You can now access your account normally.</p>"}
+          <p>Best regards,<br>Garage Management Team</p>
+        `;await m.sendEmail(i.email,I,S),console.log(`Status change notification sent to ${i.email}`)}catch(m){console.error("Failed to send status change notification:",m)}a.json({message:`User ${o==="suspended"?"suspended":"activated"} successfully`,user:g})}catch(t){console.error("Update user status error:",t),a.status(500).json({message:"Internal server error"})}})}import He from"express";import _e from"fs";import oe from"path";import{createServer as Be,createLogger as Xe}from"vite";import{defineConfig as Fe}from"vite";import Me from"@vitejs/plugin-react";import z from"path";import ke from"@replit/vite-plugin-runtime-error-modal";var Ee=Fe({plugins:[Me(),ke(),...process.env.NODE_ENV!=="production"&&process.env.REPL_ID!==void 0?[await import("@replit/vite-plugin-cartographer").then(c=>c.cartographer())]:[]],resolve:{alias:{"@":z.resolve(import.meta.dirname,"client","src"),"@shared":z.resolve(import.meta.dirname,"shared"),"@assets":z.resolve(import.meta.dirname,"attached_assets")}},root:z.resolve(import.meta.dirname,"client"),build:{outDir:z.resolve(import.meta.dirname,"dist/public"),emptyOutDir:!0},server:{fs:{strict:!0,deny:["**/.*"]}}});import{nanoid as We}from"nanoid";var he=Xe();function ne(c,e="express"){let s=new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",second:"2-digit",hour12:!0});console.log(`${s} [${e}] ${c}`)}async function we(c,e){let s={middlewareMode:!0,hmr:{server:e},allowedHosts:!0},n=await Be({...Ee,configFile:!1,customLogger:{...he,error:(d,y)=>{he.error(d,y),process.exit(1)}},server:s,appType:"custom"});c.use(n.middlewares),c.use("*",async(d,y,R)=>{let h=d.originalUrl;try{let A=oe.resolve(import.meta.dirname,"..","client","index.html"),r=await _e.promises.readFile(A,"utf-8");r=r.replace('src="/src/main.tsx"',`src="/src/main.tsx?v=${We()}"`);let a=await n.transformIndexHtml(h,r);y.status(200).set({"Content-Type":"text/html"}).end(a)}catch(A){n.ssrFixStacktrace(A),R(A)}})}function Te(c){let e=oe.resolve(import.meta.dirname,"public");if(!_e.existsSync(e))throw new Error(`Could not find the build directory: ${e}, make sure to build the client first`);c.use(He.static(e)),c.use("*",(s,n)=>{n.sendFile(oe.resolve(e,"index.html"))})}async function Ae(){console.log("\u{1F504} Running database migrations...");try{await l.query(`
+      CREATE TABLE IF NOT EXISTS garages (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        owner_name TEXT NOT NULL,
+        phone TEXT,
+        email TEXT,
+        logo TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `),await l.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL,
+        garage_id VARCHAR REFERENCES garages(id),
+        name TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `),await l.query(`
+      CREATE TABLE IF NOT EXISTS customers (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        garage_id VARCHAR NOT NULL REFERENCES garages(id),
+        name TEXT NOT NULL,
+        phone TEXT,
+        bike_number TEXT,
+        total_jobs INTEGER DEFAULT 0,
+        total_spent DECIMAL DEFAULT 0,
+        last_visit TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        notes TEXT
+      )
+    `),await l.query(`
+      CREATE TABLE IF NOT EXISTS spare_parts (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        garage_id VARCHAR NOT NULL REFERENCES garages(id),
+        name TEXT NOT NULL,
+        part_number TEXT,
+        price DECIMAL NOT NULL,
+        quantity INTEGER NOT NULL DEFAULT 0,
+        low_stock_threshold INTEGER DEFAULT 10,
+        barcode TEXT,
+        cost_price DECIMAL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `),await l.query(`
+      CREATE TABLE IF NOT EXISTS job_cards (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        garage_id VARCHAR NOT NULL REFERENCES garages(id),
+        customer_id VARCHAR REFERENCES customers(id),
+        customer_name TEXT NOT NULL,
+        phone TEXT,
+        bike_number TEXT,
+        complaint TEXT NOT NULL,
+        spare_parts JSONB DEFAULT '[]',
+        service_charge DECIMAL DEFAULT 0,
+        total_amount DECIMAL DEFAULT 0,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW(),
+        completed_at TIMESTAMP,
+        completed_by VARCHAR REFERENCES users(id),
+        completion_notes TEXT,
+        work_summary TEXT
+      )
+    `);try{(await l.query(`
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_name = 'job_cards' AND column_name = 'service_type'
+      `)).rows.length>0?(await l.query("ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS complaint TEXT"),await l.query(`
+          UPDATE job_cards 
+          SET complaint = COALESCE(service_type, '') || 
+                         CASE WHEN description IS NOT NULL AND description != '' 
+                              THEN ' - ' || description 
+                              ELSE '' END
+          WHERE complaint IS NULL
+        `),await l.query("ALTER TABLE job_cards ALTER COLUMN complaint SET NOT NULL"),await l.query("ALTER TABLE job_cards DROP COLUMN IF EXISTS service_type"),await l.query("ALTER TABLE job_cards DROP COLUMN IF EXISTS description")):await l.query("ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS complaint TEXT NOT NULL DEFAULT ''")}catch(c){console.error("Migration error for job_cards:",c),await l.query("ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS complaint TEXT")}await l.query("ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS completed_by VARCHAR REFERENCES users(id)"),await l.query("ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS completion_notes TEXT"),await l.query("ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS work_summary TEXT"),await l.query(`
+      CREATE TABLE IF NOT EXISTS invoices (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        garage_id VARCHAR NOT NULL REFERENCES garages(id),
+        customer_id VARCHAR REFERENCES customers(id),
+        job_card_id VARCHAR REFERENCES job_cards(id),
+        invoice_number TEXT NOT NULL,
+        service_charge DECIMAL DEFAULT 0,
+        parts_total DECIMAL DEFAULT 0,
+        total_amount DECIMAL DEFAULT 0,
+        download_token TEXT,
+        whatsapp_sent BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `),await l.query(`
+      CREATE TABLE IF NOT EXISTS otp_records (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        email TEXT NOT NULL,
+        hashed_otp TEXT NOT NULL,
+        salt TEXT NOT NULL,
+        purpose TEXT NOT NULL,
+        attempts INTEGER DEFAULT 0,
+        used BOOLEAN DEFAULT false,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `),await l.query(`
+      CREATE TABLE IF NOT EXISTS access_requests (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        garage_id VARCHAR REFERENCES garages(id),
+        user_id VARCHAR REFERENCES users(id),
+        email TEXT NOT NULL,
+        name TEXT NOT NULL,
+        requested_role TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        note TEXT,
+        processed_by TEXT,
+        processed_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);try{await l.query("ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS processed_by TEXT"),await l.query("ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP")}catch{console.log("Note: processed_by/processed_at columns may already exist")}try{await l.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT FALSE")}catch{console.log("Note: must_change_password column may already exist")}try{await l.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS first_login BOOLEAN DEFAULT TRUE")}catch{console.log("Note: first_login column may already exist")}try{await l.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active'")}catch{console.log("Note: status column may already exist")}await l.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        garage_id VARCHAR NOT NULL REFERENCES garages(id),
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'info',
+        is_read BOOLEAN DEFAULT FALSE,
+        data JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `),await l.query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        actor_id VARCHAR REFERENCES users(id),
+        actor_email TEXT,
+        target_user_id VARCHAR REFERENCES users(id),
+        target_email TEXT,
+        action TEXT NOT NULL,
+        details JSONB,
+        garage_id VARCHAR REFERENCES garages(id),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `),await l.query("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)"),await l.query("CREATE INDEX IF NOT EXISTS idx_users_garage_id ON users(garage_id)"),await l.query("CREATE INDEX IF NOT EXISTS idx_customers_garage_id ON customers(garage_id)"),await l.query("CREATE INDEX IF NOT EXISTS idx_spare_parts_garage_id ON spare_parts(garage_id)"),await l.query("CREATE INDEX IF NOT EXISTS idx_job_cards_garage_id ON job_cards(garage_id)"),await l.query("CREATE INDEX IF NOT EXISTS idx_invoices_garage_id ON invoices(garage_id)"),await l.query("CREATE INDEX IF NOT EXISTS idx_otp_records_email ON otp_records(email)"),await l.query("CREATE INDEX IF NOT EXISTS idx_access_requests_garage_id ON access_requests(garage_id)"),await l.query("CREATE INDEX IF NOT EXISTS idx_notifications_garage_id ON notifications(garage_id)"),await l.query("CREATE INDEX IF NOT EXISTS idx_audit_logs_garage_id ON audit_logs(garage_id)");try{(await l.query(`
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_name = 'invoices' AND column_name = 'pdf_url'
+      `)).rows.length>0&&(await l.query("ALTER TABLE invoices RENAME COLUMN pdf_url TO download_token"),console.log("\u2705 Migrated pdf_url column to download_token"))}catch{console.log("Note: pdf_url to download_token migration may have already completed")}return console.log("\u2705 Database migrations completed successfully"),!0}catch(c){throw console.error("\u274C Migration failed:",c),c}}async function be(){let c=process.env.SUPER_ADMIN_EMAIL||"ananthautomotivegarage@gmail.com";try{if((await l.query("SELECT id FROM users WHERE email = $1",[c])).rows.length===0){let n=await(await import("bcrypt")).hash("password123",10);await l.query(`
+        INSERT INTO users (email, password, role, name, garage_id)
+        VALUES ($1, $2, 'super_admin', 'Super Admin', NULL)
+      `,[c,n]),console.log(`\u2705 Super admin created: ${c}`),console.log("\u{1F511} Default password: password123 (please change after first login)")}else console.log("\u2705 Super admin already exists")}catch(e){console.error("\u274C Super admin creation failed:",e)}}var k=ie();k.use(Ve({origin:["http://localhost:5000","http://localhost:3000","http://127.0.0.1:5000",/^https:\/\/.*\.replit\.app$/,/^https:\/\/.*\.replit\.dev$/,...process.env.NODE_ENV==="development"?[!0]:[]],credentials:!0,methods:["GET","POST","PUT","DELETE","OPTIONS"],allowedHeaders:["Content-Type","Authorization"]}));k.use(ie.json());k.use(ie.urlencoded({extended:!1}));k.use((c,e,s)=>{let n=Date.now(),d=c.path,y,R=e.json;e.json=function(h,...A){return y=h,R.apply(e,[h,...A])},e.on("finish",()=>{let h=Date.now()-n;if(d.startsWith("/api")){let A=`${c.method} ${d} ${e.statusCode} in ${h}ms`;y&&(A+=` :: ${JSON.stringify(y)}`),A.length>80&&(A=A.slice(0,79)+"\u2026"),ne(A)}}),s()});(async()=>{try{await Ae(),await be();let s=await u.getAllGarages();for(let n of s)await u.syncCustomerVisitCounts(n.id),console.log(`\u2705 Synced visit counts for garage: ${n.name}`)}catch(s){console.error("Failed to initialize database:",s),process.exit(1)}await fe(k),k.use((s,n,d,y)=>{let R=s.status||s.statusCode||500,h=s.message||"Internal Server Error";throw d.status(R).json({message:h}),s});let c=Ye(k);k.get("env")==="development"?await we(k,c):Te(k);let e=parseInt(process.env.PORT||"3001",10);c.listen({port:e,host:"0.0.0.0",reusePort:!0},()=>{ne(`serving on port ${e}`)})})();
