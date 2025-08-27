@@ -78,21 +78,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    console.log('🔥 [AUTH] useEffect triggered - token exists:', !!token, 'user exists:', !!user, 'isLoading:', isLoading);
-    
     if (token) {
       // Only verify token if we don't already have user data
       if (!user) {
-        console.log('🔥 [AUTH] Token exists but no user, fetching profile');
         
         apiRequest("GET", "/api/user/profile")
           .then(res => res.json())
           .then(data => {
-            console.log('🔥 [AUTH] Profile fetch successful, user role:', data.user?.role, 'status:', data.user?.status);
             if (data.user) {
               // Check if user is suspended
               if (data.user.status === 'suspended') {
-                console.log('🔥 [AUTH] User is suspended, logging out');
                 localStorage.removeItem("auth-token");
                 setToken(null);
                 setUser(null);
@@ -102,24 +97,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setUser(data.user);
               setGarage(data.garage);
             } else {
-              console.log('🔥 [AUTH] No user in profile response, clearing token');
               localStorage.removeItem("auth-token");
               setToken(null);
             }
           })
           .catch((error) => {
-            console.log("🔥 [AUTH] Token validation failed:", error.message);
             // Only clear token if it's actually invalid (401), not for network errors
             if (error.message.includes('Invalid email or password') || error.message.includes('401')) {
-              console.log("🔥 [AUTH] Token is invalid, clearing auth");
               localStorage.removeItem("auth-token");
               setToken(null);
-            } else {
-              console.log("🔥 [AUTH] Network/temporary error, keeping token:", error.message);
             }
           })
           .finally(() => {
-            console.log('🔥 [AUTH] Setting isLoading to false after profile fetch');
             setIsLoading(false);
           });
       } else {

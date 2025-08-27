@@ -64,6 +64,23 @@ export default function Invoices() {
     });
   };
 
+  // Transform old Cloudinary URLs to proper PDF download format
+  const transformPdfUrl = (url: string): string => {
+    if (url.includes('/raw/upload/')) {
+      // Transform old raw URLs to proper PDF download URLs
+      const publicId = url.split('/').pop() || 'invoice';
+      return url.replace('/raw/upload/', '/upload/fl_attachment:' + publicId + '.pdf/');
+    } else if (url.includes('/upload/') && !url.includes('fl_attachment')) {
+      // Add attachment flag to regular upload URLs
+      const urlParts = url.split('/upload/');
+      if (urlParts.length === 2) {
+        const publicId = urlParts[1].split('/').pop() || 'invoice';
+        return `${urlParts[0]}/upload/fl_attachment:${publicId}.pdf/${urlParts[1]}`;
+      }
+    }
+    return url;
+  };
+
   const downloadPDF = async (pdfUrl: string, invoiceNumber: string) => {
     if (!pdfUrl) {
       return;
@@ -103,23 +120,6 @@ export default function Invoices() {
       a.target = '_blank';
       a.click();
     }
-  };
-
-  // Transform old Cloudinary URLs to proper PDF download format
-  const transformPdfUrl = (url: string): string => {
-    if (url.includes('/raw/upload/')) {
-      // Transform old raw URLs to proper PDF download URLs
-      const publicId = url.split('/').pop() || 'invoice';
-      return url.replace('/raw/upload/', '/upload/fl_attachment:' + publicId + '.pdf/');
-    } else if (url.includes('/upload/') && !url.includes('fl_attachment')) {
-      // Add attachment flag to regular upload URLs
-      const urlParts = url.split('/upload/');
-      if (urlParts.length === 2) {
-        const publicId = urlParts[1].split('/').pop() || 'invoice';
-        return `${urlParts[0]}/upload/fl_attachment:${publicId}.pdf/${urlParts[1]}`;
-      }
-    }
-    return url;
   };
 
   const sendWhatsApp = (phone: string, pdfUrl: string) => {
