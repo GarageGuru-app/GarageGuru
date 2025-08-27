@@ -136,7 +136,7 @@ export const insertJobCardSchema = createInsertSchema(jobCards).omit({
   bikeNumber: z.string().min(1, "Bike number is required"),
   spareParts: z.array(z.object({
     id: z.string(),
-    partNumber: z.string(),
+    partNumber: z.string().nullable().optional(),
     name: z.string(),
     quantity: z.number(),
     price: z.number()
