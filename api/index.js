@@ -271,12 +271,167 @@ export default async function handler(req, res) {
     return res.status(200).send(html);
   }
 
+  // Garages endpoint
+  if (url === '/api/garages' || url.endsWith('/garages')) {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      
+      if (!token) {
+        return res.status(401).json({ error: 'Access token required' });
+      }
+
+      const jwt = await import('jsonwebtoken');
+      const JWT_SECRET = process.env.JWT_SECRET || 'GarageGuru2025ProductionJWTSecret!';
+      const decoded = jwt.verify(token, JWT_SECRET);
+      
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL);
+      
+      const garages = await sql`
+        SELECT * FROM garages 
+        ORDER BY created_at DESC
+      `;
+
+      return res.status(200).json(garages);
+    } catch (error) {
+      console.error('Garages API error:', error);
+      return res.status(500).json({ error: 'Failed to fetch garages' });
+    }
+  }
+
+  // Simplified data endpoints for super admin
+  if (url === '/api/customers' || url.endsWith('/customers')) {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      
+      if (!token) {
+        return res.status(401).json({ error: 'Access token required' });
+      }
+
+      const jwt = await import('jsonwebtoken');
+      const JWT_SECRET = process.env.JWT_SECRET || 'GarageGuru2025ProductionJWTSecret!';
+      const decoded = jwt.verify(token, JWT_SECRET);
+      
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL);
+      
+      // For super admin, require garageId query param
+      const garageId = req.query?.garageId || decoded.garageId;
+      if (!garageId) {
+        return res.status(400).json({ error: 'Garage ID required' });
+      }
+      
+      const customers = await sql`
+        SELECT * FROM customers 
+        WHERE garage_id = ${garageId}
+        ORDER BY created_at DESC
+      `;
+
+      // Map database fields to frontend-expected fields
+      const mappedCustomers = customers.map(customer => ({
+        ...customer,
+        bikeNumber: customer.bike_number,
+        totalJobs: customer.total_jobs,
+        totalSpent: customer.total_spent,
+        lastVisit: customer.last_visit,
+        createdAt: customer.created_at
+      }));
+
+      return res.status(200).json(mappedCustomers);
+    } catch (error) {
+      console.error('Customers API error:', error);
+      return res.status(500).json({ error: 'Failed to fetch customers' });
+    }
+  }
+
+  if (url === '/api/spare-parts' || url.endsWith('/spare-parts')) {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      
+      if (!token) {
+        return res.status(401).json({ error: 'Access token required' });
+      }
+
+      const jwt = await import('jsonwebtoken');
+      const JWT_SECRET = process.env.JWT_SECRET || 'GarageGuru2025ProductionJWTSecret!';
+      const decoded = jwt.verify(token, JWT_SECRET);
+      
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL);
+      
+      // For super admin, require garageId query param
+      const garageId = req.query?.garageId || decoded.garageId;
+      if (!garageId) {
+        return res.status(400).json({ error: 'Garage ID required' });
+      }
+      
+      const spareParts = await sql`
+        SELECT * FROM spare_parts 
+        WHERE garage_id = ${garageId}
+        ORDER BY created_at DESC
+      `;
+
+      // Map database fields to frontend-expected fields
+      const mappedParts = spareParts.map(part => ({
+        ...part,
+        partNumber: part.part_number,
+        costPrice: part.cost_price,
+        lowStockThreshold: part.low_stock_threshold,
+        createdAt: part.created_at,
+        updatedAt: part.updated_at
+      }));
+
+      return res.status(200).json(mappedParts);
+    } catch (error) {
+      console.error('Spare parts API error:', error);
+      return res.status(500).json({ error: 'Failed to fetch spare parts' });
+    }
+  }
+
+  if (url === '/api/job-cards' || url.endsWith('/job-cards')) {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      
+      if (!token) {
+        return res.status(401).json({ error: 'Access token required' });
+      }
+
+      const jwt = await import('jsonwebtoken');
+      const JWT_SECRET = process.env.JWT_SECRET || 'GarageGuru2025ProductionJWTSecret!';
+      const decoded = jwt.verify(token, JWT_SECRET);
+      
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL);
+      
+      // For super admin, require garageId query param
+      const garageId = req.query?.garageId || decoded.garageId;
+      if (!garageId) {
+        return res.status(400).json({ error: 'Garage ID required' });
+      }
+      
+      const jobCards = await sql`
+        SELECT * FROM job_cards 
+        WHERE garage_id = ${garageId}
+        ORDER BY created_at DESC
+      `;
+
+      return res.status(200).json(jobCards);
+    } catch (error) {
+      console.error('Job cards API error:', error);
+      return res.status(500).json({ error: 'Failed to fetch job cards' });
+    }
+  }
+
   // Default fallback with detailed logging
-  console.log('Route not found:', { url, method, availableRoutes: ['/api/health', '/api/auth/login', '/api/user/profile'] });
+  console.log('Route not found:', { url, method, availableRoutes: ['/api/health', '/api/auth/login', '/api/user/profile', '/api/customers', '/api/spare-parts', '/api/job-cards'] });
   return res.status(404).json({ 
     error: 'Route not found', 
     url, 
     method,
-    message: 'Available routes: /api/health, /api/auth/login, /api/user/profile'
+    message: 'Available routes: /api/health, /api/auth/login, /api/user/profile, /api/customers, /api/spare-parts, /api/job-cards'
   });
 }
