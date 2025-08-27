@@ -217,7 +217,13 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   formData.append('file', pdfFile);
   formData.append('upload_preset', uploadPreset);
   formData.append('resource_type', 'raw'); // Use raw for PDF files
-  formData.append('format', 'pdf'); // Explicitly specify format
+  
+  console.log('📋 FormData contents:');
+  console.log('  - file:', pdfFile);
+  console.log('  - upload_preset:', uploadPreset);
+  console.log('  - resource_type: raw');
+  console.log('  - file size:', pdfFile.size);
+  console.log('  - file type:', pdfFile.type);
   
   if (filename) {
     // Ensure filename has .pdf extension for Cloudinary
@@ -248,6 +254,13 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
         const errorJson = JSON.parse(errorText);
         errorDetails = errorJson.error?.message || errorText;
         console.error('❌ Parsed error:', errorJson);
+        
+        // Check for common Cloudinary errors
+        if (errorJson.error?.message?.includes('Invalid upload preset')) {
+          console.error('❌ SOLUTION: Upload preset "' + uploadPreset + '" does not exist or is not configured for unsigned uploads');
+          console.error('❌ Go to Cloudinary Dashboard → Settings → Upload → Upload presets');
+          console.error('❌ Make sure preset "' + uploadPreset + '" exists and Signing Mode is set to "Unsigned"');
+        }
       } catch (e) {
         console.error('❌ Raw error text:', errorText);
       }
