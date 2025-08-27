@@ -71,6 +71,9 @@ export const jobCards = pgTable("job_cards", {
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).default("0"),
   createdAt: timestamp("created_at").defaultNow(),
   completedAt: timestamp("completed_at"),
+  completedBy: varchar("completed_by").references(() => users.id), // User who completed the job
+  completionNotes: text("completion_notes"), // Notes about the work done
+  workSummary: text("work_summary"), // Summary of work performed
 });
 
 // Invoices
@@ -130,6 +133,7 @@ export const insertJobCardSchema = createInsertSchema(jobCards).omit({
   completedAt: true,
   status: true,
   customerId: true,
+  completedBy: true,
 }).extend({
   customerName: z.string().min(1, "Customer name is required"),
   phone: z.string().min(1, "Phone number is required"),

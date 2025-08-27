@@ -64,6 +64,9 @@ export interface JobCard {
   total_amount: number;
   created_at: Date;
   completed_at: Date | null;
+  completed_by: string | null;
+  completion_notes: string | null;
+  work_summary: string | null;
 }
 
 export interface Invoice {
@@ -579,8 +582,8 @@ export class DatabaseStorage implements IStorage {
 
   async updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard> {
     const result = await pool.query(
-      'UPDATE job_cards SET complaint = COALESCE($2, complaint), spare_parts = COALESCE($3, spare_parts), service_charge = COALESCE($4, service_charge), total_amount = COALESCE($5, total_amount), status = COALESCE($6, status), completed_at = COALESCE($7, completed_at) WHERE id = $1 RETURNING *',
-      [id, jobCard.complaint, jobCard.spareParts ? JSON.stringify(jobCard.spareParts) : null, jobCard.serviceCharge, jobCard.totalAmount, jobCard.status, jobCard.completedAt]
+      'UPDATE job_cards SET complaint = COALESCE($2, complaint), spare_parts = COALESCE($3, spare_parts), service_charge = COALESCE($4, service_charge), total_amount = COALESCE($5, total_amount), status = COALESCE($6, status), completed_at = COALESCE($7, completed_at), completed_by = COALESCE($8, completed_by), completion_notes = COALESCE($9, completion_notes), work_summary = COALESCE($10, work_summary) WHERE id = $1 RETURNING *',
+      [id, jobCard.complaint, jobCard.spareParts ? JSON.stringify(jobCard.spareParts) : null, jobCard.serviceCharge, jobCard.totalAmount, jobCard.status, jobCard.completedAt, jobCard.completed_by, jobCard.completion_notes, jobCard.work_summary]
     );
     return result.rows[0];
   }

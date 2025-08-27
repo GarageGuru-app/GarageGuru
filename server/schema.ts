@@ -70,6 +70,9 @@ export const jobCards = pgTable("job_cards", {
   status: text("status").notNull().default("pending"), // 'pending', 'completed'
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
+  completedBy: varchar("completed_by").references(() => users.id), // User who completed the job
+  completionNotes: text("completion_notes"), // Notes about the work done
+  workSummary: text("work_summary"), // Summary of work performed
 });
 
 // Invoices for billing

@@ -77,7 +77,10 @@ export async function runMigrations() {
         total_amount DECIMAL DEFAULT 0,
         status TEXT DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT NOW(),
-        completed_at TIMESTAMP
+        completed_at TIMESTAMP,
+        completed_by VARCHAR REFERENCES users(id),
+        completion_notes TEXT,
+        work_summary TEXT
       )
     `);
 
@@ -118,6 +121,11 @@ export async function runMigrations() {
       // Fallback: just add complaint column if it doesn't exist
       await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS complaint TEXT`);
     }
+
+    // Add new completion columns if they don't exist
+    await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS completed_by VARCHAR REFERENCES users(id)`);
+    await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS completion_notes TEXT`);
+    await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS work_summary TEXT`);
 
     // Create invoices table
     await pool.query(`

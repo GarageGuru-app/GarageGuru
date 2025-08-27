@@ -1156,11 +1156,17 @@ export async function registerRoutes(app: Express): Promise<void> {
         ...invoiceData
       });
       
-      // Update job card status to completed
-      const jobCard = await storage.updateJobCard(invoice.jobCardId, {
+      // Update job card status to completed with completion details
+      const currentUser = (req as any).user;
+      const completionData = {
         status: 'completed',
-        completedAt: new Date()
-      });
+        completedAt: new Date(),
+        completed_by: currentUser?.id,
+        completion_notes: req.body.completionNotes || null,
+        work_summary: req.body.workSummary || `Service completed - Invoice ${invoiceData.invoiceNumber} generated`
+      };
+      
+      const jobCard = await storage.updateJobCard(invoice.jobCardId, completionData);
       console.log('✅ Job card status updated:', jobCard.status, 'completed_at:', jobCard.completed_at);
       
       // Update customer stats and check for milestones

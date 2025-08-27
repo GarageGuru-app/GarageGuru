@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, FileText, Share } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,8 @@ export default function Invoice() {
   
   const [serviceCharge, setServiceCharge] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [completionNotes, setCompletionNotes] = useState("");
+  const [workSummary, setWorkSummary] = useState("");
 
   const { data: jobCard, isLoading } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards", jobCardId],
@@ -206,7 +209,7 @@ export default function Invoice() {
         pdfUrl = 'upload_failed';
       }
       
-      // Create invoice record
+      // Create invoice record with completion details
       const createdInvoice = await createInvoiceMutation.mutateAsync({
         jobCardId: jobCard.id,
         customerId: (jobCard as any).customer_id || jobCard.customerId,
@@ -216,6 +219,8 @@ export default function Invoice() {
         partsTotal: String(partsTotal), 
         serviceCharge: String(serviceCharge),
         whatsappSent: sendWhatsApp,
+        completionNotes,
+        workSummary: workSummary || `Service completed for ${jobCard.bikeNumber} - ${jobCard.complaint}`,
       });
       
       // Generate proper filename and update PDF
@@ -388,6 +393,36 @@ export default function Invoice() {
                   <span className="text-primary">₹{totalAmount.toFixed(2)}</span>
                 </div>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Completion Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Service Completion Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Work Summary</label>
+              <Textarea
+                value={workSummary}
+                onChange={(e) => setWorkSummary(e.target.value)}
+                placeholder="Brief summary of work performed (e.g., 'Oil change, brake pad replacement, general inspection')"
+                className="resize-none"
+                rows={2}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Completion Notes</label>
+              <Textarea
+                value={completionNotes}
+                onChange={(e) => setCompletionNotes(e.target.value)}
+                placeholder="Additional notes about the service (optional)"
+                className="resize-none"
+                rows={3}
+              />
             </div>
           </CardContent>
         </Card>
