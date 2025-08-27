@@ -140,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   app.get('/api/debug/database', async (req, res) => {
     try {
       // First check if we can connect to database
-      const testQuery = await db.execute(sql`SELECT NOW() as current_time`);
+      const testQuery = await pool.query('SELECT NOW() as current_time');
       
       // Try to get data
       const users = await storage.getAllUsers();
