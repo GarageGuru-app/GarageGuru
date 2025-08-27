@@ -29,17 +29,22 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   pdf.rect(0, 0, pageWidth, 45, 'F');
   
   // Add garage logo if available
-  if (garage.logo) {
+  const logoUrl = garage.logo || 'https://res.cloudinary.com/dcueubsl8/image/upload/v1754845196/garage-logos/sjrppoab6sslhvm5rl7a.jpg';
+  
+  if (logoUrl) {
     try {
-      const response = await fetch(garage.logo);
+      console.log('PDF Generator - Attempting to load logo:', logoUrl);
+      const response = await fetch(logoUrl);
       
       if (!response.ok) {
+        console.error('PDF Generator - Logo fetch failed:', response.status);
         throw new Error(`Failed to fetch logo: ${response.status}`);
       }
       
       const blob = await response.blob();
+      console.log('PDF Generator - Logo blob size:', blob.size);
       
-      if (blob.size < 500000) {
+      if (blob.size < 5000000) { // Increased size limit to 5MB
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
@@ -49,17 +54,27 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
             canvas.width = 40;
             canvas.height = 40;
             ctx?.drawImage(img, 0, 0, 40, 40);
-            resolve(canvas.toDataURL('image/jpeg', 0.8));
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            console.log('PDF Generator - Logo converted to data URL successfully');
+            resolve(dataUrl);
           };
-          img.onerror = reject;
+          img.onerror = (err) => {
+            console.error('PDF Generator - Image load error:', err);
+            reject(err);
+          };
           img.src = URL.createObjectURL(blob);
         });
         
         pdf.addImage(logoData, 'JPEG', 20, 5, 20, 20);
+        console.log('PDF Generator - Logo added to PDF successfully');
+      } else {
+        console.error('PDF Generator - Logo file too large:', blob.size);
       }
     } catch (error) {
-      console.error('Failed to load garage logo:', error);
+      console.error('PDF Generator - Failed to load garage logo:', error);
     }
+  } else {
+    console.log('PDF Generator - No logo URL provided');
   }
   
   // Header text (white on blue background)
