@@ -253,8 +253,8 @@ export class DatabaseStorage implements IStorage {
         user.garage_id, 
         user.name, 
         user.must_change_password || false,
-        user.first_login !== false, // Default to true unless explicitly set to false
-        user.status || 'active',
+        (user as any).firstLogin !== false, // Default to true unless explicitly set to false
+        (user as any).status || 'active',
         new Date()
       ]
     );
@@ -566,7 +566,7 @@ export class DatabaseStorage implements IStorage {
     const id = jobCard.id || crypto.randomUUID();
     const result = await pool.query(
       'INSERT INTO job_cards (id, garage_id, customer_id, customer_name, phone, bike_number, complaint, status, spare_parts, service_charge, total_amount, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-      [id, jobCard.garageId, jobCard.customerId, jobCard.customerName, jobCard.phone, jobCard.bikeNumber, jobCard.complaint, jobCard.status || 'pending', JSON.stringify(jobCard.spareParts), jobCard.serviceCharge || 0, jobCard.totalAmount || 0, new Date()]
+      [id, jobCard.garage_id, jobCard.customer_id, jobCard.customer_name, jobCard.phone, jobCard.bike_number, jobCard.complaint, jobCard.status || 'pending', JSON.stringify(jobCard.spare_parts), jobCard.service_charge || 0, jobCard.total_amount || 0, new Date()]
     );
     return result.rows[0];
   }
@@ -574,7 +574,7 @@ export class DatabaseStorage implements IStorage {
   async updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard> {
     const result = await pool.query(
       'UPDATE job_cards SET complaint = COALESCE($2, complaint), spare_parts = COALESCE($3, spare_parts), service_charge = COALESCE($4, service_charge), total_amount = COALESCE($5, total_amount), status = COALESCE($6, status), completed_at = COALESCE($7, completed_at), completed_by = COALESCE($8, completed_by), completion_notes = COALESCE($9, completion_notes), work_summary = COALESCE($10, work_summary) WHERE id = $1 RETURNING *',
-      [id, jobCard.complaint, jobCard.spareParts ? JSON.stringify(jobCard.spareParts) : null, jobCard.serviceCharge, jobCard.totalAmount, jobCard.status, jobCard.completedAt, jobCard.completed_by, jobCard.completion_notes, jobCard.work_summary]
+      [id, jobCard.complaint, jobCard.spare_parts ? JSON.stringify(jobCard.spare_parts) : null, jobCard.service_charge, jobCard.total_amount, jobCard.status, jobCard.completed_at, jobCard.completed_by, jobCard.completion_notes, jobCard.work_summary]
     );
     return result.rows[0];
   }
@@ -610,16 +610,16 @@ export class DatabaseStorage implements IStorage {
     const id = invoice.id || crypto.randomUUID();
     const result = await pool.query(
       'INSERT INTO invoices (id, garage_id, job_card_id, customer_id, invoice_number, download_token, whatsapp_sent, total_amount, parts_total, service_charge, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
-      [id, invoice.garageId, invoice.jobCardId, invoice.customerId, invoice.invoiceNumber, invoice.pdfUrl, invoice.whatsappSent || false, invoice.totalAmount || 0, invoice.partsTotal || 0, invoice.serviceCharge || 0, new Date()]
+      [id, invoice.garage_id, invoice.job_card_id, invoice.customer_id, invoice.invoice_number, invoice.download_token, invoice.whatsapp_sent || false, invoice.total_amount || 0, invoice.parts_total || 0, invoice.service_charge || 0, new Date()]
     );
     
     // Update customer visit count and last visit date when invoice is created
-    if (invoice.customerId && invoice.garageId) {
+    if (invoice.customer_id && invoice.garage_id) {
       try {
-        console.log(`📊 [INVOICE] Updating visit count for customer ${invoice.customerId}`);
+        console.log(`📊 [INVOICE] Updating visit count for customer ${invoice.customer_id}`);
         await pool.query(
           'UPDATE customers SET total_jobs = total_jobs + 1, last_visit = $1, total_spent = total_spent + $2 WHERE id = $3 AND garage_id = $4',
-          [new Date(), invoice.totalAmount || 0, invoice.customerId, invoice.garageId]
+          [new Date(), invoice.total_amount || 0, invoice.customer_id, invoice.garage_id]
         );
         console.log(`✅ [INVOICE] Customer visit count updated successfully`);
       } catch (error) {
@@ -629,8 +629,8 @@ export class DatabaseStorage implements IStorage {
     
     // Ensure jobCardId is available in the returned invoice
     const createdInvoice = result.rows[0];
-    if (createdInvoice && !createdInvoice.jobCardId && createdInvoice.job_card_id) {
-      createdInvoice.jobCardId = createdInvoice.job_card_id;
+    if (createdInvoice && !createdInvoice.job_card_id && createdInvoice.job_card_id) {
+      createdInvoice.job_card_id = createdInvoice.job_card_id;
     }
     
     return createdInvoice;
