@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
+import { HybridScanner } from "@/components/HybridScanner";
 
 interface SparePart {
   id: string;
@@ -39,6 +40,7 @@ export default function EditJobCard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   
   // Get job card ID from URL
   const jobCardId = window.location.pathname.split('/').pop();
@@ -171,6 +173,51 @@ export default function EditJobCard() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Handle scan result - similar to new job card
+  const handleScanResult = (scannedData: string) => {
+    const part = availableParts.find((p: any) => 
+      p.partNumber === scannedData || 
+      p.name.toLowerCase().includes(scannedData.toLowerCase())
+    );
+    
+    if (part) {
+      // Check if part is already added
+      const existingIndex = formData.spareParts.findIndex(p => p.id === part.id);
+      
+      if (existingIndex >= 0) {
+        // Increase quantity
+        const updatedParts = [...formData.spareParts];
+        updatedParts[existingIndex].quantity += 1;
+        setFormData(prev => ({ ...prev, spareParts: updatedParts }));
+      } else {
+        // Add new part
+        const newPart: SparePart = {
+          id: part.id,
+          partNumber: part.partNumber,
+          name: part.name,
+          quantity: 1,
+          price: parseFloat(part.price)
+        };
+        setFormData(prev => ({ 
+          ...prev, 
+          spareParts: [...prev.spareParts, newPart] 
+        }));
+      }
+      
+      setShowScanner(false);
+      toast({
+        title: "Part Added",
+        description: `${part.name} added to job card`,
+      });
+    } else {
+      toast({
+        title: "Part Not Found",
+        description: "No spare part found with this barcode",
+        variant: "destructive",
+      });
+    }
+  };
+
   const addSparePart = (part: any) => {
     const existingPartIndex = formData.spareParts.findIndex((p) => p.id === part.id);
     
@@ -266,9 +313,19 @@ export default function EditJobCard() {
           </Button>
           <h2 className="text-lg font-semibold">Edit Job Card</h2>
         </div>
-        <Badge variant="secondary" className="warning-bg warning-text">
-          Pending
-        </Badge>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowScanner(true)}
+            className="text-white hover:bg-white/10"
+          >
+            <QrCode className="w-5 h-5" />
+          </Button>
+          <Badge variant="secondary" className="warning-bg warning-text">
+            Pending
+          </Badge>
+        </div>
       </div>
 
       <div className="screen-content">
@@ -564,6 +621,14 @@ export default function EditJobCard() {
           </Button>
         </form>
       </div>
+
+      {/* QR/Barcode Scanner */}
+      {showScanner && (
+        <HybridScanner
+          onScanSuccess={handleScanResult}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </div>
   );
 }
