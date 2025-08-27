@@ -258,8 +258,8 @@ export default function Invoice() {
         });
       } else {
         // Just download PDF with proper filename and extension
-        const pdfBlob = new Blob([finalPdfBlob], { type: 'application/pdf' });
-        const url = URL.createObjectURL(pdfBlob);
+        // Use the finalPdfBlob directly as it's already a proper PDF Blob from jsPDF
+        const url = URL.createObjectURL(finalPdfBlob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `${finalFilename}.pdf`;
