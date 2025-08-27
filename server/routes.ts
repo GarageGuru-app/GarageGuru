@@ -1214,6 +1214,41 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Test PDF Download endpoint
+  app.get("/test-pdf-download", async (req, res) => {
+    try {
+      // Create a simple test PDF content
+      const testPdfContent = `
+TEST INVOICE: INV-TEST-001
+Date: ${new Date().toLocaleDateString()}
+
+Garage: Test Garage
+Phone: 1234567890
+
+Customer: Test Customer  
+Phone: 9876543210
+Vehicle: TS09EA1234
+
+Service: Test Service
+Service Charge: ₹500
+Parts Total: ₹300
+Total Amount: ₹800
+
+Thank you for choosing our service!
+This is a test PDF download.
+      `;
+
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', 'attachment; filename="test-invoice.txt"');
+      res.send(testPdfContent);
+      
+    } catch (error) {
+      console.error('Test PDF download error:', error);
+      res.status(500).json({ message: 'Failed to generate test PDF' });
+    }
+  });
+
   // PDF Download endpoint - generates PDF on demand
   app.get("/invoice/download/:token", async (req, res) => {
     try {
