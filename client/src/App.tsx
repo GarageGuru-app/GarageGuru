@@ -27,6 +27,8 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import ChangePassword from "@/pages/change-password";
 import StaffDashboard from "@/pages/staff-dashboard";
 import AccessRequest from "@/pages/access-request";
+import CompletedServices from "@/pages/completed-services";
+import CompletedServiceDetails from "@/pages/completed-service-details";
 import Unauthorized from "@/pages/unauthorized";
 import NotFound from "@/pages/not-found";
 
@@ -151,6 +153,22 @@ function Router() {
       <Route path="/access-request">
         <ProtectedRoute roles={["mechanic_staff"]}>
           <AccessRequest />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/completed-services">
+        <ProtectedRoute>
+          <Layout>
+            <CompletedServices />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/completed-service-details/:id">
+        <ProtectedRoute>
+          <Layout showFab={false}>
+            <CompletedServiceDetails />
+          </Layout>
         </ProtectedRoute>
       </Route>
       

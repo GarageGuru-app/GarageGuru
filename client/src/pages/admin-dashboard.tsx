@@ -39,7 +39,8 @@ import {
   RefreshCw,
   Home,
   BarChart3,
-  UserCircle
+  UserCircle,
+  CheckCircle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -349,7 +350,7 @@ export default function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
               <Button
                 onClick={() => navigate("/job-card")}
                 className="h-20 flex flex-col items-center justify-center space-y-2"
@@ -387,6 +388,16 @@ export default function AdminDashboard() {
               >
                 <FileText className="w-6 h-6" />
                 <span>Invoices</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => navigate("/completed-services")}
+                className="h-20 flex flex-col items-center justify-center space-y-2"
+                data-testid="button-completed-services"
+              >
+                <CheckCircle className="w-6 h-6" />
+                <span>Completed</span>
               </Button>
             </div>
           </CardContent>
