@@ -622,13 +622,12 @@ export default function EditJobCard() {
         </form>
       </div>
 
-      {/* QR/Barcode Scanner */}
-      {showScanner && (
-        <HybridScanner
-          onScanSuccess={handleScanResult}
-          onClose={() => setShowScanner(false)}
-        />
-      )}
+      {/* HybridScanner Component */}
+      <HybridScanner
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={handleScanResult}
+      />
     </div>
   );
 }
