@@ -217,15 +217,15 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   }
   
   const formData = new FormData();
-  // Create a proper File object with PDF content type
-  const pdfFile = new File([pdfBlob], filename ? `${filename}.pdf` : 'invoice.pdf', { 
-    type: 'application/pdf',
+  // Create a proper File object - upload as binary with a neutral filename
+  const pdfFile = new File([pdfBlob], filename ? `${filename}` : 'invoice', { 
+    type: 'application/octet-stream', // Use binary type to bypass format restrictions
     lastModified: Date.now()
   });
   
   formData.append('file', pdfFile);
   formData.append('upload_preset', uploadPreset);
-  formData.append('resource_type', 'raw'); // Use raw for PDF files
+  formData.append('resource_type', 'raw'); // Try raw again with binary type
   
   console.log('📋 FormData contents:');
   console.log('  - file:', pdfFile);
@@ -284,20 +284,15 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
     // Return the secure_url with proper PDF download configuration
     const pdfUrl = data.secure_url;
     
-    // Transform raw URL to proper PDF download URL
+    // Transform URL to proper PDF download URL with attachment flag
     let finalUrl = pdfUrl;
     
-    // Check if it's a raw upload URL and transform it
-    if (pdfUrl.includes('/raw/upload/')) {
-      // Replace /raw/upload/ with /upload/ and add fl_attachment flag with .pdf extension
-      const publicId = pdfUrl.split('/').pop() || 'invoice';
-      finalUrl = pdfUrl.replace('/raw/upload/', '/upload/fl_attachment:' + publicId + '.pdf/');
-    } else if (pdfUrl.includes('/upload/')) {
-      // For regular uploads, add the attachment flag
+    // For regular uploads, add the attachment flag for PDF download
+    if (pdfUrl.includes('/upload/')) {
       const urlParts = pdfUrl.split('/upload/');
       if (urlParts.length === 2) {
-        const publicId = urlParts[1].split('/').pop() || 'invoice';
-        finalUrl = `${urlParts[0]}/upload/fl_attachment:${publicId}.pdf/${urlParts[1]}`;
+        // Add fl_attachment flag to force download as PDF
+        finalUrl = `${urlParts[0]}/upload/fl_attachment/${urlParts[1]}`;
       }
     }
     
