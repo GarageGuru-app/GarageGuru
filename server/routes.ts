@@ -320,7 +320,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       // Create access request in database
       const accessRequest = await storage.createAccessRequest({
-        garage_id: garageId || null, // Handle empty strings properly
+        garage_id: garageId || undefined, // Handle empty strings properly
         user_id: null, // Will be set when user is created after approval
         email,
         name,
@@ -688,7 +688,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           ...user, 
           password: undefined,
           mustChangePassword: user.must_change_password || false,
-          firstLogin: user.firstLogin || false,
+          firstLogin: user.first_login || false,
           garageId: user.garage_id  // Map garage_id to garageId for frontend
         },
         garage: garageId ? await storage.getGarage(garageId) : null
@@ -740,7 +740,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           ...user, 
           password: undefined,
           mustChangePassword: user.must_change_password || false,
-          firstLogin: user.firstLogin || false,
+          firstLogin: user.first_login || false,
           garageId: user.garage_id  // Map garage_id to garageId for frontend
         },
         garage
@@ -1174,24 +1174,24 @@ export async function registerRoutes(app: Express): Promise<void> {
       console.log('📊 Current customer data:', { 
         id: customer?.id, 
         name: customer?.name, 
-        totalJobs: customer?.totalJobs,
-        totalSpent: customer?.totalSpent 
+        totalJobs: customer?.total_jobs,
+        totalSpent: customer?.total_spent 
       });
       
       if (customer) {
-        const newTotalJobs = (customer.totalJobs || 0) + 1;
-        console.log('📊 Updating customer visit count:', { currentJobs: customer.totalJobs, newTotalJobs });
+        const newTotalJobs = (customer.total_jobs || 0) + 1;
+        console.log('📊 Updating customer visit count:', { currentJobs: customer.total_jobs, newTotalJobs });
         
         const updatedCustomer = await storage.updateCustomer(customer.id, {
-          totalJobs: newTotalJobs,
-          totalSpent: String(Number(customer.totalSpent || 0) + Number(invoice.totalAmount)),
+          total_jobs: newTotalJobs,
+          total_spent: String(Number(customer.total_spent || 0) + Number(invoice.total_amount)),
           lastVisit: new Date()
         });
         
         console.log('📊 Customer updated:', { 
           id: updatedCustomer.id, 
           name: updatedCustomer.name, 
-          totalJobs: updatedCustomer.totalJobs 
+          totalJobs: updatedCustomer.total_jobs 
         });
 
         // Create milestone notifications

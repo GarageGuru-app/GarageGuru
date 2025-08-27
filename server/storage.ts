@@ -358,7 +358,7 @@ export class DatabaseStorage implements IStorage {
     const id = customer.id || crypto.randomUUID();
     const result = await pool.query(
       'INSERT INTO customers (id, garage_id, name, phone, bike_number, total_jobs, total_spent, last_visit, created_at, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
-      [id, customer.garageId, customer.name, customer.phone, customer.bikeNumber, customer.totalJobs || 0, customer.totalSpent || 0, customer.lastVisit, new Date(), customer.notes]
+      [id, customer.garage_id, customer.name, customer.phone, customer.bike_number, customer.total_jobs || 0, customer.total_spent || 0, customer.last_visit, new Date(), customer.notes]
     );
     return result.rows[0];
   }
@@ -366,7 +366,7 @@ export class DatabaseStorage implements IStorage {
   async updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer> {
     const result = await pool.query(
       'UPDATE customers SET name = COALESCE($2, name), phone = COALESCE($3, phone), bike_number = COALESCE($4, bike_number), total_jobs = COALESCE($5, total_jobs), total_spent = COALESCE($6, total_spent), last_visit = COALESCE($7, last_visit), notes = COALESCE($8, notes) WHERE id = $1 RETURNING *',
-      [id, customer.name, customer.phone, customer.bikeNumber || customer.bike_number, customer.totalJobs || customer.total_jobs, customer.totalSpent || customer.total_spent, customer.lastVisit || customer.last_visit, customer.notes]
+      [id, customer.name, customer.phone, customer.bike_number, customer.total_jobs, customer.total_spent, customer.last_visit, customer.notes]
     );
     const updatedCustomer = result.rows[0];
     
