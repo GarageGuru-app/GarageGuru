@@ -1,6 +1,10 @@
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { Pool } from 'pg';
+
 const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -30,7 +34,6 @@ module.exports = async function handler(req, res) {
     }
 
     // Get database connection
-    const { Pool } = require('pg');
     db = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false }
@@ -46,7 +49,6 @@ module.exports = async function handler(req, res) {
     }
 
     // Check password
-    const bcrypt = require('bcrypt');
     console.log('Comparing password. Length:', password.length);
     const isValidPassword = await bcrypt.compare(password, user.password);
     console.log('Password valid:', isValidPassword);
@@ -56,7 +58,6 @@ module.exports = async function handler(req, res) {
     }
 
     // Generate JWT token
-    const jwt = require('jsonwebtoken');
     const token = jwt.sign(
       { 
         id: user.id, 
