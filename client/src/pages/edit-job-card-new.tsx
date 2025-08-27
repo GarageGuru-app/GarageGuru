@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
 import { HybridScanner } from "@/components/HybridScanner";
 
 interface SparePart {
@@ -36,7 +35,6 @@ export default function EditJobCard() {
   const { garage } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { startScanning } = useBarcodeScanner();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -161,13 +159,6 @@ export default function EditJobCard() {
     const serviceCharge = Number(formData.serviceCharge || "0");
     return (partsTotal + serviceCharge).toString();
   }, [formData.spareParts, formData.serviceCharge]);
-
-  // Update total only when calculated value changes
-  useEffect(() => {
-    if (formData.totalAmount !== calculatedTotal) {
-      setFormData(prev => ({ ...prev, totalAmount: calculatedTotal }));
-    }
-  }, [calculatedTotal]); // Only depend on calculated total
 
   const handleInputChange = (field: keyof JobCardFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -594,7 +585,7 @@ export default function EditJobCard() {
                 </div>
                 <div className="flex justify-between text-lg font-semibold border-t pt-2">
                   <span>Total Amount:</span>
-                  <span>₹{formData.totalAmount || "0"}</span>
+                  <span>₹{calculatedTotal}</span>
                 </div>
               </div>
             </CardContent>
