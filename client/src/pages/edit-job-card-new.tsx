@@ -229,22 +229,6 @@ export default function EditJobCard() {
     setSearchQuery("");
   };
 
-  const handleBarcodeScanned = (barcode: string) => {
-    const part = availableParts.find((p: any) => p.barcode === barcode);
-    if (part) {
-      addSparePart(part);
-      toast({
-        title: "Part Added",
-        description: `${part.name} added to job card`,
-      });
-    } else {
-      toast({
-        title: "Part Not Found",
-        description: "No spare part found with this barcode",
-        variant: "destructive",
-      });
-    }
-  };
 
   const removeSparePart = (index: number) => {
     const updatedParts = formData.spareParts.filter((_, i) => i !== index);
@@ -464,7 +448,7 @@ export default function EditJobCard() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => startScanning(handleBarcodeScanned)}
+                    onClick={() => setShowScanner(true)}
                     className="flex items-center space-x-1"
                   >
                     <QrCode className="w-4 h-4" />
