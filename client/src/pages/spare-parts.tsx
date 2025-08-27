@@ -251,11 +251,12 @@ export default function SpareParts() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check for duplicate part number when creating new part
-    if (!editingPart) {
+    // Check for duplicate part number when creating new part OR when editing and changing part number
+    if (!editingPart || (editingPart && editingPart.partNumber !== formData.partNumber)) {
       const existingPart = spareParts.find(
         (part: any) =>
-          part.partNumber?.toLowerCase?.() === formData.partNumber?.toLowerCase?.(),
+          part.partNumber?.toLowerCase?.() === formData.partNumber?.toLowerCase?.() &&
+          part.id !== editingPart?.id // Exclude current part when editing
       );
 
       if (existingPart) {

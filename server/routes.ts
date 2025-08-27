@@ -954,13 +954,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { garageId } = req.params;
       const partData = insertSparePartSchema.parse({ ...req.body, garageId });
       
-      // Map frontend camelCase fields to database snake_case fields
+      // Map frontend camelCase fields to database snake_case fields and convert types
       const mappedData = {
         ...partData,
         garage_id: garageId,
         part_number: partData.partNumber,
-        cost_price: partData.costPrice,
-        low_stock_threshold: partData.lowStockThreshold
+        price: parseFloat(partData.price),
+        cost_price: parseFloat(partData.costPrice || "0"),
+        low_stock_threshold: partData.lowStockThreshold || 2
       };
       console.log('Creating spare part with garageId:', garageId, 'Data:', mappedData);
       
@@ -985,11 +986,12 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { id } = req.params;
       const updateData = insertSparePartSchema.partial().parse(req.body);
       
-      // Map frontend camelCase fields to database snake_case fields
+      // Map frontend camelCase fields to database snake_case fields and convert types
       const mappedData = {
         ...updateData,
         part_number: updateData.partNumber,
-        cost_price: updateData.costPrice,
+        price: updateData.price ? parseFloat(updateData.price) : undefined,
+        cost_price: updateData.costPrice ? parseFloat(updateData.costPrice) : undefined,
         low_stock_threshold: updateData.lowStockThreshold
       };
       
@@ -997,7 +999,15 @@ export async function registerRoutes(app: Express): Promise<void> {
       res.json(sparePart);
     } catch (error) {
       console.error('Spare part update error:', error);
-      res.status(500).json({ message: 'Failed to update spare part' });
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+          res.status(409).json({ message: 'Part number already exists. Please use a different part number.' });
+        } else {
+          res.status(400).json({ message: error.message });
+        }
+      } else {
+        res.status(500).json({ message: 'Failed to update spare part' });
+      }
     }
   });
 
