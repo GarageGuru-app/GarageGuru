@@ -1,12 +1,19 @@
-import jwt from 'jsonwebtoken';
-import { Pool } from 'pg';
+const jwt = require('jsonwebtoken');
+const { Pool } = require('pg');
 
 const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+let pool;
+
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+  }
+  return pool;
+}
 
 function authenticateToken(req) {
   const authHeader = req.headers['authorization'];
@@ -23,7 +30,7 @@ function authenticateToken(req) {
   }
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -32,7 +39,8 @@ export default async function handler(req, res) {
     const decoded = authenticateToken(req);
     
     // Get user from database
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [decoded.email]);
+    const db = getPool();
+    const result = await db.query('SELECT * FROM users WHERE email = $1', [decoded.email]);
     const user = result.rows[0];
 
     if (!user) {
@@ -42,7 +50,7 @@ export default async function handler(req, res) {
     // Get garage info if user has one
     let garage = null;
     if (user.garage_id) {
-      const garageResult = await pool.query('SELECT * FROM garages WHERE id = $1', [user.garage_id]);
+      const garageResult = await db.query('SELECT * FROM garages WHERE id = $1', [user.garage_id]);
       garage = garageResult.rows[0];
     }
 

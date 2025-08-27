@@ -1,15 +1,22 @@
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { Pool } from 'pg';
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { Pool } = require('pg');
 
 const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+let pool;
 
-export default async function handler(req, res) {
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+  }
+  return pool;
+}
+
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -24,7 +31,8 @@ export default async function handler(req, res) {
     console.log('Login attempt for:', email);
 
     // Get user from database
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const db = getPool();
+    const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
 
     console.log('User found:', !!user);
@@ -59,7 +67,7 @@ export default async function handler(req, res) {
     // Get garage info if user has one
     let garage = null;
     if (user.garage_id) {
-      const garageResult = await pool.query('SELECT * FROM garages WHERE id = $1', [user.garage_id]);
+      const garageResult = await db.query('SELECT * FROM garages WHERE id = $1', [user.garage_id]);
       garage = garageResult.rows[0];
       console.log('Garage found:', !!garage);
     }
@@ -74,6 +82,13 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Error stack:', error.stack);
+    console.error('Error message:', error.message);
+    
+    // Return more specific error info for debugging
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Server error'
+    });
   }
 }
