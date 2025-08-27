@@ -189,8 +189,15 @@ export default function Invoice() {
         invoiceNumber,
       });
       
-      // Upload to Cloudinary
-      const pdfUrl = await uploadPDFToCloudinary(pdfBlob);
+      // Upload to Cloudinary with fallback
+      let pdfUrl;
+      try {
+        pdfUrl = await uploadPDFToCloudinary(pdfBlob);
+      } catch (uploadError) {
+        console.error('Initial Cloudinary upload failed:', uploadError);
+        // Use a placeholder URL if upload fails - invoice will still be created
+        pdfUrl = 'upload_failed';
+      }
       
       // Create invoice record
       const createdInvoice = await createInvoiceMutation.mutateAsync({
@@ -216,12 +223,31 @@ export default function Invoice() {
       });
       
       // Upload with final filename
-      const finalPdfUrl = await uploadPDFToCloudinary(finalPdfBlob, finalFilename);
+      let finalPdfUrl;
+      try {
+        finalPdfUrl = await uploadPDFToCloudinary(finalPdfBlob, finalFilename);
+      } catch (uploadError) {
+        console.error('Final Cloudinary upload failed:', uploadError);
+        // If upload fails, still allow download but no WhatsApp sharing
+        finalPdfUrl = 'upload_failed';
+        
+        if (sendWhatsApp) {
+          toast({
+            title: "Upload Failed",
+            description: "PDF generated but cloud upload failed. Download available.",
+            variant: "destructive",
+          });
+          // Don't send WhatsApp if upload failed
+          sendWhatsApp = false;
+        }
+      }
       
-      // Update the invoice record with the final PDF URL
-      await apiRequest("PUT", `/api/garages/${garage.id}/invoices/${createdInvoice.id}`, {
-        pdfUrl: finalPdfUrl
-      });
+      // Update the invoice record with the final PDF URL only if upload was successful
+      if (finalPdfUrl !== 'upload_failed') {
+        await apiRequest("PUT", `/api/garages/${garage.id}/invoices/${createdInvoice.id}`, {
+          pdfUrl: finalPdfUrl
+        });
+      }
       
       if (sendWhatsApp) {
         // Send WhatsApp message

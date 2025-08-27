@@ -196,7 +196,13 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
   
+  console.log('Cloudinary upload - Cloud name:', cloudName ? 'Set' : 'Missing');
+  console.log('Cloudinary upload - Upload preset:', uploadPreset ? 'Set' : 'Missing');
+  console.log('Cloudinary upload - PDF blob size:', pdfBlob.size);
+  console.log('Cloudinary upload - Filename:', filename);
+  
   if (!cloudName || !uploadPreset) {
+    console.error('Cloudinary configuration missing:', { cloudName: !!cloudName, uploadPreset: !!uploadPreset });
     throw new Error('Cloudinary configuration missing. Please add VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET environment variables.');
   }
   
