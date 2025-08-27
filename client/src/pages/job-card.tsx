@@ -34,6 +34,7 @@ export default function JobCard() {
     phone: "",
     bikeNumber: "",
     complaint: "",
+    serviceCharge: "",
     date: new Date().toISOString().split('T')[0],
   });
 
@@ -165,7 +166,11 @@ export default function JobCard() {
       return;
     }
 
-    const serviceCharge = selectedParts.reduce((sum, part) => sum + (part.price * part.quantity), 0);
+    // Calculate only spare parts total
+    const partsTotal = selectedParts.reduce((sum, part) => sum + (part.price * part.quantity), 0);
+    // Use the actual service charge from form data (should be entered separately)
+    const serviceCharge = parseFloat(formData.serviceCharge || '0');
+    const totalAmount = partsTotal + serviceCharge;
     
     const submitData = {
       customerName: selectedCustomer.name,
@@ -174,7 +179,7 @@ export default function JobCard() {
       complaint: formData.complaint,
       spareParts: selectedParts,
       serviceCharge: serviceCharge.toString(),
-      totalAmount: serviceCharge.toString(),
+      totalAmount: totalAmount.toString(),
     };
 
     createJobCardMutation.mutate(submitData);
@@ -277,6 +282,30 @@ export default function JobCard() {
               />
               <div className="text-xs text-muted-foreground mt-1">
                 Press Enter to create checklist items • Click ☐/☑ to toggle completion
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Service Charge */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Service Charge</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="serviceCharge">Service Charge (₹)</Label>
+                <Input
+                  id="serviceCharge"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.serviceCharge}
+                  onChange={(e) => handleInputChange("serviceCharge", e.target.value)}
+                  placeholder="Enter service charge amount..."
+                />
+                <div className="text-xs text-muted-foreground">
+                  Enter the labor/service charges separate from spare parts cost
+                </div>
               </div>
             </CardContent>
           </Card>
