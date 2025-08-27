@@ -87,19 +87,35 @@ export default function Invoices() {
     }
     
     try {
+      // First try to fetch the PDF to verify it exists and is accessible
+      const response = await fetch(pdfUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to access PDF: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      
+      if (blob.size === 0) {
+        throw new Error('PDF file is empty');
+      }
+      
       // Create download link
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = pdfUrl;
+      a.href = url;
       a.download = `${invoiceNumber}.pdf`;
-      a.target = '_blank';
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading PDF:', error);
       // Fallback: try opening in new tab
-      window.open(pdfUrl, '_blank');
+      const a = document.createElement('a');
+      a.href = pdfUrl;
+      a.target = '_blank';
+      a.click();
     }
   };
 
