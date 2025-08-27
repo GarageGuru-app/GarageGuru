@@ -29,10 +29,21 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   pdf.rect(0, 0, pageWidth, 45, 'F');
   
   // Add garage logo if available
+  console.log('PDF Generator - Garage data:', garage);
+  console.log('PDF Generator - Garage logo URL:', garage.logo);
+  
   if (garage.logo) {
     try {
+      console.log('PDF Generator - Attempting to fetch logo from:', garage.logo);
       const response = await fetch(garage.logo);
+      console.log('PDF Generator - Logo fetch response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch logo: ${response.status}`);
+      }
+      
       const blob = await response.blob();
+      console.log('PDF Generator - Logo blob size:', blob.size, 'bytes');
       
       if (blob.size < 500000) {
         const canvas = document.createElement('canvas');
@@ -41,20 +52,29 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
         
         const logoData = await new Promise<string>((resolve, reject) => {
           img.onload = () => {
+            console.log('PDF Generator - Logo image loaded successfully');
             canvas.width = 40;
             canvas.height = 40;
             ctx?.drawImage(img, 0, 0, 40, 40);
             resolve(canvas.toDataURL('image/jpeg', 0.8));
           };
-          img.onerror = reject;
+          img.onerror = (error) => {
+            console.error('PDF Generator - Logo image load failed:', error);
+            reject(error);
+          };
           img.src = URL.createObjectURL(blob);
         });
         
         pdf.addImage(logoData, 'JPEG', 20, 5, 20, 20);
+        console.log('PDF Generator - Logo added to PDF successfully');
+      } else {
+        console.warn('PDF Generator - Logo file too large:', blob.size, 'bytes');
       }
     } catch (error) {
-      console.error('Failed to load garage logo:', error);
+      console.error('PDF Generator - Failed to load garage logo:', error);
     }
+  } else {
+    console.log('PDF Generator - No garage logo available');
   }
   
   // Header text (white on blue background)

@@ -54,6 +54,29 @@ export default function AdminDashboard() {
   const [showLowStockAlert, setShowLowStockAlert] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
+  // Debug garage data
+  useEffect(() => {
+    console.log('Admin Dashboard - Garage data:', garage);
+    if (garage) {
+      console.log('Admin Dashboard - Garage logo:', garage.logo);
+      console.log('Admin Dashboard - Has logo?', !!garage.logo);
+      
+      // Test the logo URL accessibility
+      if (garage.logo) {
+        fetch(garage.logo, { method: 'HEAD' })
+          .then(response => {
+            console.log('Admin Dashboard - Logo URL test:', response.ok ? 'Success' : 'Failed', response.status);
+            if (!response.ok) {
+              console.error('Admin Dashboard - Logo URL not accessible:', response.status, response.statusText);
+            }
+          })
+          .catch(error => {
+            console.error('Admin Dashboard - Logo URL fetch error:', error);
+          });
+      }
+    }
+  }, [garage]);
+
   // Check if desktop view
   useEffect(() => {
     const checkIsDesktop = () => {
@@ -224,8 +247,21 @@ export default function AdminDashboard() {
       <div className="gradient-header text-primary-foreground">
         <div className="flex items-center justify-between px-2 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center">
-              <Settings className="text-primary w-4 h-4 sm:w-6 sm:h-6" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center overflow-hidden">
+              {garage?.logo ? (
+                <img 
+                  src={garage.logo} 
+                  alt="Garage Logo" 
+                  className="w-full h-full object-cover"
+                  onLoad={() => console.log('Admin Dashboard - Logo image loaded successfully')}
+                  onError={(e) => {
+                    console.error('Admin Dashboard - Logo image failed to load:', e);
+                    console.error('Admin Dashboard - Failed URL:', garage.logo);
+                  }}
+                />
+              ) : (
+                <Settings className="text-primary w-4 h-4 sm:w-6 sm:h-6" />
+              )}
             </div>
             <div>
               <h1 className="text-base sm:text-lg font-semibold" data-testid="title-admin-dashboard">
