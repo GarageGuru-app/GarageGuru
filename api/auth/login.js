@@ -1,18 +1,11 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { Pool } = require('pg');
-
 const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
 
-let pool;
-
-function getPool() {
-  if (!pool) {
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    });
-  }
+async function getDbConnection() {
+  const { Pool } = require('pg');
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
   return pool;
 }
 
@@ -20,6 +13,8 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
+
+  let db = null;
 
   try {
     const { email, password } = req.body;
@@ -30,8 +25,13 @@ module.exports = async function handler(req, res) {
 
     console.log('Login attempt for:', email);
 
-    // Get user from database
-    const db = getPool();
+    // Check if DATABASE_URL is available
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL not configured');
+    }
+
+    // Get database connection
+    db = await getDbConnection();
     const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
 
@@ -42,6 +42,7 @@ module.exports = async function handler(req, res) {
     }
 
     // Check password
+    const bcrypt = require('bcrypt');
     console.log('Comparing password. Length:', password.length);
     const isValidPassword = await bcrypt.compare(password, user.password);
     console.log('Password valid:', isValidPassword);
@@ -51,6 +52,7 @@ module.exports = async function handler(req, res) {
     }
 
     // Generate JWT token
+    const jwt = require('jsonwebtoken');
     const token = jwt.sign(
       { 
         id: user.id, 
@@ -88,7 +90,17 @@ module.exports = async function handler(req, res) {
     // Return more specific error info for debugging
     res.status(500).json({ 
       message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Server error'
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
+  } finally {
+    // Clean up database connection
+    if (db) {
+      try {
+        await db.end();
+      } catch (closeError) {
+        console.error('Error closing database connection:', closeError);
+      }
+    }
   }
 }
