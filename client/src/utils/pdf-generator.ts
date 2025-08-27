@@ -202,6 +202,15 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   console.log('📄 PDF blob size:', pdfBlob.size, 'bytes');
   console.log('📝 Filename:', filename);
   
+  // Test Cloudinary configuration
+  if (cloudName === 'dcueubsl8' && uploadPreset === 'garage-pdfs') {
+    console.log('✅ Cloudinary configuration matches expected values');
+  } else {
+    console.warn('⚠️ Cloudinary configuration mismatch:');
+    console.warn('  Expected cloud name: dcueubsl8, got:', cloudName);
+    console.warn('  Expected preset: garage-pdfs, got:', uploadPreset);
+  }
+  
   if (!cloudName || !uploadPreset) {
     console.error('Cloudinary configuration missing:', { cloudName: !!cloudName, uploadPreset: !!uploadPreset });
     throw new Error('Cloudinary configuration missing. Please add VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET environment variables.');

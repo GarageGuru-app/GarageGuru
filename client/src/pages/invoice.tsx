@@ -192,9 +192,16 @@ export default function Invoice() {
       // Upload to Cloudinary with fallback
       let pdfUrl;
       try {
+        console.log('🎯 Attempting first Cloudinary upload...');
         pdfUrl = await uploadPDFToCloudinary(pdfBlob);
+        console.log('✅ First upload successful:', pdfUrl);
       } catch (uploadError) {
-        console.error('Initial Cloudinary upload failed:', uploadError);
+        console.error('❌ Initial Cloudinary upload failed:', uploadError);
+        // Log the specific error for debugging
+        if (uploadError instanceof Error) {
+          console.error('❌ Error message:', uploadError.message);
+          console.error('❌ Error stack:', uploadError.stack);
+        }
         // Use a placeholder URL if upload fails - invoice will still be created
         pdfUrl = 'upload_failed';
       }
