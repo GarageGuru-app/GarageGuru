@@ -205,7 +205,7 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
   
   try {
     const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+      `https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`,
       {
         method: 'POST',
         body: formData,
@@ -224,16 +224,24 @@ export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): P
     // Return the secure_url with proper PDF download configuration
     const pdfUrl = data.secure_url;
     
-    // For raw PDFs, ensure proper URL format with download attachment flag
-    const urlParts = pdfUrl.split('/upload/');
-    if (urlParts.length === 2) {
-      // Add fl_attachment to force download as PDF with proper filename
-      const filename = urlParts[1].split('/').pop() || 'invoice';
-      const improvedUrl = `${urlParts[0]}/upload/fl_attachment:${filename}.pdf/${urlParts[1]}`;
-      return improvedUrl;
+    // Transform raw URL to proper PDF download URL
+    let finalUrl = pdfUrl;
+    
+    // Check if it's a raw upload URL and transform it
+    if (pdfUrl.includes('/raw/upload/')) {
+      // Replace /raw/upload/ with /upload/ and add fl_attachment flag with .pdf extension
+      const publicId = pdfUrl.split('/').pop() || 'invoice';
+      finalUrl = pdfUrl.replace('/raw/upload/', '/upload/fl_attachment:' + publicId + '.pdf/');
+    } else if (pdfUrl.includes('/upload/')) {
+      // For regular uploads, add the attachment flag
+      const urlParts = pdfUrl.split('/upload/');
+      if (urlParts.length === 2) {
+        const publicId = urlParts[1].split('/').pop() || 'invoice';
+        finalUrl = `${urlParts[0]}/upload/fl_attachment:${publicId}.pdf/${urlParts[1]}`;
+      }
     }
     
-    return pdfUrl;
+    return finalUrl;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
     console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');

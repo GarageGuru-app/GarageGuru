@@ -69,9 +69,12 @@ export default function Invoices() {
       return;
     }
     
+    // Transform the URL to ensure proper PDF download
+    const fixedUrl = transformPdfUrl(pdfUrl);
+    
     try {
       // First try to fetch the PDF to verify it exists and is accessible
-      const response = await fetch(pdfUrl);
+      const response = await fetch(fixedUrl);
       if (!response.ok) {
         throw new Error(`Failed to access PDF: ${response.status}`);
       }
@@ -94,17 +97,37 @@ export default function Invoices() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      // Fallback: try opening in new tab
+      // Fallback: try opening in new tab with fixed URL
       const a = document.createElement('a');
-      a.href = pdfUrl;
+      a.href = fixedUrl;
       a.target = '_blank';
       a.click();
     }
   };
 
+  // Transform old Cloudinary URLs to proper PDF download format
+  const transformPdfUrl = (url: string): string => {
+    if (url.includes('/raw/upload/')) {
+      // Transform old raw URLs to proper PDF download URLs
+      const publicId = url.split('/').pop() || 'invoice';
+      return url.replace('/raw/upload/', '/upload/fl_attachment:' + publicId + '.pdf/');
+    } else if (url.includes('/upload/') && !url.includes('fl_attachment')) {
+      // Add attachment flag to regular upload URLs
+      const urlParts = url.split('/upload/');
+      if (urlParts.length === 2) {
+        const publicId = urlParts[1].split('/').pop() || 'invoice';
+        return `${urlParts[0]}/upload/fl_attachment:${publicId}.pdf/${urlParts[1]}`;
+      }
+    }
+    return url;
+  };
+
   const sendWhatsApp = (phone: string, pdfUrl: string) => {
+    // Transform the URL to ensure proper PDF download
+    const fixedUrl = transformPdfUrl(pdfUrl);
+    
     // Use Telugu message like in whatsapp.ts
-    const message = `మీ బండి రిపేర్ పూర్తయ్యింది దయచేసి. వివరాల కొరకు కింద ఉన్న PDFని చూడండి ధన్యవాదాలు.\n\n${pdfUrl}`;
+    const message = `మీ బండి రిపేర్ పూర్తయ్యింది దయచేసి. వివరాల కొరకు కింద ఉన్న PDFని చూడండి ధన్యవాదాలు.\n\n${fixedUrl}`;
     const whatsappUrl = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
