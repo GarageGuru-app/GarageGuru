@@ -86,48 +86,26 @@ export default function Invoices() {
       return;
     }
     
-    // Transform the URL to ensure proper PDF download
-    const fixedUrl = transformPdfUrl(pdfUrl);
-    
     try {
-      // First try to fetch the PDF to verify it exists and is accessible
-      const response = await fetch(fixedUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to access PDF: ${response.status}`);
-      }
-      
-      const blob = await response.blob();
-      
-      if (blob.size === 0) {
-        throw new Error('PDF file is empty');
-      }
-      
       // Create download link
-      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = pdfUrl;
       a.download = `${invoiceNumber}.pdf`;
+      a.target = '_blank';
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      // Fallback: try opening in new tab with fixed URL
-      const a = document.createElement('a');
-      a.href = fixedUrl;
-      a.target = '_blank';
-      a.click();
+      // Fallback: try opening in new tab
+      window.open(pdfUrl, '_blank');
     }
   };
 
   const sendWhatsApp = (phone: string, pdfUrl: string) => {
-    // Transform the URL to ensure proper PDF download
-    const fixedUrl = transformPdfUrl(pdfUrl);
-    
     // Use Telugu message like in whatsapp.ts
-    const message = `మీ బండి రిపేర్ పూర్తయ్యింది దయచేసి. వివరాల కొరకు కింద ఉన్న PDFని చూడండి ధన్యవాదాలు.\n\n${fixedUrl}`;
+    const message = `మీ బండి రిపేర్ పూర్తయ్యింది దయచేసి. వివరాల కొరకు కింద ఉన్న PDFని చూడండి ధన్యవాదాలు.\n\n${pdfUrl}`;
     const whatsappUrl = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
