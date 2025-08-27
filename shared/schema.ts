@@ -83,7 +83,7 @@ export const invoices = pgTable("invoices", {
   jobCardId: varchar("job_card_id").notNull().references(() => jobCards.id),
   customerId: varchar("customer_id").notNull().references(() => customers.id),
   invoiceNumber: text("invoice_number").notNull(),
-  pdfUrl: text("pdf_url"), // Cloudinary URL
+  downloadToken: text("download_token"), // Unique token for PDF download URL
   whatsappSent: boolean("whatsapp_sent").default(false),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
   partsTotal: decimal("parts_total", { precision: 10, scale: 2 }).notNull(),

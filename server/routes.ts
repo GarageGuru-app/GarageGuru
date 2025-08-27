@@ -1214,6 +1214,79 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // PDF Download endpoint - generates PDF on demand
+  app.get("/invoice/download/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      // Find invoice by download token
+      const invoiceResult = await pool.query(`
+        SELECT i.*, j.*, c.name as customer_name, c.phone, c.bike_number, g.name as garage_name, g.phone as garage_phone
+        FROM invoices i
+        JOIN job_cards j ON i.job_card_id = j.id
+        JOIN customers c ON i.customer_id = c.id  
+        JOIN garages g ON i.garage_id = g.id
+        WHERE i.download_token = $1
+      `, [token]);
+
+      if (invoiceResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Invoice not found or link expired' });
+      }
+
+      const invoiceData = invoiceResult.rows[0];
+      
+      // Create simple PDF content
+      const pdfContent = `
+INVOICE: ${invoiceData.invoice_number}
+Date: ${new Date(invoiceData.created_at).toLocaleDateString()}
+
+Garage: ${invoiceData.garage_name}
+Phone: ${invoiceData.garage_phone}
+
+Customer: ${invoiceData.customer_name}
+Phone: ${invoiceData.phone}
+Vehicle: ${invoiceData.bike_number}
+
+Service: ${invoiceData.complaint}
+Service Charge: ₹${invoiceData.service_charge}
+Parts Total: ₹${invoiceData.parts_total}
+Total Amount: ₹${invoiceData.total_amount}
+
+Thank you for choosing our service!
+      `;
+
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoiceData.invoice_number}.pdf"`);
+      
+      // For now, return plain text - we'll enhance with proper PDF generation later
+      res.setHeader('Content-Type', 'text/plain');
+      res.send(pdfContent);
+      
+    } catch (error) {
+      console.error('PDF download error:', error);
+      res.status(500).json({ message: 'Failed to generate PDF' });
+    }
+  });
+
+  // Update invoice with WhatsApp status and download token
+  app.patch("/api/invoices/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { whatsapp_sent, download_token } = req.body;
+      
+      const invoice = await storage.updateInvoice(id, { 
+        whatsapp_sent, 
+        download_token 
+      });
+      
+      res.json(invoice);
+    } catch (error) {
+      console.error('Invoice update error:', error);
+      res.status(500).json({ message: 'Failed to update invoice' });
+    }
+  });
+
   // Get garage staff members (admin)
   app.get("/api/garages/:garageId/staff", authenticateToken, requireRole(['garage_admin']), requireGarageAccess, async (req, res) => {
     try {

@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, FileText, Share } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-import { generateInvoicePDF, uploadPDFToCloudinary } from "@/utils/pdf-generator";
+import { generateInvoicePDF, generateDownloadToken, createDownloadURL } from "@/utils/pdf-generator";
 import { sendWhatsAppMessage } from "@/utils/whatsapp";
 
 export default function Invoice() {
@@ -192,29 +192,17 @@ export default function Invoice() {
         invoiceNumber,
       });
       
-      // Upload to Cloudinary with fallback
-      let pdfUrl;
-      try {
-        console.log('🎯 Attempting first Cloudinary upload...');
-        pdfUrl = await uploadPDFToCloudinary(pdfBlob);
-        console.log('✅ First upload successful:', pdfUrl);
-      } catch (uploadError) {
-        console.error('❌ Initial Cloudinary upload failed:', uploadError);
-        // Log the specific error for debugging
-        if (uploadError instanceof Error) {
-          console.error('❌ Error message:', uploadError.message);
-          console.error('❌ Error stack:', uploadError.stack);
-        }
-        // Use a placeholder URL if upload fails - invoice will still be created
-        pdfUrl = 'upload_failed';
-      }
+      // Generate download token for PDF access
+      const downloadToken = generateDownloadToken(invoiceNumber);
+      const downloadUrl = createDownloadURL(downloadToken);
+      console.log('🔗 Generated download URL:', downloadUrl);
       
       // Create invoice record with completion details
       const createdInvoice = await createInvoiceMutation.mutateAsync({
         jobCardId: jobCard.id,
         customerId: (jobCard as any).customer_id || jobCard.customerId,
         invoiceNumber,
-        pdfUrl,
+        downloadToken,
         totalAmount: String(totalAmount),
         partsTotal: String(partsTotal), 
         serviceCharge: String(serviceCharge),
@@ -234,36 +222,19 @@ export default function Invoice() {
         invoiceNumber: finalFilename,
       });
       
-      // Upload with final filename
-      let finalPdfUrl;
-      try {
-        finalPdfUrl = await uploadPDFToCloudinary(finalPdfBlob, finalFilename);
-      } catch (uploadError) {
-        console.error('Final Cloudinary upload failed:', uploadError);
-        // If upload fails, still allow download but no WhatsApp sharing
-        finalPdfUrl = 'upload_failed';
-        
-        if (sendWhatsApp) {
-          toast({
-            title: "Upload Failed",
-            description: "PDF generated but cloud upload failed. Download available.",
-            variant: "destructive",
-          });
-          // Don't send WhatsApp if upload failed
-          sendWhatsApp = false;
-        }
-      }
+      // Update the download token with final filename
+      const finalDownloadToken = generateDownloadToken(finalFilename);
+      const finalDownloadUrl = createDownloadURL(finalDownloadToken);
+      console.log('🔗 Final download URL:', finalDownloadUrl);
       
-      // Update the invoice record with the final PDF URL only if upload was successful
-      if (finalPdfUrl !== 'upload_failed') {
-        await apiRequest("PUT", `/api/garages/${garage.id}/invoices/${createdInvoice.id}`, {
-          pdfUrl: finalPdfUrl
-        });
-      }
+      // Update the invoice record with the final download token
+      await apiRequest("PATCH", `/api/invoices/${createdInvoice.id}`, {
+        download_token: finalDownloadToken
+      });
       
       if (sendWhatsApp) {
-        // Send WhatsApp message
-        sendWhatsAppMessage(jobCard.phone || '', finalPdfUrl);
+        // Send WhatsApp message with download URL
+        sendWhatsAppMessage(jobCard.phone || '', finalDownloadUrl);
         toast({
           title: "Success",
           description: "Invoice generated and WhatsApp opened",

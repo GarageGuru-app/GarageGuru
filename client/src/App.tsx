@@ -29,7 +29,6 @@ import StaffDashboard from "@/pages/staff-dashboard";
 import AccessRequest from "@/pages/access-request";
 import CompletedServices from "@/pages/completed-services";
 import CompletedServiceDetails from "@/pages/completed-service-details";
-import TestCloudinary from "@/pages/test-cloudinary";
 import Unauthorized from "@/pages/unauthorized";
 import NotFound from "@/pages/not-found";
 
@@ -176,12 +175,6 @@ function Router() {
       <Route path="/super-admin">
         <ProtectedRoute roles={["super_admin"]}>
           <SuperAdmin />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/test-cloudinary">
-        <ProtectedRoute>
-          <TestCloudinary />
         </ProtectedRoute>
       </Route>
       

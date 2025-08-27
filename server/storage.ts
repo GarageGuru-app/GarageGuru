@@ -75,7 +75,7 @@ export interface Invoice {
   job_card_id: string | null;
   customer_id: string | null;
   invoice_number: string;
-  pdf_url: string | null;
+  download_token: string | null;
   whatsapp_sent: boolean;
   total_amount: number;
   parts_total: number;
@@ -618,7 +618,7 @@ export class DatabaseStorage implements IStorage {
   async createInvoice(invoice: Partial<Invoice>): Promise<Invoice> {
     const id = invoice.id || crypto.randomUUID();
     const result = await pool.query(
-      'INSERT INTO invoices (id, garage_id, job_card_id, customer_id, invoice_number, pdf_url, whatsapp_sent, total_amount, parts_total, service_charge, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+      'INSERT INTO invoices (id, garage_id, job_card_id, customer_id, invoice_number, download_token, whatsapp_sent, total_amount, parts_total, service_charge, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
       [id, invoice.garageId, invoice.jobCardId, invoice.customerId, invoice.invoiceNumber, invoice.pdfUrl, invoice.whatsappSent || false, invoice.totalAmount || 0, invoice.partsTotal || 0, invoice.serviceCharge || 0, new Date()]
     );
     
@@ -647,8 +647,8 @@ export class DatabaseStorage implements IStorage {
 
   async updateInvoice(id: string, invoice: Partial<Invoice>): Promise<Invoice> {
     const result = await pool.query(
-      'UPDATE invoices SET whatsapp_sent = COALESCE($2, whatsapp_sent), pdf_url = COALESCE($3, pdf_url) WHERE id = $1 RETURNING *',
-      [id, invoice.whatsapp_sent, invoice.pdf_url]
+      'UPDATE invoices SET whatsapp_sent = COALESCE($2, whatsapp_sent), download_token = COALESCE($3, download_token) WHERE id = $1 RETURNING *',
+      [id, invoice.whatsapp_sent, invoice.download_token]
     );
     return result.rows[0];
   }

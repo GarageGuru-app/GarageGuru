@@ -192,121 +192,16 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   return pdf.output('blob');
 }
 
-export async function uploadPDFToCloudinary(pdfBlob: Blob, filename?: string): Promise<string> {
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-  
-  console.log('🔄 Starting Cloudinary upload...');
-  console.log('🔧 Cloud name:', cloudName ? `Set (${cloudName})` : 'Missing');
-  console.log('🔧 Upload preset:', uploadPreset ? `Set (${uploadPreset})` : 'Missing');
-  console.log('📄 PDF blob size:', pdfBlob.size, 'bytes');
-  console.log('📝 Filename:', filename);
-  
-  // Test Cloudinary configuration
-  if (cloudName === 'dcueubsl8' && uploadPreset === 'garage-pdfs') {
-    console.log('✅ Cloudinary configuration matches expected values');
-  } else {
-    console.warn('⚠️ Cloudinary configuration mismatch:');
-    console.warn('  Expected cloud name: dcueubsl8, got:', cloudName);
-    console.warn('  Expected preset: garage-pdfs, got:', uploadPreset);
-  }
-  
-  if (!cloudName || !uploadPreset) {
-    console.error('Cloudinary configuration missing:', { cloudName: !!cloudName, uploadPreset: !!uploadPreset });
-    throw new Error('Cloudinary configuration missing. Please add VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET environment variables.');
-  }
-  
-  const formData = new FormData();
-  // Create a proper File object - upload as binary with a neutral filename
-  const pdfFile = new File([pdfBlob], filename ? `${filename}` : 'invoice', { 
-    type: 'application/octet-stream', // Use binary type to bypass format restrictions
-    lastModified: Date.now()
-  });
-  
-  formData.append('file', pdfFile);
-  formData.append('upload_preset', uploadPreset);
-  formData.append('resource_type', 'raw'); // Try raw again with binary type
-  
-  console.log('📋 FormData contents:');
-  console.log('  - file:', pdfFile);
-  console.log('  - upload_preset:', uploadPreset);
-  console.log('  - resource_type: raw');
-  console.log('  - file size:', pdfFile.size);
-  console.log('  - file type:', pdfFile.type);
-  
-  if (filename) {
-    // Ensure filename has .pdf extension for Cloudinary
-    const pdfFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
-    formData.append('public_id', pdfFilename);
-  }
-  
-  try {
-    console.log('🚀 Sending request to Cloudinary...');
-    const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`;
-    console.log('📡 Upload URL:', uploadUrl);
-    
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
-      body: formData,
-    });
-    
-    console.log('📥 Response status:', response.status);
-    console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Cloudinary response error:', response.status, errorText);
-      
-      // Parse error details if possible
-      let errorDetails = errorText;
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorDetails = errorJson.error?.message || errorText;
-        console.error('❌ Parsed error:', errorJson);
-        
-        // Check for common Cloudinary errors
-        if (errorJson.error?.message?.includes('Invalid upload preset')) {
-          console.error('❌ SOLUTION: Upload preset "' + uploadPreset + '" does not exist or is not configured for unsigned uploads');
-          console.error('❌ Go to Cloudinary Dashboard → Settings → Upload → Upload presets');
-          console.error('❌ Make sure preset "' + uploadPreset + '" exists and Signing Mode is set to "Unsigned"');
-        }
-      } catch (e) {
-        console.error('❌ Raw error text:', errorText);
-      }
-      
-      throw new Error(`Failed to upload PDF: ${response.status} - ${errorDetails}`);
-    }
-    
-    const data = await response.json();
-    console.log('✅ Cloudinary upload successful!');
-    console.log('📊 Upload data:', data);
-    
-    // Return the secure_url with proper PDF download configuration
-    const pdfUrl = data.secure_url;
-    
-    // Transform URL to proper PDF download URL with attachment flag
-    let finalUrl = pdfUrl;
-    
-    // For regular uploads, add the attachment flag for PDF download
-    if (pdfUrl.includes('/upload/')) {
-      const urlParts = pdfUrl.split('/upload/');
-      if (urlParts.length === 2) {
-        // Add fl_attachment flag to force download as PDF
-        finalUrl = `${urlParts[0]}/upload/fl_attachment/${urlParts[1]}`;
-      }
-    }
-    
-    return finalUrl;
-  } catch (error) {
-    console.error('❌ Cloudinary upload error:', error);
-    console.error('❌ Error type:', error instanceof Error ? 'Error' : typeof error);
-    console.error('❌ Error message:', error instanceof Error ? error.message : String(error));
-    
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.error('❌ Network error - possible CORS or connectivity issue');
-      throw new Error('Network error: Unable to connect to cloud storage. Please check your internet connection.');
-    }
-    
-    throw new Error(`Cloud upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
+// Generate a unique download token for PDF access
+export function generateDownloadToken(invoiceNumber: string): string {
+  // Create a unique token based on invoice number and timestamp
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 8);
+  return `${invoiceNumber}-${timestamp}-${random}`;
+}
+
+// Create a direct download URL for the PDF
+export function createDownloadURL(downloadToken: string): string {
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/invoice/download/${downloadToken}`;
 }
