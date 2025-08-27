@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/index.ts",
+      "src": "dist/index.js",
       "use": "@vercel/node",
       "config": {
         "maxDuration": 30
@@ -19,15 +19,15 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server/index.ts"
+      "dest": "dist/index.js"
     },
     {
       "src": "/test-pdf-download",
-      "dest": "server/index.ts"
+      "dest": "dist/index.js"
     },
     {
       "src": "/invoice/download/(.*)",
-      "dest": "server/index.ts"
+      "dest": "dist/index.js"
     },
     {
       "src": "/(.*)",
