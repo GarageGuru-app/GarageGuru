@@ -2238,5 +2238,114 @@ Thank you for choosing our service!
     }
   });
 
+  // Simplified routes that auto-detect garage ID from user token
+  // These routes allow frontend to call /api/customers instead of /api/garages/{id}/customers
+  
+  app.get("/api/customers", authenticateToken, async (req, res) => {
+    try {
+      const garageId = req.user.garage_id;
+      if (!garageId && req.user.role !== 'super_admin') {
+        return res.status(400).json({ message: 'No garage associated with user' });
+      }
+      
+      // Super admin can see all customers or filter by query param
+      if (req.user.role === 'super_admin') {
+        const { garageId: queryGarageId } = req.query;
+        if (queryGarageId) {
+          const customers = await storage.getCustomers(queryGarageId as string);
+          return res.json(customers);
+        }
+        // If no garage specified, return empty array (super admin needs to specify garage)
+        return res.json([]);
+      }
+      
+      const customers = await storage.getCustomers(garageId);
+      res.json(customers);
+    } catch (error) {
+      console.error('Error in simplified customers endpoint:', error);
+      res.status(500).json({ message: 'Failed to fetch customers' });
+    }
+  });
+
+  app.get("/api/spare-parts", authenticateToken, async (req, res) => {
+    try {
+      const garageId = req.user.garage_id;
+      if (!garageId && req.user.role !== 'super_admin') {
+        return res.status(400).json({ message: 'No garage associated with user' });
+      }
+      
+      // Super admin can see all spare parts or filter by query param
+      if (req.user.role === 'super_admin') {
+        const { garageId: queryGarageId } = req.query;
+        if (queryGarageId) {
+          const spareParts = await storage.getSpareParts(queryGarageId as string);
+          return res.json(spareParts);
+        }
+        // If no garage specified, return empty array
+        return res.json([]);
+      }
+      
+      const spareParts = await storage.getSpareParts(garageId);
+      res.json(spareParts);
+    } catch (error) {
+      console.error('Error in simplified spare parts endpoint:', error);
+      res.status(500).json({ message: 'Failed to fetch spare parts' });
+    }
+  });
+
+  app.get("/api/job-cards", authenticateToken, async (req, res) => {
+    try {
+      const garageId = req.user.garage_id;
+      if (!garageId && req.user.role !== 'super_admin') {
+        return res.status(400).json({ message: 'No garage associated with user' });
+      }
+      
+      // Super admin can see all job cards or filter by query param
+      if (req.user.role === 'super_admin') {
+        const { garageId: queryGarageId } = req.query;
+        if (queryGarageId) {
+          const { status } = req.query;
+          const jobCards = await storage.getJobCards(queryGarageId as string, status as string);
+          return res.json(jobCards);
+        }
+        // If no garage specified, return empty array
+        return res.json([]);
+      }
+      
+      const { status } = req.query;
+      const jobCards = await storage.getJobCards(garageId, status as string);
+      res.json(jobCards);
+    } catch (error) {
+      console.error('Error in simplified job cards endpoint:', error);
+      res.status(500).json({ message: 'Failed to fetch job cards' });
+    }
+  });
+
+  app.get("/api/invoices", authenticateToken, async (req, res) => {
+    try {
+      const garageId = req.user.garage_id;
+      if (!garageId && req.user.role !== 'super_admin') {
+        return res.status(400).json({ message: 'No garage associated with user' });
+      }
+      
+      // Super admin can see all invoices or filter by query param
+      if (req.user.role === 'super_admin') {
+        const { garageId: queryGarageId } = req.query;
+        if (queryGarageId) {
+          const invoices = await storage.getInvoices(queryGarageId as string);
+          return res.json(invoices);
+        }
+        // If no garage specified, return empty array
+        return res.json([]);
+      }
+      
+      const invoices = await storage.getInvoices(garageId);
+      res.json(invoices);
+    } catch (error) {
+      console.error('Error in simplified invoices endpoint:', error);
+      res.status(500).json({ message: 'Failed to fetch invoices' });
+    }
+  });
+
   // No longer need to create or return HTTP server for Vercel functions
 }
