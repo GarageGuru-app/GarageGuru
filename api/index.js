@@ -250,7 +250,7 @@ export default async function handler(req, res) {
   }
 
   // Garages endpoint
-  if (url === '/api/garages' || url.endsWith('/garages')) {
+  if (url === '/api/garages' || url.endsWith('/api/garages')) {
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(' ')[1];
@@ -279,7 +279,7 @@ export default async function handler(req, res) {
   }
 
   // Simplified data endpoints for super admin
-  if (url === '/api/customers' || url.endsWith('/customers')) {
+  if (url === '/api/customers' || url.endsWith('/api/customers')) {
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(' ')[1];
@@ -324,7 +324,7 @@ export default async function handler(req, res) {
     }
   }
 
-  if (url === '/api/spare-parts' || url.endsWith('/spare-parts')) {
+  if (url === '/api/spare-parts' || url.endsWith('/api/spare-parts')) {
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(' ')[1];
@@ -369,7 +369,7 @@ export default async function handler(req, res) {
     }
   }
 
-  if (url === '/api/job-cards' || url.endsWith('/job-cards')) {
+  if (url === '/api/job-cards' || url.endsWith('/api/job-cards')) {
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(' ')[1];
