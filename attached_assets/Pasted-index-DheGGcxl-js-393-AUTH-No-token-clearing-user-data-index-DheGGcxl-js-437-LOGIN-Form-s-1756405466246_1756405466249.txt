@@ -1,0 +1,41 @@
+index-DheGGcxl.js:393 🔥 [AUTH] No token, clearing user data
+index-DheGGcxl.js:437 🔥 [LOGIN] Form submitted, isLoading: false
+index-DheGGcxl.js:437 🔥 [LOGIN] Starting login process for: ananthautomotivegarage@gmail.com
+index-DheGGcxl.js:437 🔥 [LOGIN] Calling auth login function
+index-DheGGcxl.js:393 🔥 [AUTH] Login function called for: ananthautomotivegarage@gmail.com
+index-DheGGcxl.js:393 🔥 [AUTH] Login API response received, token exists: true user status: active
+index-DheGGcxl.js:393 🔥 [AUTH] Setting token, user, and garage state
+index-DheGGcxl.js:393 🔥 [AUTH] Auth state updated - user role: super_admin isLoading set to false
+index-DheGGcxl.js:393 🔥 [AUTH] User data already exists, stopping loading
+index-DheGGcxl.js:393 🔥 [AUTH] Calculated route for user: /super-admin
+index-DheGGcxl.js:437 🔥 [LOGIN] Login successful, redirectPath: /super-admin
+index-DheGGcxl.js:437 🔥 [LOGIN] Navigating to: /super-admin
+index-DheGGcxl.js:437 🔥 [LOGIN] Setting isLoading to false
+api/super-admin/garages:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/super-admin/audit-logs:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+index-DheGGcxl.js:393 🔥 [AUTH] No token, clearing user data
+index-DheGGcxl.js:437 🔥 [LOGIN] Form submitted, isLoading: false
+index-DheGGcxl.js:437 🔥 [LOGIN] Starting login process for: nanithota689@gmail.com
+index-DheGGcxl.js:437 🔥 [LOGIN] Calling auth login function
+index-DheGGcxl.js:393 🔥 [AUTH] Login function called for: nanithota689@gmail.com
+index-DheGGcxl.js:393 🔥 [AUTH] Login API response received, token exists: true user status: active
+index-DheGGcxl.js:393 🔥 [AUTH] Setting token, user, and garage state
+index-DheGGcxl.js:393 🔥 [AUTH] Auth state updated - user role: mechanic_staff isLoading set to false
+index-DheGGcxl.js:393 🔥 [AUTH] User data already exists, stopping loading
+index-DheGGcxl.js:393 🔥 [AUTH] Calculated route for user: /staff-dashboard
+index-DheGGcxl.js:437 🔥 [LOGIN] Login successful, redirectPath: /staff-dashboard
+index-DheGGcxl.js:437 🔥 [LOGIN] Navigating to: /staff-dashboard
+index-DheGGcxl.js:437 🔥 [LOGIN] Setting isLoading to false
+index-DheGGcxl.js:393 🔥 [AUTH] No token, clearing user data
+index-DheGGcxl.js:437 🔥 [LOGIN] Form submitted, isLoading: false
+index-DheGGcxl.js:437 🔥 [LOGIN] Starting login process for: ananthkalyan46@gmail.com
+index-DheGGcxl.js:437 🔥 [LOGIN] Calling auth login function
+index-DheGGcxl.js:393 🔥 [AUTH] Login function called for: ananthkalyan46@gmail.com
+index-DheGGcxl.js:393 🔥 [AUTH] Login API response received, token exists: true user status: active
+index-DheGGcxl.js:393 🔥 [AUTH] Setting token, user, and garage state
+index-DheGGcxl.js:393 🔥 [AUTH] Auth state updated - user role: garage_admin isLoading set to false
+index-DheGGcxl.js:393 🔥 [AUTH] User data already exists, stopping loading
+index-DheGGcxl.js:393 🔥 [AUTH] Calculated route for user: /garage-setup
+index-DheGGcxl.js:437 🔥 [LOGIN] Login successful, redirectPath: /garage-setup
+index-DheGGcxl.js:437 🔥 [LOGIN] Navigating to: /garage-setup
+index-DheGGcxl.js:437 🔥 [LOGIN] Setting isLoading to false

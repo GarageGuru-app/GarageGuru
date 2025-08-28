@@ -11,6 +11,42 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+// Ensure garage data exists
+async function ensureGarageData() {
+  const client = await pool.connect();
+  try {
+    // Check if garage data is missing owner_name/phone
+    const garageCheck = await client.query(`
+      SELECT id, name, owner_name, phone 
+      FROM garages 
+      WHERE id = '0c3bf28f-06db-40da-81a3-12984eb6cdee'
+    `);
+    
+    if (garageCheck.rows.length > 0) {
+      const garage = garageCheck.rows[0];
+      
+      // Update garage with missing info if needed
+      if (!garage.owner_name || !garage.phone) {
+        await client.query(`
+          UPDATE garages 
+          SET owner_name = COALESCE(owner_name, 'Ananth Kalyan Gorla'), 
+              phone = COALESCE(phone, '9398183509'),
+              email = COALESCE(email, 'ananthkalyan46@gmail.com')
+          WHERE id = '0c3bf28f-06db-40da-81a3-12984eb6cdee'
+        `);
+        console.log('✅ Updated garage information');
+      }
+    }
+  } catch (error) {
+    console.error('Garage data sync error:', error);
+  } finally {
+    client.release();
+  }
+}
+
+// Run on startup
+ensureGarageData();
+
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -153,24 +189,42 @@ export default async function handler(req, res) {
 
     // User profile endpoint
     if (path === '/api/user/profile' && method === 'GET') {
-      return res.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          garage_id: user.garage_id,
-          garageId: user.garage_id,
-          garage_name: user.garage_name,
-          mustChangePassword: user.must_change_password || false,
-          firstLogin: user.first_login || false,
-          status: user.status || 'active'
-        },
-        garage: user.garage_id ? {
-          id: user.garage_id,
-          name: user.garage_name
-        } : null
-      });
+      const client = await pool.connect();
+      try {
+        // Get full garage details for profile
+        const garageResult = await client.query(`
+          SELECT id, name, owner_name, phone, email, logo 
+          FROM garages 
+          WHERE id = $1
+        `, [user.garage_id]);
+
+        const garage = garageResult.rows[0] || null;
+
+        return res.json({
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            garage_id: user.garage_id,
+            garageId: user.garage_id,
+            garage_name: user.garage_name,
+            mustChangePassword: user.must_change_password || false,
+            firstLogin: user.first_login || false,
+            status: user.status || 'active'
+          },
+          garage: garage ? {
+            id: garage.id,
+            name: garage.name,
+            owner_name: garage.owner_name,
+            phone: garage.phone,
+            email: garage.email,
+            logo: garage.logo
+          } : null
+        });
+      } finally {
+        client.release();
+      }
     }
 
     // Garages endpoint (super admin only)
