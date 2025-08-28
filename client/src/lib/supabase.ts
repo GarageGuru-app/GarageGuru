@@ -1,7 +1,7 @@
 // This file is kept minimal since we're using Drizzle directly
 // but provides a foundation for any Supabase-specific configurations
 
-export const getAuthHeaders = () => {
+export const getAuthHeaders = (): Record<string, string> => {
   const token = localStorage.getItem("auth-token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
@@ -11,7 +11,7 @@ export const apiRequest = async (
   url: string,
   data?: unknown
 ): Promise<Response> => {
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     ...getAuthHeaders(),
   };
 
