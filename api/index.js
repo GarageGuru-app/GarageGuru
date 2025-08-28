@@ -4,6 +4,22 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'GarageGuru2025ProductionJWTSecret!';
 
+// Initialize database connection once
+let sql = null;
+
+function initDatabase() {
+  if (!sql && process.env.DATABASE_URL) {
+    try {
+      sql = neon(process.env.DATABASE_URL);
+      console.log('Database initialized');
+    } catch (error) {
+      console.error('Database init error:', error);
+      throw error;
+    }
+  }
+  return sql;
+}
+
 module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,7 +32,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Parse URL properly
+    // Parse URL
     const baseUrl = `https://${req.headers.host}`;
     const fullUrl = new URL(req.url, baseUrl);
     const path = fullUrl.pathname;
@@ -25,26 +41,40 @@ module.exports = async (req, res) => {
 
     console.log(`API: ${method} ${path}`);
 
-    // Database connection
-    const sql = neon(process.env.DATABASE_URL);
-
-    // Health endpoint
+    // Basic health check without database
     if (path === '/api/health') {
+      const response = {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        service: 'garage-guru-backend',
+        environment: 'production'
+      };
+
+      // Try database connection
       try {
-        await sql`SELECT 1 as ping`;
-        return res.json({
-          status: 'ok',
-          timestamp: new Date().toISOString(),
-          service: 'garage-guru-backend',
-          environment: 'production',
-          database: 'connected'
-        });
+        const database = initDatabase();
+        if (database) {
+          await database`SELECT 1 as ping`;
+          response.database = 'connected';
+        } else {
+          response.database = 'not_configured';
+        }
       } catch (dbError) {
-        return res.status(500).json({
-          status: 'error',
-          error: dbError.message
-        });
+        console.error('Database health check failed:', dbError);
+        response.database = 'error';
+        response.db_error = dbError.message;
       }
+
+      return res.json(response);
+    }
+
+    // Initialize database for other endpoints
+    const database = initDatabase();
+    if (!database) {
+      return res.status(500).json({ 
+        error: 'Database not configured',
+        details: 'DATABASE_URL missing'
+      });
     }
 
     // Login endpoint
@@ -56,7 +86,7 @@ module.exports = async (req, res) => {
       }
 
       try {
-        const users = await sql`
+        const users = await database`
           SELECT u.*, g.name as garage_name, g.id as garage_id 
           FROM users u 
           LEFT JOIN garages g ON u.garage_id = g.id 
@@ -68,7 +98,14 @@ module.exports = async (req, res) => {
         }
 
         const user = users[0];
-        const isValidPassword = await bcrypt.compare(password, user.password);
+        
+        // Use a timeout for bcrypt to prevent hanging
+        const isValidPassword = await Promise.race([
+          bcrypt.compare(password, user.password),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Password check timeout')), 8000)
+          )
+        ]);
 
         if (!isValidPassword) {
           return res.status(401).json({ error: 'Invalid credentials' });
@@ -107,11 +144,14 @@ module.exports = async (req, res) => {
         });
       } catch (loginError) {
         console.error('Login error:', loginError);
-        return res.status(500).json({ error: 'Login failed' });
+        return res.status(500).json({ 
+          error: 'Login failed', 
+          details: loginError.message 
+        });
       }
     }
 
-    // Authentication middleware for protected routes
+    // Authentication for protected routes
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(' ')[1];
 
@@ -126,18 +166,27 @@ module.exports = async (req, res) => {
       return res.status(401).json({ error: 'Invalid token' });
     }
     
-    const users = await sql`
-      SELECT u.*, g.name as garage_name
-      FROM users u 
-      LEFT JOIN garages g ON u.garage_id = g.id 
-      WHERE u.id = ${decoded.userId || decoded.id}
-    `;
+    let user;
+    try {
+      const users = await database`
+        SELECT u.*, g.name as garage_name
+        FROM users u 
+        LEFT JOIN garages g ON u.garage_id = g.id 
+        WHERE u.id = ${decoded.userId || decoded.id}
+      `;
 
-    if (users.length === 0) {
-      return res.status(401).json({ error: 'User not found' });
+      if (users.length === 0) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      user = users[0];
+    } catch (userError) {
+      console.error('User lookup error:', userError);
+      return res.status(500).json({ 
+        error: 'User lookup failed',
+        details: userError.message
+      });
     }
-
-    const user = users[0];
 
     // User profile endpoint
     if (path === '/api/user/profile' && method === 'GET') {
@@ -161,237 +210,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Garages endpoint (super admin only)
-    if (path === '/api/garages' && method === 'GET') {
-      if (user.role !== 'super_admin') {
-        return res.status(403).json({ error: 'Super admin access required' });
-      }
-
-      const garages = await sql`
-        SELECT * FROM garages 
-        ORDER BY created_at DESC
-      `;
-
-      return res.json({ data: garages, count: garages.length });
-    }
-
-    // Helper function to get garage ID
-    function getGarageId() {
-      if (user.role === 'super_admin') {
-        const queryGarageId = query.garageId;
-        if (!queryGarageId) {
-          throw new Error('Super admin must specify garageId in query');
-        }
-        return queryGarageId;
-      } else {
-        if (!user.garage_id) {
-          throw new Error('User has no assigned garage');
-        }
-        return user.garage_id;
-      }
-    }
-
-    // Data endpoints with garage isolation
-    if (path === '/api/customers' && method === 'GET') {
-      const garageId = getGarageId();
-      
-      const customers = await sql`
-        SELECT * FROM customers 
-        WHERE garage_id = ${garageId}
-        ORDER BY created_at DESC
-      `;
-
-      const mappedCustomers = customers.map((customer) => ({
-        ...customer,
-        bikeNumber: customer.bike_number,
-        totalJobs: customer.total_jobs,
-        totalSpent: customer.total_spent,
-        lastVisit: customer.last_visit,
-        createdAt: customer.created_at
-      }));
-
-      return res.json({ data: mappedCustomers, count: mappedCustomers.length });
-    }
-
-    if (path === '/api/spare-parts' && method === 'GET') {
-      const garageId = getGarageId();
-      
-      const spareParts = await sql`
-        SELECT * FROM spare_parts 
-        WHERE garage_id = ${garageId}
-        ORDER BY created_at DESC
-      `;
-
-      const mappedParts = spareParts.map((part) => ({
-        ...part,
-        partNumber: part.part_number,
-        costPrice: part.cost_price,
-        lowStockThreshold: part.low_stock_threshold,
-        createdAt: part.created_at,
-        updatedAt: part.updated_at
-      }));
-
-      const lowStockCount = mappedParts.filter(part => 
-        part.quantity <= (part.lowStockThreshold || 10)
-      ).length;
-
-      return res.json({ 
-        data: mappedParts, 
-        count: mappedParts.length, 
-        lowStockCount 
-      });
-    }
-
-    if (path === '/api/job-cards' && method === 'GET') {
-      const garageId = getGarageId();
-      
-      const jobCards = await sql`
-        SELECT jc.*, c.name as customer_name, c.phone as customer_phone
-        FROM job_cards jc
-        LEFT JOIN customers c ON jc.customer_id = c.id
-        WHERE jc.garage_id = ${garageId}
-        ORDER BY jc.created_at DESC
-      `;
-
-      const openCount = jobCards.filter((jc) => jc.status !== 'completed').length;
-
-      return res.json({ 
-        data: jobCards, 
-        count: jobCards.length, 
-        openCount 
-      });
-    }
-
-    // Legacy garage-specific routes
-    const garageRouteMatch = path.match(/^\/api\/garages\/([^\/]+)\/(.+)$/);
-    if (garageRouteMatch) {
-      const [, routeGarageId, endpoint] = garageRouteMatch;
-      
-      // Access control
-      if (user.role !== 'super_admin' && user.garage_id !== routeGarageId) {
-        return res.status(403).json({ error: 'Access denied to this garage' });
-      }
-
-      // Job cards for specific garage
-      if (endpoint === 'job-cards' && method === 'GET') {
-        const jobCards = await sql`
-          SELECT jc.*, c.name as customer_name, c.phone as customer_phone
-          FROM job_cards jc
-          LEFT JOIN customers c ON jc.customer_id = c.id
-          WHERE jc.garage_id = ${routeGarageId}
-          ORDER BY jc.created_at DESC
-        `;
-
-        return res.json({ data: jobCards });
-      }
-
-      // Sales stats for specific garage
-      if (endpoint === 'sales/stats' && method === 'GET') {
-        const stats = await sql`
-          SELECT 
-            COUNT(*) as total_invoices,
-            COALESCE(SUM(total_amount), 0) as total_revenue,
-            COALESCE(SUM(service_charges), 0) as total_service_charges,
-            COALESCE(SUM(parts_cost), 0) as total_spares_cost
-          FROM invoices 
-          WHERE garage_id = ${routeGarageId}
-        `;
-
-        const result = stats[0];
-        const totalProfit = Number(result.total_service_charges) - Number(result.total_spares_cost || 0);
-
-        return res.json({
-          data: {
-            totalInvoices: Number(result.total_invoices || 0),
-            totalServiceCharges: Number(result.total_service_charges || 0),
-            totalSparesCost: Number(result.total_spares_cost || 0),
-            totalProfit: totalProfit
-          }
-        });
-      }
-
-      // Sales today for specific garage
-      if (endpoint === 'sales/today' && method === 'GET') {
-        const today = new Date().toISOString().split('T')[0];
-        
-        const todayStats = await sql`
-          SELECT 
-            COUNT(*) as invoices_count,
-            COALESCE(SUM(total_amount), 0) as total_revenue,
-            COALESCE(SUM(service_charges), 0) as service_revenue,
-            COALESCE(SUM(parts_revenue), 0) as parts_revenue,
-            COALESCE(SUM(parts_cost), 0) as parts_cost
-          FROM invoices 
-          WHERE garage_id = ${routeGarageId}
-          AND DATE(created_at) = ${today}
-        `;
-
-        const result = todayStats[0];
-        const profit = Number(result.service_revenue) + Number(result.parts_revenue) - Number(result.parts_cost);
-
-        return res.json({
-          data: {
-            invoicesCount: Number(result.invoices_count || 0),
-            totalRevenue: Number(result.total_revenue || 0),
-            serviceRevenue: Number(result.service_revenue || 0),
-            partsRevenue: Number(result.parts_revenue || 0),
-            partsCost: Number(result.parts_cost || 0),
-            profit: profit
-          }
-        });
-      }
-
-      // Handle other garage-specific endpoints
-      if (endpoint === 'invoices' && method === 'GET') {
-        const invoices = await sql`
-          SELECT * FROM invoices 
-          WHERE garage_id = ${routeGarageId}
-          ORDER BY created_at DESC
-        `;
-        return res.json({ data: invoices });
-      }
-
-      if (endpoint === 'staff' && method === 'GET') {
-        const staff = await sql`
-          SELECT id, name, email, role, status, created_at
-          FROM users 
-          WHERE garage_id = ${routeGarageId}
-          ORDER BY created_at DESC
-        `;
-        return res.json({ data: staff });
-      }
-
-      if (endpoint === 'spare-parts/low-stock' && method === 'GET') {
-        const lowStockParts = await sql`
-          SELECT * FROM spare_parts 
-          WHERE garage_id = ${routeGarageId}
-          AND quantity <= COALESCE(low_stock_threshold, 10)
-          ORDER BY quantity ASC
-        `;
-        return res.json({ data: lowStockParts });
-      }
-
-      if (endpoint === 'notifications/unread-count' && method === 'GET') {
-        // Return mock unread count for now
-        return res.json({ data: { count: 0 } });
-      }
-    }
-
-    // Access requests endpoint (super admin only)
-    if (path === '/api/access-requests' && method === 'GET') {
-      if (user.role !== 'super_admin') {
-        return res.status(403).json({ error: 'Super admin access required' });
-      }
-
-      const requests = await sql`
-        SELECT * FROM access_requests 
-        ORDER BY created_at DESC
-      `;
-
-      return res.json({ data: requests });
-    }
-
-    // 404 for unknown routes
+    // Return 404 for unhandled routes
     return res.status(404).json({ 
       error: 'NOT_FOUND', 
       path: path,
@@ -402,17 +221,10 @@ module.exports = async (req, res) => {
   } catch (error) {
     console.error('API Error:', error);
     
-    if (error.message.includes('token') || error.message.includes('User not found')) {
-      return res.status(401).json({ error: 'Authentication failed' });
-    }
-    
-    if (error.message.includes('Super admin must specify') || error.message.includes('User has no assigned')) {
-      return res.status(400).json({ error: error.message });
-    }
-    
     return res.status(500).json({
       error: 'Internal server error',
-      details: error.message
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
