@@ -1,7 +1,8 @@
-const { Pool } = require('pg');
-const bcryptjs = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import pg from 'pg';
+import bcryptjs from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
+const { Pool } = pg;
 const JWT_SECRET = process.env.JWT_SECRET || 'GarageGuru2025ProductionJWTSecret!';
 
 // Create connection pool
@@ -10,7 +11,7 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -180,4 +181,4 @@ module.exports = async (req, res) => {
       details: error.message
     });
   }
-};
+}
