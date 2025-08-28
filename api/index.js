@@ -293,6 +293,27 @@ export default async function handler(req, res) {
       }
     }
 
+    // Top-level garages endpoint (for super admin dashboard)
+    if (path === '/api/garages' && method === 'GET') {
+      if (user.role !== 'super_admin') {
+        return res.status(403).json({ error: 'Super admin access required' });
+      }
+
+      const client = await pool.connect();
+      try {
+        const result = await client.query(`
+          SELECT g.*, 
+            (SELECT COUNT(*) FROM users WHERE garage_id = g.id) as user_count,
+            (SELECT COUNT(*) FROM job_cards WHERE garage_id = g.id) as job_count
+          FROM garages g 
+          ORDER BY g.created_at DESC
+        `);
+        return res.json({ data: result.rows, count: result.rows.length });
+      } finally {
+        client.release();
+      }
+    }
+
     // Access requests endpoint
     if (path === '/api/access-requests' && method === 'GET') {
       const client = await pool.connect();
@@ -327,6 +348,35 @@ export default async function handler(req, res) {
     const garageRouteMatch = path.match(/^\/api\/garages\/([^\/]+)\/(.+)$/);
     if (garageRouteMatch) {
       const [, routeGarageId, endpoint] = garageRouteMatch;
+      
+      // Handle specific job card routes (like /job-cards/{id})
+      const jobCardMatch = endpoint.match(/^job-cards\/([^\/]+)$/);
+      if (jobCardMatch && method === 'GET') {
+        const [, jobCardId] = jobCardMatch;
+        
+        // Access control (same as local)
+        if (user.role !== 'super_admin' && user.garage_id !== routeGarageId) {
+          return res.status(403).json({ error: 'Access denied to this garage' });
+        }
+
+        const client = await pool.connect();
+        try {
+          const result = await client.query(`
+            SELECT jc.*, c.name as customer_name, c.phone as customer_phone, c.bike_number
+            FROM job_cards jc
+            LEFT JOIN customers c ON jc.customer_id = c.id
+            WHERE jc.id = $1 AND jc.garage_id = $2
+          `, [jobCardId, routeGarageId]);
+
+          if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Job card not found' });
+          }
+
+          return res.json(result.rows[0]);
+        } finally {
+          client.release();
+        }
+      }
       
       // Access control (same as local)
       if (user.role !== 'super_admin' && user.garage_id !== routeGarageId) {
@@ -448,6 +498,107 @@ export default async function handler(req, res) {
             ORDER BY created_at DESC
           `, [routeGarageId]);
           return res.json(result.rows); // Return array directly
+        }
+
+        // Customers endpoint
+        if (endpoint === 'customers' && method === 'GET') {
+          const result = await client.query(`
+            SELECT * FROM customers 
+            WHERE garage_id = $1
+            ORDER BY created_at DESC
+          `, [routeGarageId]);
+
+          const mappedCustomers = result.rows.map((customer) => ({
+            ...customer,
+            bikeNumber: customer.bike_number,
+            totalJobs: customer.total_jobs,
+            totalSpent: customer.total_spent,
+            lastVisit: customer.last_visit,
+            createdAt: customer.created_at
+          }));
+
+          return res.json(mappedCustomers);
+        }
+
+        // Spare parts endpoint
+        if (endpoint === 'spare-parts' && method === 'GET') {
+          const result = await client.query(`
+            SELECT * FROM spare_parts 
+            WHERE garage_id = $1
+            ORDER BY created_at DESC
+          `, [routeGarageId]);
+
+          const mappedParts = result.rows.map((part) => ({
+            ...part,
+            partNumber: part.part_number,
+            costPrice: part.cost_price,
+            lowStockThreshold: part.low_stock_threshold,
+            createdAt: part.created_at,
+            updatedAt: part.updated_at
+          }));
+
+          return res.json(mappedParts);
+        }
+
+        // Sales monthly endpoint
+        if (endpoint === 'sales/monthly' && method === 'GET') {
+          const result = await client.query(`
+            SELECT 
+              DATE_TRUNC('month', created_at) as month,
+              COUNT(*) as invoices_count,
+              COALESCE(SUM(total_amount), 0) as total_revenue,
+              COALESCE(SUM(service_charge), 0) as service_revenue,
+              COALESCE(SUM(parts_total), 0) as parts_revenue
+            FROM invoices 
+            WHERE garage_id = $1
+            GROUP BY DATE_TRUNC('month', created_at)
+            ORDER BY month DESC
+          `, [routeGarageId]);
+          return res.json(result.rows);
+        }
+
+        // Sales analytics endpoint
+        if (endpoint === 'sales/analytics' && method === 'GET') {
+          const { startDate, endDate, groupBy = 'day' } = query;
+          
+          let groupByClause;
+          switch (groupBy) {
+            case 'month':
+              groupByClause = "DATE_TRUNC('month', created_at)";
+              break;
+            case 'week':
+              groupByClause = "DATE_TRUNC('week', created_at)";
+              break;
+            default:
+              groupByClause = "DATE_TRUNC('day', created_at)";
+          }
+
+          let whereClause = 'WHERE garage_id = $1';
+          const params = [routeGarageId];
+          
+          if (startDate) {
+            whereClause += ' AND created_at >= $2';
+            params.push(startDate);
+          }
+          if (endDate) {
+            whereClause += ` AND created_at <= $${params.length + 1}`;
+            params.push(endDate);
+          }
+
+          const result = await client.query(`
+            SELECT 
+              ${groupByClause} as period,
+              COUNT(*) as invoices_count,
+              COALESCE(SUM(total_amount), 0) as total_revenue,
+              COALESCE(SUM(service_charge), 0) as service_revenue,
+              COALESCE(SUM(parts_total), 0) as parts_revenue
+            FROM invoices 
+            ${whereClause}
+            GROUP BY ${groupByClause}
+            ORDER BY period ASC
+          `, params);
+
+          return res.json(result.rows);
         }
 
       } finally {

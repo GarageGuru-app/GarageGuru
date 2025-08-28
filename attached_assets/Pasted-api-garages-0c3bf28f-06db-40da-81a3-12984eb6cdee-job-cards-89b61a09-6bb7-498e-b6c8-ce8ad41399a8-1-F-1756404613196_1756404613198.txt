@@ -1,0 +1,30 @@
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/job-cards/89b61a09-6bb7-498e-b6c8-ce8ad41399a8:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/spare-parts:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/customers:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/sales/monthly:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/sales/monthly:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/customers:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/customers:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/sales/monthly:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+index-DheGGcxl.js:690 Fetching analytics: 2025-02-28 to 2025-08-28, groupBy: month
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/sales/analytics?startDate=2025-02-28&endDate=2025-08-28&groupBy=month:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+index-DheGGcxl.js:690 Failed to fetch analytics data: Error: API endpoint not found
+    at Lt (index-DheGGcxl.js:393:60852)
+    at async O (index-DheGGcxl.js:690:5544)
+    at async T (index-DheGGcxl.js:690:6180)
+O @ index-DheGGcxl.js:690Understand this error
+index-DheGGcxl.js:690 Fetching analytics: 2025-02-28 to 2025-08-28, groupBy: month
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/sales/analytics?startDate=2025-02-28&endDate=2025-08-28&groupBy=month:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+index-DheGGcxl.js:690 Failed to fetch analytics data: Error: API endpoint not found
+    at Lt (index-DheGGcxl.js:393:60852)
+    at async O (index-DheGGcxl.js:690:5544)
+    at async T (index-DheGGcxl.js:690:6180)
+O @ index-DheGGcxl.js:690Understand this error
+index-DheGGcxl.js:690 Fetching analytics: 2025-02-28 to 2025-08-28, groupBy: month
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/sales/analytics?startDate=2025-02-28&endDate=2025-08-28&groupBy=month:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+index-DheGGcxl.js:690 Failed to fetch analytics data: Error: API endpoint not found
+    at Lt (index-DheGGcxl.js:393:60852)
+    at async O (index-DheGGcxl.js:690:5544)
+    at async T (index-DheGGcxl.js:690:6180)
+O @ index-DheGGcxl.js:690Understand this error
+api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/spare-parts:1  Failed to load resource: the server responded with a status of 404 ()
