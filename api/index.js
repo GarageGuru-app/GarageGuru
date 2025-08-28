@@ -16,36 +16,47 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Parse URL properly
-    const baseUrl = `https://${req.headers.host}`;
-    const fullUrl = new URL(req.url, baseUrl);
-    const path = fullUrl.pathname;
-    const query = Object.fromEntries(fullUrl.searchParams);
-    const { method } = req;
+    const { url, method } = req;
+    const urlObj = new URL(url, `https://${req.headers.host}`);
+    const path = urlObj.pathname;
+    const query = Object.fromEntries(urlObj.searchParams);
 
-    console.log(`API: ${method} ${path}`);
+    console.log(`API Request: ${method} ${path}`);
 
-    // Database connection
-    const sql = neon(process.env.DATABASE_URL);
-
-    // Health endpoint
+    // Health endpoint (no database required)
     if (path === '/api/health') {
+      const response = {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        service: 'garage-guru-backend',
+        environment: 'production'
+      };
+
       try {
-        await sql`SELECT 1 as ping`;
-        return res.json({
-          status: 'ok',
-          timestamp: new Date().toISOString(),
-          service: 'garage-guru-backend',
-          environment: 'production',
-          database: 'connected'
-        });
+        if (process.env.DATABASE_URL) {
+          const sql = neon(process.env.DATABASE_URL);
+          await sql`SELECT 1 as ping`;
+          response.database = 'connected';
+        } else {
+          response.database = 'no_url';
+        }
       } catch (dbError) {
-        return res.status(500).json({
-          status: 'error',
-          error: dbError.message
-        });
+        response.database = 'error';
+        response.db_error = dbError.message;
       }
+
+      return res.json(response);
     }
+
+    // Initialize database connection
+    if (!process.env.DATABASE_URL) {
+      return res.status(500).json({ 
+        error: 'Database configuration missing',
+        details: 'DATABASE_URL not set' 
+      });
+    }
+
+    const sql = neon(process.env.DATABASE_URL);
 
     // Login endpoint
     if (path === '/api/auth/login' && method === 'POST') {
@@ -61,6 +72,7 @@ module.exports = async (req, res) => {
           FROM users u 
           LEFT JOIN garages g ON u.garage_id = g.id 
           WHERE u.email = ${email}
+          LIMIT 1
         `;
 
         if (users.length === 0) {
@@ -107,11 +119,14 @@ module.exports = async (req, res) => {
         });
       } catch (loginError) {
         console.error('Login error:', loginError);
-        return res.status(500).json({ error: 'Login failed' });
+        return res.status(500).json({ 
+          error: 'Login failed', 
+          details: loginError.message 
+        });
       }
     }
 
-    // Authentication middleware for protected routes
+    // Authentication for protected routes
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(' ')[1];
 
@@ -126,18 +141,28 @@ module.exports = async (req, res) => {
       return res.status(401).json({ error: 'Invalid token' });
     }
     
-    const users = await sql`
-      SELECT u.*, g.name as garage_name
-      FROM users u 
-      LEFT JOIN garages g ON u.garage_id = g.id 
-      WHERE u.id = ${decoded.userId || decoded.id}
-    `;
+    let user;
+    try {
+      const users = await sql`
+        SELECT u.*, g.name as garage_name
+        FROM users u 
+        LEFT JOIN garages g ON u.garage_id = g.id 
+        WHERE u.id = ${decoded.userId || decoded.id}
+        LIMIT 1
+      `;
 
-    if (users.length === 0) {
-      return res.status(401).json({ error: 'User not found' });
+      if (users.length === 0) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      user = users[0];
+    } catch (userError) {
+      console.error('User lookup error:', userError);
+      return res.status(500).json({ 
+        error: 'User lookup failed',
+        details: userError.message
+      });
     }
-
-    const user = users[0];
 
     // User profile endpoint
     if (path === '/api/user/profile' && method === 'GET') {
@@ -167,12 +192,18 @@ module.exports = async (req, res) => {
         return res.status(403).json({ error: 'Super admin access required' });
       }
 
-      const garages = await sql`
-        SELECT * FROM garages 
-        ORDER BY created_at DESC
-      `;
-
-      return res.json({ data: garages, count: garages.length });
+      try {
+        const garages = await sql`
+          SELECT * FROM garages 
+          ORDER BY created_at DESC
+        `;
+        return res.json({ data: garages, count: garages.length });
+      } catch (garageError) {
+        return res.status(500).json({ 
+          error: 'Failed to fetch garages',
+          details: garageError.message 
+        });
+      }
     }
 
     // Helper function to get garage ID
@@ -191,78 +222,7 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Data endpoints with garage isolation
-    if (path === '/api/customers' && method === 'GET') {
-      const garageId = getGarageId();
-      
-      const customers = await sql`
-        SELECT * FROM customers 
-        WHERE garage_id = ${garageId}
-        ORDER BY created_at DESC
-      `;
-
-      const mappedCustomers = customers.map((customer) => ({
-        ...customer,
-        bikeNumber: customer.bike_number,
-        totalJobs: customer.total_jobs,
-        totalSpent: customer.total_spent,
-        lastVisit: customer.last_visit,
-        createdAt: customer.created_at
-      }));
-
-      return res.json({ data: mappedCustomers, count: mappedCustomers.length });
-    }
-
-    if (path === '/api/spare-parts' && method === 'GET') {
-      const garageId = getGarageId();
-      
-      const spareParts = await sql`
-        SELECT * FROM spare_parts 
-        WHERE garage_id = ${garageId}
-        ORDER BY created_at DESC
-      `;
-
-      const mappedParts = spareParts.map((part) => ({
-        ...part,
-        partNumber: part.part_number,
-        costPrice: part.cost_price,
-        lowStockThreshold: part.low_stock_threshold,
-        createdAt: part.created_at,
-        updatedAt: part.updated_at
-      }));
-
-      const lowStockCount = mappedParts.filter(part => 
-        part.quantity <= (part.lowStockThreshold || 10)
-      ).length;
-
-      return res.json({ 
-        data: mappedParts, 
-        count: mappedParts.length, 
-        lowStockCount 
-      });
-    }
-
-    if (path === '/api/job-cards' && method === 'GET') {
-      const garageId = getGarageId();
-      
-      const jobCards = await sql`
-        SELECT jc.*, c.name as customer_name, c.phone as customer_phone
-        FROM job_cards jc
-        LEFT JOIN customers c ON jc.customer_id = c.id
-        WHERE jc.garage_id = ${garageId}
-        ORDER BY jc.created_at DESC
-      `;
-
-      const openCount = jobCards.filter((jc) => jc.status !== 'completed').length;
-
-      return res.json({ 
-        data: jobCards, 
-        count: jobCards.length, 
-        openCount 
-      });
-    }
-
-    // Legacy garage-specific routes
+    // Legacy garage routes that are commonly used
     const garageRouteMatch = path.match(/^\/api\/garages\/([^\/]+)\/(.+)$/);
     if (garageRouteMatch) {
       const [, routeGarageId, endpoint] = garageRouteMatch;
@@ -272,108 +232,114 @@ module.exports = async (req, res) => {
         return res.status(403).json({ error: 'Access denied to this garage' });
       }
 
-      // Job cards for specific garage
-      if (endpoint === 'job-cards' && method === 'GET') {
-        const jobCards = await sql`
-          SELECT jc.*, c.name as customer_name, c.phone as customer_phone
-          FROM job_cards jc
-          LEFT JOIN customers c ON jc.customer_id = c.id
-          WHERE jc.garage_id = ${routeGarageId}
-          ORDER BY jc.created_at DESC
-        `;
+      try {
+        // Job cards
+        if (endpoint === 'job-cards' && method === 'GET') {
+          const jobCards = await sql`
+            SELECT jc.*, c.name as customer_name, c.phone as customer_phone
+            FROM job_cards jc
+            LEFT JOIN customers c ON jc.customer_id = c.id
+            WHERE jc.garage_id = ${routeGarageId}
+            ORDER BY jc.created_at DESC
+          `;
+          return res.json({ data: jobCards });
+        }
 
-        return res.json({ data: jobCards });
-      }
+        // Sales stats
+        if (endpoint === 'sales/stats' && method === 'GET') {
+          const stats = await sql`
+            SELECT 
+              COUNT(*) as total_invoices,
+              COALESCE(SUM(total_amount), 0) as total_revenue,
+              COALESCE(SUM(service_charges), 0) as total_service_charges,
+              COALESCE(SUM(parts_cost), 0) as total_spares_cost
+            FROM invoices 
+            WHERE garage_id = ${routeGarageId}
+          `;
 
-      // Sales stats for specific garage
-      if (endpoint === 'sales/stats' && method === 'GET') {
-        const stats = await sql`
-          SELECT 
-            COUNT(*) as total_invoices,
-            COALESCE(SUM(total_amount), 0) as total_revenue,
-            COALESCE(SUM(service_charges), 0) as total_service_charges,
-            COALESCE(SUM(parts_cost), 0) as total_spares_cost
-          FROM invoices 
-          WHERE garage_id = ${routeGarageId}
-        `;
+          const result = stats[0] || {};
+          const totalProfit = Number(result.total_service_charges || 0) - Number(result.total_spares_cost || 0);
 
-        const result = stats[0];
-        const totalProfit = Number(result.total_service_charges) - Number(result.total_spares_cost || 0);
+          return res.json({
+            data: {
+              totalInvoices: Number(result.total_invoices || 0),
+              totalServiceCharges: Number(result.total_service_charges || 0),
+              totalSparesCost: Number(result.total_spares_cost || 0),
+              totalProfit: totalProfit
+            }
+          });
+        }
 
-        return res.json({
-          data: {
-            totalInvoices: Number(result.total_invoices || 0),
-            totalServiceCharges: Number(result.total_service_charges || 0),
-            totalSparesCost: Number(result.total_spares_cost || 0),
-            totalProfit: totalProfit
-          }
+        // Other common endpoints
+        if (endpoint === 'sales/today' && method === 'GET') {
+          const today = new Date().toISOString().split('T')[0];
+          
+          const todayStats = await sql`
+            SELECT 
+              COUNT(*) as invoices_count,
+              COALESCE(SUM(total_amount), 0) as total_revenue,
+              COALESCE(SUM(service_charges), 0) as service_revenue,
+              COALESCE(SUM(parts_revenue), 0) as parts_revenue,
+              COALESCE(SUM(parts_cost), 0) as parts_cost
+            FROM invoices 
+            WHERE garage_id = ${routeGarageId}
+            AND DATE(created_at) = ${today}
+          `;
+
+          const result = todayStats[0] || {};
+          const profit = Number(result.service_revenue || 0) + Number(result.parts_revenue || 0) - Number(result.parts_cost || 0);
+
+          return res.json({
+            data: {
+              invoicesCount: Number(result.invoices_count || 0),
+              totalRevenue: Number(result.total_revenue || 0),
+              serviceRevenue: Number(result.service_revenue || 0),
+              partsRevenue: Number(result.parts_revenue || 0),
+              partsCost: Number(result.parts_cost || 0),
+              profit: profit
+            }
+          });
+        }
+
+        if (endpoint === 'invoices' && method === 'GET') {
+          const invoices = await sql`
+            SELECT * FROM invoices 
+            WHERE garage_id = ${routeGarageId}
+            ORDER BY created_at DESC
+          `;
+          return res.json({ data: invoices });
+        }
+
+        if (endpoint === 'staff' && method === 'GET') {
+          const staff = await sql`
+            SELECT id, name, email, role, status, created_at
+            FROM users 
+            WHERE garage_id = ${routeGarageId}
+            ORDER BY created_at DESC
+          `;
+          return res.json({ data: staff });
+        }
+
+        if (endpoint === 'spare-parts/low-stock' && method === 'GET') {
+          const lowStockParts = await sql`
+            SELECT * FROM spare_parts 
+            WHERE garage_id = ${routeGarageId}
+            AND quantity <= COALESCE(low_stock_threshold, 10)
+            ORDER BY quantity ASC
+          `;
+          return res.json({ data: lowStockParts });
+        }
+
+        if (endpoint === 'notifications/unread-count' && method === 'GET') {
+          return res.json({ data: { count: 0 } });
+        }
+
+      } catch (routeError) {
+        console.error(`Error in ${endpoint}:`, routeError);
+        return res.status(500).json({ 
+          error: `Failed to process ${endpoint}`,
+          details: routeError.message 
         });
-      }
-
-      // Sales today for specific garage
-      if (endpoint === 'sales/today' && method === 'GET') {
-        const today = new Date().toISOString().split('T')[0];
-        
-        const todayStats = await sql`
-          SELECT 
-            COUNT(*) as invoices_count,
-            COALESCE(SUM(total_amount), 0) as total_revenue,
-            COALESCE(SUM(service_charges), 0) as service_revenue,
-            COALESCE(SUM(parts_revenue), 0) as parts_revenue,
-            COALESCE(SUM(parts_cost), 0) as parts_cost
-          FROM invoices 
-          WHERE garage_id = ${routeGarageId}
-          AND DATE(created_at) = ${today}
-        `;
-
-        const result = todayStats[0];
-        const profit = Number(result.service_revenue) + Number(result.parts_revenue) - Number(result.parts_cost);
-
-        return res.json({
-          data: {
-            invoicesCount: Number(result.invoices_count || 0),
-            totalRevenue: Number(result.total_revenue || 0),
-            serviceRevenue: Number(result.service_revenue || 0),
-            partsRevenue: Number(result.parts_revenue || 0),
-            partsCost: Number(result.parts_cost || 0),
-            profit: profit
-          }
-        });
-      }
-
-      // Handle other garage-specific endpoints
-      if (endpoint === 'invoices' && method === 'GET') {
-        const invoices = await sql`
-          SELECT * FROM invoices 
-          WHERE garage_id = ${routeGarageId}
-          ORDER BY created_at DESC
-        `;
-        return res.json({ data: invoices });
-      }
-
-      if (endpoint === 'staff' && method === 'GET') {
-        const staff = await sql`
-          SELECT id, name, email, role, status, created_at
-          FROM users 
-          WHERE garage_id = ${routeGarageId}
-          ORDER BY created_at DESC
-        `;
-        return res.json({ data: staff });
-      }
-
-      if (endpoint === 'spare-parts/low-stock' && method === 'GET') {
-        const lowStockParts = await sql`
-          SELECT * FROM spare_parts 
-          WHERE garage_id = ${routeGarageId}
-          AND quantity <= COALESCE(low_stock_threshold, 10)
-          ORDER BY quantity ASC
-        `;
-        return res.json({ data: lowStockParts });
-      }
-
-      if (endpoint === 'notifications/unread-count' && method === 'GET') {
-        // Return mock unread count for now
-        return res.json({ data: { count: 0 } });
       }
     }
 
@@ -383,12 +349,18 @@ module.exports = async (req, res) => {
         return res.status(403).json({ error: 'Super admin access required' });
       }
 
-      const requests = await sql`
-        SELECT * FROM access_requests 
-        ORDER BY created_at DESC
-      `;
-
-      return res.json({ data: requests });
+      try {
+        const requests = await sql`
+          SELECT * FROM access_requests 
+          ORDER BY created_at DESC
+        `;
+        return res.json({ data: requests });
+      } catch (requestError) {
+        return res.status(500).json({ 
+          error: 'Failed to fetch access requests',
+          details: requestError.message 
+        });
+      }
     }
 
     // 404 for unknown routes
@@ -402,12 +374,8 @@ module.exports = async (req, res) => {
   } catch (error) {
     console.error('API Error:', error);
     
-    if (error.message.includes('token') || error.message.includes('User not found')) {
+    if (error.message && error.message.includes('token')) {
       return res.status(401).json({ error: 'Authentication failed' });
-    }
-    
-    if (error.message.includes('Super admin must specify') || error.message.includes('User has no assigned')) {
-      return res.status(400).json({ error: error.message });
     }
     
     return res.status(500).json({
