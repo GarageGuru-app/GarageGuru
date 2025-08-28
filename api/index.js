@@ -173,6 +173,126 @@ export default async function handler(req, res) {
       });
     }
 
+    // Garages endpoint (super admin only)
+    if (path === '/api/garages' && method === 'GET') {
+      if (user.role !== 'super_admin') {
+        return res.status(403).json({ error: 'Super admin access required' });
+      }
+
+      const client = await pool.connect();
+      try {
+        const result = await client.query(`
+          SELECT * FROM garages 
+          ORDER BY created_at DESC
+        `);
+        return res.json({ data: result.rows, count: result.rows.length });
+      } finally {
+        client.release();
+      }
+    }
+
+    // Helper function to get garage ID (same logic as local)
+    function getGarageId() {
+      if (user.role === 'super_admin') {
+        const queryGarageId = query.garageId;
+        if (!queryGarageId) {
+          throw new Error('Super admin must specify garageId in query');
+        }
+        return queryGarageId;
+      } else {
+        if (!user.garage_id) {
+          throw new Error('User has no assigned garage');
+        }
+        return user.garage_id;
+      }
+    }
+
+    // Data endpoints with garage isolation (same as local)
+    if (path === '/api/customers' && method === 'GET') {
+      const garageId = getGarageId();
+      
+      const client = await pool.connect();
+      try {
+        const result = await client.query(`
+          SELECT * FROM customers 
+          WHERE garage_id = $1
+          ORDER BY created_at DESC
+        `, [garageId]);
+
+        const mappedCustomers = result.rows.map((customer) => ({
+          ...customer,
+          bikeNumber: customer.bike_number,
+          totalJobs: customer.total_jobs,
+          totalSpent: customer.total_spent,
+          lastVisit: customer.last_visit,
+          createdAt: customer.created_at
+        }));
+
+        return res.json({ data: mappedCustomers, count: mappedCustomers.length });
+      } finally {
+        client.release();
+      }
+    }
+
+    if (path === '/api/spare-parts' && method === 'GET') {
+      const garageId = getGarageId();
+      
+      const client = await pool.connect();
+      try {
+        const result = await client.query(`
+          SELECT * FROM spare_parts 
+          WHERE garage_id = $1
+          ORDER BY created_at DESC
+        `, [garageId]);
+
+        const mappedParts = result.rows.map((part) => ({
+          ...part,
+          partNumber: part.part_number,
+          costPrice: part.cost_price,
+          lowStockThreshold: part.low_stock_threshold,
+          createdAt: part.created_at,
+          updatedAt: part.updated_at
+        }));
+
+        const lowStockCount = mappedParts.filter(part => 
+          part.quantity <= (part.lowStockThreshold || 10)
+        ).length;
+
+        return res.json({ 
+          data: mappedParts, 
+          count: mappedParts.length, 
+          lowStockCount 
+        });
+      } finally {
+        client.release();
+      }
+    }
+
+    if (path === '/api/job-cards' && method === 'GET') {
+      const garageId = getGarageId();
+      
+      const client = await pool.connect();
+      try {
+        const result = await client.query(`
+          SELECT jc.*, c.name as customer_name, c.phone as customer_phone
+          FROM job_cards jc
+          LEFT JOIN customers c ON jc.customer_id = c.id
+          WHERE jc.garage_id = $1
+          ORDER BY jc.created_at DESC
+        `, [garageId]);
+
+        const openCount = result.rows.filter((jc) => jc.status !== 'completed').length;
+
+        return res.json({ 
+          data: result.rows, 
+          count: result.rows.length, 
+          openCount 
+        });
+      } finally {
+        client.release();
+      }
+    }
+
     // Access requests endpoint (super admin only)
     if (path === '/api/access-requests' && method === 'GET') {
       if (user.role !== 'super_admin') {
@@ -191,12 +311,12 @@ export default async function handler(req, res) {
       }
     }
 
-    // Garage-specific routes
+    // Garage-specific routes (same as local system)
     const garageRouteMatch = path.match(/^\/api\/garages\/([^\/]+)\/(.+)$/);
     if (garageRouteMatch) {
       const [, routeGarageId, endpoint] = garageRouteMatch;
       
-      // Access control
+      // Access control (same as local)
       if (user.role !== 'super_admin' && user.garage_id !== routeGarageId) {
         return res.status(403).json({ error: 'Access denied to this garage' });
       }
@@ -308,15 +428,40 @@ export default async function handler(req, res) {
           return res.json({ data: { count: 0 } });
         }
 
+        // Notifications endpoint
+        if (endpoint === 'notifications' && method === 'GET') {
+          const result = await client.query(`
+            SELECT * FROM notifications 
+            WHERE garage_id = $1
+            ORDER BY created_at DESC
+          `, [routeGarageId]);
+          return res.json({ data: result.rows });
+        }
+
       } finally {
         client.release();
       }
     }
 
-    return res.status(404).json({ error: 'Endpoint not found', path, method });
+    // 404 for unknown routes
+    return res.status(404).json({ 
+      error: 'NOT_FOUND', 
+      path: path,
+      method: method,
+      message: 'API endpoint not found'
+    });
 
   } catch (error) {
     console.error('API Error:', error);
+    
+    if (error.message && error.message.includes('token')) {
+      return res.status(401).json({ error: 'Authentication failed' });
+    }
+    
+    if (error.message && (error.message.includes('Super admin must specify') || error.message.includes('User has no assigned'))) {
+      return res.status(400).json({ error: error.message });
+    }
+    
     return res.status(500).json({
       error: 'Internal server error',
       details: error.message
