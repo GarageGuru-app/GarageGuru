@@ -284,7 +284,7 @@ export async function createSuperAdmin() {
     if (existingAdmin.rows.length === 0) {
       // Create super admin with default password (user can change later)
       const bcrypt = await import('bcrypt');
-      const defaultPassword = await bcrypt.hash('password123', 10);
+      const defaultPassword = await bcrypt.hash('Ananth123', 10);
       
       await pool.query(`
         INSERT INTO users (email, password, role, name, garage_id, first_login, must_change_password)
@@ -292,18 +292,18 @@ export async function createSuperAdmin() {
       `, [SUPER_ADMIN_EMAIL, defaultPassword]);
       
       console.log(`✅ Super admin created: ${SUPER_ADMIN_EMAIL}`);
-      console.log('🔑 Default password: password123 (please change after first login)');
+      console.log('🔑 Default password: Ananth123 (please change after first login)');
     } else {
       // Reset super admin password in case it's corrupted
       const bcrypt = await import('bcrypt');
-      const defaultPassword = await bcrypt.hash('password123', 10);
+      const defaultPassword = await bcrypt.hash('Ananth123', 10);
       
       await pool.query(`
         UPDATE users SET password = $2, first_login = true, must_change_password = false 
         WHERE email = $1
       `, [SUPER_ADMIN_EMAIL, defaultPassword]);
       
-      console.log('✅ Super admin password reset to: password123');
+      console.log('✅ Super admin password reset to: Ananth123');
     }
   } catch (error) {
     console.error('❌ Super admin creation failed:', error);
