@@ -249,28 +249,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // For all other routes, serve the React app
-  if (!url || !url.startsWith('/api/')) {
-    // Return the built React app HTML
-    const html = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GarageGuru</title>
-    <script type="module" crossorigin src="/assets/index-Z7HpSreL.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-e0UFbN1B.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
-</html>`;
-    
-    res.setHeader('Content-Type', 'text/html');
-    return res.status(200).send(html);
-  }
-
   // Garages endpoint
   if (url === '/api/garages' || url.endsWith('/garages')) {
     try {
@@ -424,6 +402,28 @@ export default async function handler(req, res) {
       console.error('Job cards API error:', error);
       return res.status(500).json({ error: 'Failed to fetch job cards' });
     }
+  }
+
+  // For all other routes, serve the React app
+  if (!url || !url.startsWith('/api/')) {
+    // Return the built React app HTML
+    const html = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GarageGuru</title>
+    <script type="module" crossorigin src="/assets/index-Z7HpSreL.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-e0UFbN1B.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`;
+    
+    res.setHeader('Content-Type', 'text/html');
+    return res.status(200).send(html);
   }
 
   // Default fallback with detailed logging
