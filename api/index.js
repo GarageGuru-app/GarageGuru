@@ -295,18 +295,29 @@ export default async function handler(req, res) {
 
     // Access requests endpoint
     if (path === '/api/access-requests' && method === 'GET') {
-      // For garage admins, return empty array (they don't manage access requests)
-      if (user.role !== 'super_admin') {
-        return res.json({ data: [] });
-      }
-
       const client = await pool.connect();
       try {
-        const result = await client.query(`
-          SELECT * FROM access_requests 
-          ORDER BY created_at DESC
-        `);
-        return res.json({ data: result.rows });
+        if (user.role === 'super_admin') {
+          // Super admin sees all access requests
+          const result = await client.query(`
+            SELECT * FROM access_requests 
+            ORDER BY created_at DESC
+          `);
+          return res.json(result.rows); // Return array directly
+        } else {
+          // Garage admins see requests for their garage only
+          const garageId = query.garageId || user.garage_id;
+          if (!garageId) {
+            return res.json([]); // Return empty array
+          }
+          
+          const result = await client.query(`
+            SELECT * FROM access_requests 
+            WHERE garage_id = $1
+            ORDER BY created_at DESC
+          `, [garageId]);
+          return res.json(result.rows); // Return array directly
+        }
       } finally {
         client.release();
       }
@@ -333,7 +344,7 @@ export default async function handler(req, res) {
             WHERE jc.garage_id = $1
             ORDER BY jc.created_at DESC
           `, [routeGarageId]);
-          return res.json({ data: result.rows });
+          return res.json(result.rows); // Return array directly
         }
 
         // Sales stats
@@ -399,7 +410,7 @@ export default async function handler(req, res) {
             WHERE garage_id = $1
             ORDER BY created_at DESC
           `, [routeGarageId]);
-          return res.json({ data: result.rows });
+          return res.json(result.rows); // Return array directly
         }
 
         // Staff
@@ -410,7 +421,7 @@ export default async function handler(req, res) {
             WHERE garage_id = $1
             ORDER BY created_at DESC
           `, [routeGarageId]);
-          return res.json({ data: result.rows });
+          return res.json(result.rows); // Return array directly
         }
 
         // Low stock parts
@@ -421,12 +432,12 @@ export default async function handler(req, res) {
             AND quantity <= COALESCE(low_stock_threshold, 10)
             ORDER BY quantity ASC
           `, [routeGarageId]);
-          return res.json({ data: result.rows });
+          return res.json(result.rows); // Return array directly
         }
 
         // Notifications unread count
         if (endpoint === 'notifications/unread-count' && method === 'GET') {
-          return res.json({ data: { count: 0 } });
+          return res.json({ count: 0 }); // Return object directly
         }
 
         // Notifications endpoint
@@ -436,7 +447,7 @@ export default async function handler(req, res) {
             WHERE garage_id = $1
             ORDER BY created_at DESC
           `, [routeGarageId]);
-          return res.json({ data: result.rows });
+          return res.json(result.rows); // Return array directly
         }
 
       } finally {
