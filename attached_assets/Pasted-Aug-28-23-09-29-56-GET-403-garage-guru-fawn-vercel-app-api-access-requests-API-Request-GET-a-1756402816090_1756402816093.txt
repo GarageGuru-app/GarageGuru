@@ -1,0 +1,62 @@
+Aug 28 23:09:29.56
+GET
+403
+garage-guru-fawn.vercel.app
+/api/access-requests
+API Request: GET /api/access-requests
+Aug 28 23:09:29.56
+GET
+200
+garage-guru-fawn.vercel.app
+/api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/notifications/unread-count
+API Request: GET /api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/notifications/unread-count
+Aug 28 23:09:29.56
+GET
+200
+garage-guru-fawn.vercel.app
+/api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/invoices
+API Request: GET /api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/invoices
+Aug 28 23:09:29.56
+GET
+200
+garage-guru-fawn.vercel.app
+/api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/job-cards
+API Request: GET /api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/job-cards
+Aug 28 23:09:29.56
+GET
+200
+garage-guru-fawn.vercel.app
+/api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/spare-parts/low-stock
+API Request: GET /api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/spare-parts/low-stock
+Aug 28 23:09:29.56
+GET
+200
+garage-guru-fawn.vercel.app
+/api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/staff
+API Request: GET /api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/staff
+Aug 28 23:09:29.54
+GET
+500
+garage-guru-fawn.vercel.app
+/api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/sales/today
+2
+API Error: error: column "service_charges" does not exist at /var/task/node_modules/pg/lib/client.js:545:17 at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async Object.handler (file:///var/task/api/index.js:247:26) at async r (/opt/rust/nodejs.js:2:15476) at async Server.<anonymous> (/opt/rust/nodejs.js:2:11350) at async Server.<anonymous> (/opt/rust/nodejs.js:16:7279) { length: 186, severity: 'ERROR', code: '42703', detail: undefined, hint: 'Perhaps you meant to reference the column "invoices.service_charge".', position: '154', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_relation.c', line: '3723', routine: 'errorMissingColumn' }
+Aug 28 23:09:29.54
+GET
+500
+garage-guru-fawn.vercel.app
+/api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/sales/stats
+2
+API Error: error: column "service_charges" does not exist at /var/task/node_modules/pg/lib/client.js:545:17 at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async Object.handler (file:///var/task/api/index.js:220:26) at async r (/opt/rust/nodejs.js:2:15476) at async Server.<anonymous> (/opt/rust/nodejs.js:2:11350) at async Server.<anonymous> (/opt/rust/nodejs.js:16:7279) { length: 186, severity: 'ERROR', code: '42703', detail: undefined, hint: 'Perhaps you meant to reference the column "invoices.service_charge".', position: '154', internalPosition: undefined, internalQuery: undefined, where: undefined, schema: undefined, table: undefined, column: undefined, dataType: undefined, constraint: undefined, file: 'parse_relation.c', line: '3723', routine: 'errorMissingColumn' }
+Aug 28 23:09:29.54
+GET
+200
+garage-guru-fawn.vercel.app
+/api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/job-cards
+API Request: GET /api/garages/0c3bf28f-06db-40da-81a3-12984eb6cdee/job-cards
+Aug 28 23:09:27.37
+GET
+200
+garage-guru-fawn.vercel.app
+/api/user/profile
+API Request: GET /api/user/profile

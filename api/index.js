@@ -221,7 +221,7 @@ export default async function handler(req, res) {
             SELECT 
               COUNT(*) as total_invoices,
               COALESCE(SUM(total_amount), 0) as total_revenue,
-              COALESCE(SUM(service_charges), 0) as total_service_charges,
+              COALESCE(SUM(service_charge), 0) as total_service_charges,
               COALESCE(SUM(parts_cost), 0) as total_spares_cost
             FROM invoices 
             WHERE garage_id = $1
@@ -248,8 +248,8 @@ export default async function handler(req, res) {
             SELECT 
               COUNT(*) as invoices_count,
               COALESCE(SUM(total_amount), 0) as total_revenue,
-              COALESCE(SUM(service_charges), 0) as service_revenue,
-              COALESCE(SUM(parts_revenue), 0) as parts_revenue,
+              COALESCE(SUM(service_charge), 0) as service_revenue,
+              COALESCE(SUM(parts_total), 0) as parts_revenue,
               COALESCE(SUM(parts_cost), 0) as parts_cost
             FROM invoices 
             WHERE garage_id = $1
