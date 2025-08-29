@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { getSupabaseClient, pingDatabase, initSupabase } from './supabase-client';
+import { getDatabaseClient, pingDatabase, initDatabase } from './supabase-client';
 import { 
   corsMiddleware, 
   jsonMiddleware, 
@@ -22,7 +22,7 @@ app.use('*', loggingMiddleware);
 
 // Health check
 app.get('/api/health', async (c) => {
-  const dbConfig = initSupabase();
+  const dbConfig = initDatabase();
   const dbPing = await pingDatabase();
   
   return c.json({
@@ -48,7 +48,7 @@ app.post('/api/auth/login', async (c) => {
       return c.json({ error: 'Email and password required' }, 400);
     }
 
-    const sql = getSupabaseClient();
+    const sql = getDatabaseClient();
     
     // Query user from database
     const users = await sql`
@@ -110,7 +110,7 @@ app.post('/api/auth/login', async (c) => {
 // User profile
 app.get('/api/user/profile', authMiddleware, async (c: AuthContext) => {
   try {
-    const sql = getSupabaseClient();
+    const sql = getDatabaseClient();
     const users = await sql`
       SELECT u.*, g.name as garage_name 
       FROM users u 
@@ -149,7 +149,7 @@ app.get('/api/user/profile', authMiddleware, async (c: AuthContext) => {
 // Garages (super admin only)
 app.get('/api/garages', authMiddleware, superAdminGuard, async (c: AuthContext) => {
   try {
-    const sql = getSupabaseClient();
+    const sql = getDatabaseClient();
     const garages = await sql`
       SELECT * FROM garages 
       ORDER BY created_at DESC
@@ -176,7 +176,7 @@ app.post('/api/garages', authMiddleware, async (c: AuthContext) => {
       return c.json({ error: 'Name, owner name, and phone are required' }, 400);
     }
 
-    const sql = getSupabaseClient();
+    const sql = getDatabaseClient();
     
     // Create the garage
     const garageResult = await sql`
@@ -208,7 +208,7 @@ app.post('/api/garages', authMiddleware, async (c: AuthContext) => {
 // Customers
 app.get('/api/customers', authMiddleware, garageIdResolver, async (c: AuthContext) => {
   try {
-    const sql = getSupabaseClient();
+    const sql = getDatabaseClient();
     const garageId = c.get('garageId');
     
     const customers = await sql`
@@ -236,7 +236,7 @@ app.get('/api/customers', authMiddleware, garageIdResolver, async (c: AuthContex
 // Spare parts
 app.get('/api/spare-parts', authMiddleware, garageIdResolver, async (c: AuthContext) => {
   try {
-    const sql = getSupabaseClient();
+    const sql = getDatabaseClient();
     const garageId = c.get('garageId');
     
     const spareParts = await sql`
@@ -266,7 +266,7 @@ app.get('/api/spare-parts', authMiddleware, garageIdResolver, async (c: AuthCont
 // Job cards
 app.get('/api/job-cards', authMiddleware, garageIdResolver, async (c: AuthContext) => {
   try {
-    const sql = getSupabaseClient();
+    const sql = getDatabaseClient();
     const garageId = c.get('garageId');
     
     const jobCards = await sql`
@@ -288,7 +288,7 @@ app.get('/api/job-cards', authMiddleware, garageIdResolver, async (c: AuthContex
 // Legacy routes - garage-specific endpoints
 app.get('/api/garages/:id/job-cards', authMiddleware, async (c: AuthContext) => {
   try {
-    const sql = getSupabaseClient();
+    const sql = getDatabaseClient();
     const garageId = c.req.param('id');
     
     // Verify user has access to this garage
@@ -312,7 +312,7 @@ app.get('/api/garages/:id/job-cards', authMiddleware, async (c: AuthContext) => 
 
 app.get('/api/garages/:id/sales/stats', authMiddleware, async (c: AuthContext) => {
   try {
-    const sql = getSupabaseClient();
+    const sql = getDatabaseClient();
     const garageId = c.req.param('id');
     
     // Verify user has access to this garage

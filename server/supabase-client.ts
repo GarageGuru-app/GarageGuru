@@ -2,13 +2,13 @@ import { neon } from '@neondatabase/serverless';
 
 let sql: any = null;
 
-export interface SupabaseConfig {
+export interface DatabaseConfig {
   url: string;
   connected: boolean;
   error?: string;
 }
 
-export function initSupabase(): SupabaseConfig {
+export function initDatabase(): DatabaseConfig {
   try {
     const databaseUrl = process.env.DATABASE_URL;
     
@@ -37,9 +37,9 @@ export function initSupabase(): SupabaseConfig {
   }
 }
 
-export function getSupabaseClient() {
+export function getDatabaseClient() {
   if (!sql) {
-    const config = initSupabase();
+    const config = initDatabase();
     if (!config.connected) {
       throw new Error(config.error || 'Database not initialized');
     }
@@ -49,7 +49,7 @@ export function getSupabaseClient() {
 
 export async function pingDatabase(): Promise<{ success: boolean; error?: string }> {
   try {
-    const client = getSupabaseClient();
+    const client = getDatabaseClient();
     await client`SELECT 1 as ping`;
     return { success: true };
   } catch (error) {

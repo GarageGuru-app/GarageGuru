@@ -4,7 +4,7 @@ import { Pool } from 'pg';
 const databaseUrl = "postgresql://admin:lHgw4ztka79bYIxW2MBGcTMCEKjzUE9w@dpg-d2ov7g0gjchc73f8s5q0-a.singapore-postgres.render.com/garageguru";
 
 if (!databaseUrl) {
-  throw new Error("SUPABASE_DATABASE_URL or DATABASE_URL must be set.");
+  throw new Error("DATABASE_URL must be set for Render.com PostgreSQL connection.");
 }
 
 console.log('🔗 Using database URL:', databaseUrl.split('@')[0] + '@[hidden]');

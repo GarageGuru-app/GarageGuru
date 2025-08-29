@@ -1,5 +1,5 @@
-// This file is kept minimal since we're using Drizzle directly
-// but provides a foundation for any Supabase-specific configurations
+// Generic API client for database operations
+// Configured to work with Render.com PostgreSQL database via backend API
 
 export const getAuthHeaders = (): Record<string, string> => {
   const token = localStorage.getItem("auth-token");
@@ -18,7 +18,7 @@ export const apiRequest = async (
   
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
   
-  console.log(`🌐 Supabase API Request: ${method} ${fullUrl}`);
+  console.log(`🌐 API Request: ${method} ${fullUrl}`);
   
   const headers: Record<string, string> = {
     ...getAuthHeaders(),
@@ -35,7 +35,7 @@ export const apiRequest = async (
     credentials: "include",
   });
 
-  console.log(`📡 Supabase API Response: ${response.status} ${response.statusText}`);
+  console.log(`📡 API Response: ${response.status} ${response.statusText}`);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: response.statusText }));
