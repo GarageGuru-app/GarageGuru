@@ -913,7 +913,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       const customerData = insertCustomerSchema.parse({ ...req.body, garageId });
       
-      const customer = await storage.createCustomer(customerData);
+      // Map frontend camelCase fields to database snake_case fields
+      const mappedData = {
+        ...customerData,
+        garage_id: garageId,
+        bike_number: customerData.bike_number
+      };
+      
+      const customer = await storage.createCustomer(mappedData);
       res.json(customer);
     } catch (error: any) {
       // Check if it's a duplicate bike number error
