@@ -41,8 +41,8 @@ I've successfully built a comprehensive automated testing workflow that compares
 
 ### Quick Start
 ```bash
-# Set your production URL
-export PROD_BASE_URL=https://your-app.replit.app
+# Set your actual production URL (wherever you've deployed)
+export PROD_BASE_URL=https://your-actual-production-url.com
 export TEST_EMAIL=ananthkalyan46@gmail.com
 export TEST_PASSWORD=Ananth123
 

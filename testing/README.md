@@ -6,7 +6,8 @@ Automated testing system that compares your production and local environments af
 
 1. **Set Environment Variables**
 ```bash
-export PROD_BASE_URL=https://your-production-url.replit.app
+# Your actual production URL (could be Vercel, Render, Railway, etc.)
+export PROD_BASE_URL=https://your-actual-production-url.com
 export TEST_EMAIL=your-test-email@example.com
 export TEST_PASSWORD=your-test-password
 ```

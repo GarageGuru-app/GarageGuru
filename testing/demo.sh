@@ -9,7 +9,7 @@ if [ -z "$PROD_BASE_URL" ]; then
     echo "📋 DEMO MODE: No PROD_BASE_URL set"
     echo ""
     echo "To run actual tests, set environment variables:"
-    echo "  export PROD_BASE_URL=https://your-app.replit.app"
+    echo "  export PROD_BASE_URL=https://your-actual-production-url.com"
     echo "  export TEST_EMAIL=your-test-email@example.com"
     echo "  export TEST_PASSWORD=your-test-password"
     echo ""
