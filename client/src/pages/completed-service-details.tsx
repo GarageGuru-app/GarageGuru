@@ -1,7 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/supabase";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, X, Image } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/supabase";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface LogoUploaderProps {

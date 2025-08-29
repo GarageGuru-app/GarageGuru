@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import jwt from 'jsonwebtoken';
-import { getSupabaseClient } from './supabase-client';
+import { getDatabaseClient } from './database-client';
 
 export interface AuthUser {
   id: string;
@@ -49,7 +49,7 @@ export const authMiddleware = async (c: AuthContext, next: () => Promise<void>) 
     const decoded = jwt.verify(token, JWT_SECRET) as any;
 
     // Fetch user from database to get latest info
-    const sql = getSupabaseClient();
+    const sql = getDatabaseClient();
     const users = await sql`
       SELECT u.*, g.name as garage_name
       FROM users u 

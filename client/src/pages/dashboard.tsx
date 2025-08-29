@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/supabase";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { NotificationPanel } from "@/components/NotificationPanel";

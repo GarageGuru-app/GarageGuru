@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { getDatabaseClient, pingDatabase, initDatabase } from './supabase-client';
+import { getDatabaseClient, pingDatabase, initDatabase } from './database-client';
 import { 
   corsMiddleware, 
   jsonMiddleware, 

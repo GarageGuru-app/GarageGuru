@@ -8,7 +8,7 @@ import {
   User 
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/supabase";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function BottomNav() {
   const [location, navigate] = useLocation();

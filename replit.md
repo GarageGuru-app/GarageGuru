@@ -47,7 +47,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Database
 - **PostgreSQL**: Primary database using standard `pg` driver.
-- **Supabase**: PostgreSQL provider configured for production deployment.
+- **Render.com**: PostgreSQL provider configured for production deployment.
 - **Automatic Migrations**: Tables created automatically on server startup.
 - **Raw SQL Queries**: Direct PostgreSQL queries for maximum compatibility.
 
