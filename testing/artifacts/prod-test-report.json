@@ -1,0 +1,5254 @@
+{
+  "total_endpoints": 72,
+  "passed": 1,
+  "failed": 71,
+  "errors": 0,
+  "report_generated_at": "2025-08-29T03:59:26.122Z",
+  "test_configuration": {
+    "local_base_url": "http://localhost:5000",
+    "prod_base_url": "https://garageguru.vercel.app",
+    "request_timeout": 10000,
+    "max_retries": 3
+  },
+  "test_results": [
+    {
+      "endpoint": "GET /api/access-requests",
+      "local": {
+        "status": 200,
+        "response_time": 451,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "user_id": "b65f384c-c076-44ad-9101-d4207a06c8fd",
+            "email": "nanithota689@gmail.com",
+            "name": "Nani",
+            "requested_role": "staff",
+            "status": "approved",
+            "note": "",
+            "created_at": "[DYNAMIC]",
+            "processed_by": "ananthkalyan46@gmail.com",
+            "processed_at": "[TIMESTAMP]"
+          }
+        ],
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:35 GMT",
+          "etag": "W/\"175-bsDiCO0YH0e7RT5ZlEFhPqC3K4U\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 643,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "user_id": "b65f384c-c076-44ad-9101-d4207a06c8fd",
+            "email": "nanithota689@gmail.com",
+            "name": "Nani",
+            "requested_role": "staff",
+            "status": "approved",
+            "note": "",
+            "created_at": "[DYNAMIC]",
+            "processed_by": "ananthkalyan46@gmail.com",
+            "processed_at": "[TIMESTAMP]"
+          }
+        ],
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "373",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:35 GMT",
+          "etag": "W/\"175-bsDiCO0YH0e7RT5ZlEFhPqC3K4U\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::qk5l6-1756439915398-aeecbec1ea39"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": true,
+        "latency_difference": 192
+      },
+      "analysis": {
+        "status": "passed",
+        "issues": [],
+        "recommendations": []
+      }
+    },
+    {
+      "endpoint": "POST /api/access-requests/:id/process",
+      "local": {
+        "status": 404,
+        "response_time": 447,
+        "data": {
+          "message": "Access request not found"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "38",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:36 GMT",
+          "etag": "W/\"26-XBPZyN0MoLUSY3UK5DTa26D8fYY\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 403,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/access-requests/test-id-123/process",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "122",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:36 GMT",
+          "etag": "W/\"7a-i+YWU5Ac6+kA/1NWtReD2y+xMvQ\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::hk2jv-1756439916592-88b932e63686"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 44
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/auth/change-password",
+      "local": {
+        "status": 400,
+        "response_time": 225,
+        "data": {
+          "message": "New password is required"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "38",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:37 GMT",
+          "etag": "W/\"26-m6sm/YCbR82GLIEcXJx7EKzNr5M\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 441,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/auth/change-password",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "107",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:37 GMT",
+          "etag": "W/\"6b-Gt0K88uxeKxLbsgyHq/j5O021Dw\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::ckxjg-1756439917321-6716272e98cc"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 216
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/auth/generate-codes",
+      "local": {
+        "status": 403,
+        "response_time": 226,
+        "data": {
+          "message": "Insufficient permissions"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "38",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:38 GMT",
+          "etag": "W/\"26-NAe9aZLHbIDFxDXuxoDtJ5ozBM4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 293,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/auth/generate-codes",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "106",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:38 GMT",
+          "etag": "W/\"6a-m8bEgYelMLW0HeSz8Cu2wgKtN5w\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::hk2jv-1756439918089-ae621a10be10"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 67
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 403 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/auth/login",
+      "local": {
+        "status": 200,
+        "response_time": 507,
+        "data": {
+          "token": "[DYNAMIC]",
+          "user": {
+            "id": "[DYNAMIC]",
+            "email": "ananthkalyan46@gmail.com",
+            "role": "garage_admin",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "name": "Ananth Kalyan Gorla",
+            "created_at": "[DYNAMIC]",
+            "must_change_password": false,
+            "status": "active",
+            "first_login": true,
+            "mustChangePassword": false,
+            "firstLogin": false,
+            "garageId": "0c3bf28f-06db-40da-81a3-12984eb6cdee"
+          },
+          "garage": {
+            "id": "[DYNAMIC]",
+            "name": "GarageGuru",
+            "owner_name": "Ananth Kalyan Gorla",
+            "phone": "7288856665",
+            "email": "ananthkalyan46@gmail.com",
+            "logo": "https://res.cloudinary.com/dcueubsl8/image/upload/v1756278005/garage-logos/ijfyhltxf1jrcyrxbwnn.png",
+            "created_at": "[DYNAMIC]",
+            "ownerName": "Ananth Kalyan Gorla",
+            "createdAt": "[TIMESTAMP]"
+          }
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "1003",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:38 GMT",
+          "etag": "W/\"3eb-91aXyPe/xcQDiCnOYz0Q21+Zud4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 507,
+        "data": {
+          "user": {
+            "id": "[DYNAMIC]",
+            "email": "ananthkalyan46@gmail.com",
+            "name": "Ananth Kalyan Gorla",
+            "role": "garage_admin",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "garageId": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "garage_name": "GarageGuru",
+            "mustChangePassword": false,
+            "firstLogin": true,
+            "status": "active"
+          },
+          "garage": {
+            "id": "[DYNAMIC]",
+            "name": "GarageGuru"
+          },
+          "token": "[DYNAMIC]"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "810",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:39 GMT",
+          "etag": "W/\"32a-gls7FiI5BhA70QozSUqDYzdOY9I\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::k8mj6-1756439918991-02f24f28d8de"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 0
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/auth/login",
+      "local": {
+        "status": 200,
+        "response_time": 526,
+        "data": {
+          "token": "[DYNAMIC]",
+          "user": {
+            "id": "[DYNAMIC]",
+            "email": "ananthkalyan46@gmail.com",
+            "role": "garage_admin",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "name": "Ananth Kalyan Gorla",
+            "created_at": "[DYNAMIC]",
+            "must_change_password": false,
+            "status": "active",
+            "first_login": true,
+            "mustChangePassword": false,
+            "firstLogin": false,
+            "garageId": "0c3bf28f-06db-40da-81a3-12984eb6cdee"
+          },
+          "garage": {
+            "id": "[DYNAMIC]",
+            "name": "GarageGuru",
+            "owner_name": "Ananth Kalyan Gorla",
+            "phone": "7288856665",
+            "email": "ananthkalyan46@gmail.com",
+            "logo": "https://res.cloudinary.com/dcueubsl8/image/upload/v1756278005/garage-logos/ijfyhltxf1jrcyrxbwnn.png",
+            "created_at": "[DYNAMIC]",
+            "ownerName": "Ananth Kalyan Gorla",
+            "createdAt": "[TIMESTAMP]"
+          }
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "1003",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:40 GMT",
+          "etag": "W/\"3eb-HCaXd7m8t5aQtQCK+E/azM+Mh2U\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 390,
+        "data": {
+          "user": {
+            "id": "[DYNAMIC]",
+            "email": "ananthkalyan46@gmail.com",
+            "name": "Ananth Kalyan Gorla",
+            "role": "garage_admin",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "garageId": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "garage_name": "GarageGuru",
+            "mustChangePassword": false,
+            "firstLogin": true,
+            "status": "active"
+          },
+          "garage": {
+            "id": "[DYNAMIC]",
+            "name": "GarageGuru"
+          },
+          "token": "[DYNAMIC]"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "810",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:40 GMT",
+          "etag": "W/\"32a-ZkICxvNl/geqv36pvjI/GbI0PRc\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::bld84-1756439920126-b98f80f71cc0"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 136
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/auth/register",
+      "local": {
+        "status": 400,
+        "response_time": 7,
+        "data": {
+          "message": "Invalid activation code format. Use the 8-character code provided by super admin."
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "95",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:40 GMT",
+          "etag": "W/\"5f-gX7g7AYikJpFg5XV7HbAMYJUH1w\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 295,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/auth/register",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "100",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:40 GMT",
+          "etag": "W/\"64-OLVcOX1J5QDjESycVTMTqy6mvdo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::6xwzl-1756439920626-30d1a96a3164"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 288
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/auth/register-simple",
+      "local": {
+        "status": 400,
+        "response_time": 226,
+        "data": {
+          "message": "System already has users. Use activation codes."
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "61",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:41 GMT",
+          "etag": "W/\"3d-IgLB/0+e9g3CtFQg3C+jcpRWISw\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 297,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/auth/register-simple",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "107",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:41 GMT",
+          "etag": "W/\"6b-JD248EFGLBWpj89UL2bairJD/tQ\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::hk2jv-1756439921249-7f7ee036e052"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 71
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/auth/request-access",
+      "local": {
+        "status": 400,
+        "response_time": 5,
+        "data": {
+          "message": "Email and name are required."
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:41 GMT",
+          "etag": "W/\"2a-D6RdDlvl4WsVE75T//+WD68qq5I\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 292,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/auth/request-access",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "106",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:41 GMT",
+          "etag": "W/\"6a-3PcOASsb8b7T72QNDBEf3LzgVgc\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::2dp95-1756439921653-86222a5e824f"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 287
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/customers",
+      "local": {
+        "status": 200,
+        "response_time": 449,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "name": "Ananth",
+            "phone": "9398183509",
+            "bike_number": "AP08VD8628",
+            "total_jobs": 3,
+            "total_spent": "1800",
+            "last_visit": "[TIMESTAMP]",
+            "created_at": "[DYNAMIC]",
+            "notes": "",
+            "bikeNumber": "AP08VD8628",
+            "totalJobs": 3,
+            "totalSpent": "1800",
+            "lastVisit": "[TIMESTAMP]",
+            "createdAt": "[TIMESTAMP]"
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "name": "Customer",
+            "phone": "9398183509",
+            "bike_number": "AP09TH4546",
+            "total_jobs": 2,
+            "total_spent": "300",
+            "last_visit": "[TIMESTAMP]",
+            "created_at": "[DYNAMIC]",
+            "notes": "",
+            "bikeNumber": "AP09TH4546",
+            "totalJobs": 2,
+            "totalSpent": "300",
+            "lastVisit": "[TIMESTAMP]",
+            "createdAt": "[TIMESTAMP]"
+          }
+        ],
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "853",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:42 GMT",
+          "etag": "W/\"355-LzDhUFYo8i3irmxk2hWsJsU+jZI\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 485,
+        "data": {
+          "data": [
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "name": "Ananth",
+              "phone": "9398183509",
+              "bike_number": "AP08VD8628",
+              "total_jobs": 3,
+              "total_spent": "1800",
+              "last_visit": "[TIMESTAMP]",
+              "created_at": "[DYNAMIC]",
+              "notes": "",
+              "bikeNumber": "AP08VD8628",
+              "totalJobs": 3,
+              "totalSpent": "1800",
+              "lastVisit": "[TIMESTAMP]",
+              "createdAt": "[TIMESTAMP]"
+            },
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "name": "Customer",
+              "phone": "9398183509",
+              "bike_number": "AP09TH4546",
+              "total_jobs": 2,
+              "total_spent": "300",
+              "last_visit": "[TIMESTAMP]",
+              "created_at": "[DYNAMIC]",
+              "notes": "",
+              "bikeNumber": "AP09TH4546",
+              "totalJobs": 2,
+              "totalSpent": "300",
+              "lastVisit": "[TIMESTAMP]",
+              "createdAt": "[TIMESTAMP]"
+            }
+          ],
+          "count": 2
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "872",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:42 GMT",
+          "etag": "W/\"368-FGU9xUU//+vsI7h4X5gnMGg502o\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::hk2jv-1756439922497-c1344914af06"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 36
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/customers",
+      "local": {
+        "status": 200,
+        "response_time": 446,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "name": "Ananth",
+            "phone": "9398183509",
+            "bike_number": "AP08VD8628",
+            "total_jobs": 3,
+            "total_spent": "1800",
+            "last_visit": "[TIMESTAMP]",
+            "created_at": "[DYNAMIC]",
+            "notes": "",
+            "bikeNumber": "AP08VD8628",
+            "totalJobs": 3,
+            "totalSpent": "1800",
+            "lastVisit": "[TIMESTAMP]",
+            "createdAt": "[TIMESTAMP]"
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "name": "Customer",
+            "phone": "9398183509",
+            "bike_number": "AP09TH4546",
+            "total_jobs": 2,
+            "total_spent": "300",
+            "last_visit": "[TIMESTAMP]",
+            "created_at": "[DYNAMIC]",
+            "notes": "",
+            "bikeNumber": "AP09TH4546",
+            "totalJobs": 2,
+            "totalSpent": "300",
+            "lastVisit": "[TIMESTAMP]",
+            "createdAt": "[TIMESTAMP]"
+          }
+        ],
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "853",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:43 GMT",
+          "etag": "W/\"355-LzDhUFYo8i3irmxk2hWsJsU+jZI\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 482,
+        "data": {
+          "data": [
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "name": "Ananth",
+              "phone": "9398183509",
+              "bike_number": "AP08VD8628",
+              "total_jobs": 3,
+              "total_spent": "1800",
+              "last_visit": "[TIMESTAMP]",
+              "created_at": "[DYNAMIC]",
+              "notes": "",
+              "bikeNumber": "AP08VD8628",
+              "totalJobs": 3,
+              "totalSpent": "1800",
+              "lastVisit": "[TIMESTAMP]",
+              "createdAt": "[TIMESTAMP]"
+            },
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "name": "Customer",
+              "phone": "9398183509",
+              "bike_number": "AP09TH4546",
+              "total_jobs": 2,
+              "total_spent": "300",
+              "last_visit": "[TIMESTAMP]",
+              "created_at": "[DYNAMIC]",
+              "notes": "",
+              "bikeNumber": "AP09TH4546",
+              "totalJobs": 2,
+              "totalSpent": "300",
+              "lastVisit": "[TIMESTAMP]",
+              "createdAt": "[TIMESTAMP]"
+            }
+          ],
+          "count": 2
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "872",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:43 GMT",
+          "etag": "W/\"368-FGU9xUU//+vsI7h4X5gnMGg502o\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::ckxjg-1756439923531-7279a79ce285"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 36
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/db/ping",
+      "local": {
+        "status": 200,
+        "response_time": 443,
+        "data": {
+          "success": true,
+          "ping": 1,
+          "timestamp": "[DYNAMIC]",
+          "database_version": "PostgreSQL 17.4 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 13.2.0, 64-bit",
+          "storage_ping": true,
+          "database_url": "configured"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "216",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:44 GMT",
+          "etag": "W/\"d8-VoXjnsDybosZOnmlyrHl7SR64FA\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 287,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/db/ping",
+          "method": "GET",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "93",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:44 GMT",
+          "etag": "W/\"5d-XIKOmrxUCgnMOaVyQ3Y0Dr8Fn+I\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::6h2ww-1756439924557-e90f5a6bfb13"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 156
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 200 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Production endpoint may be broken or missing",
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/debug/database",
+      "local": {
+        "status": 200,
+        "response_time": 667,
+        "data": {
+          "databaseConnected": true,
+          "currentTime": {
+            "current_time": "[TIMESTAMP]"
+          },
+          "userCount": 3,
+          "garageCount": 1,
+          "sampleUser": {
+            "email": "nanithota689@gmail.com",
+            "role": "mechanic_staff"
+          },
+          "sampleGarage": {
+            "name": "GarageGuru"
+          }
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "223",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:45 GMT",
+          "etag": "W/\"df-fJpM9GgvJhtI2G4FHuVsvffuzXI\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 303,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/debug/database",
+          "method": "GET",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "100",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:45 GMT",
+          "etag": "W/\"64-17eeDqBLwmFWj+W9oWM6uD87I6M\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::6h2ww-1756439925615-f6176aeb6de0"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 364
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 200 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Production endpoint may be broken or missing",
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/forgot-password/request",
+      "local": {
+        "status": 400,
+        "response_time": 7,
+        "data": {
+          "message": "Email is required"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "31",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:46 GMT",
+          "etag": "W/\"1f-Y5TAqROqjsvPbDYsCc/9QEESk7g\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 293,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/forgot-password/request",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "110",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:46 GMT",
+          "etag": "W/\"6e-nX0/7MbKbspSnAGdfzU3ryhc54c\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::vsz7d-1756439926028-88582b4600c8"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 286
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/forgot-password/reset",
+      "local": {
+        "status": 400,
+        "response_time": 4,
+        "data": {
+          "message": "Reset token and new password are required"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "55",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:46 GMT",
+          "etag": "W/\"37-9MA0ev1cVtcS3VgFZsAh83yJZnU\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 289,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/forgot-password/reset",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "108",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:46 GMT",
+          "etag": "W/\"6c-l6mQ3hSmRJNKQ0pKohyQKYikurA\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::vsz7d-1756439926426-d9f04656154d"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 285
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/forgot-password/verify",
+      "local": {
+        "status": 400,
+        "response_time": 3,
+        "data": {
+          "message": "Email and code are required"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "41",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:46 GMT",
+          "etag": "W/\"29-q0I2IZilhEkOUU1DJkpdN+4x5g4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 290,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/forgot-password/verify",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "109",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:47 GMT",
+          "etag": "W/\"6d-tFYjavWY0G003sFjgoQnxlI6kNI\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::vsz7d-1756439926821-319548a95ea2"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 287
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages",
+      "local": {
+        "status": 200,
+        "response_time": 222,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "name": "GarageGuru",
+            "owner_name": "Ananth Kalyan Gorla",
+            "phone": "7288856665",
+            "email": "ananthkalyan46@gmail.com",
+            "logo": "https://res.cloudinary.com/dcueubsl8/image/upload/v1756278005/garage-logos/ijfyhltxf1jrcyrxbwnn.png",
+            "created_at": "[DYNAMIC]"
+          }
+        ],
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "307",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:47 GMT",
+          "etag": "W/\"133-VpGqstXVH9mUZ2eAbxhFiD5cPO8\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 287,
+        "data": {
+          "error": "Super admin access required"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "39",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:47 GMT",
+          "etag": "W/\"27-UeYuQpUHJZ+aZP+2x47f6DmND1o\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::6h2ww-1756439927434-f0cb901d2cd7"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 65
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 200 vs Prod 403",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Production endpoint may be broken or missing",
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/garages",
+      "local": {
+        "status": 400,
+        "response_time": 227,
+        "data": {
+          "message": "Name, owner name, and phone are required"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "54",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:48 GMT",
+          "etag": "W/\"36-nwiJEV/gYa6N4JNbXCv49MR/EVo\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 406,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/garages",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "94",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:48 GMT",
+          "etag": "W/\"5e-eSv4ZGvhnu61jH+Wfpn2/XIOVeI\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::rhnjl-1756439928051-022a30f0ece6"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 179
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages",
+      "local": {
+        "status": 200,
+        "response_time": 223,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "name": "GarageGuru",
+            "owner_name": "Ananth Kalyan Gorla",
+            "phone": "7288856665",
+            "email": "ananthkalyan46@gmail.com",
+            "logo": "https://res.cloudinary.com/dcueubsl8/image/upload/v1756278005/garage-logos/ijfyhltxf1jrcyrxbwnn.png",
+            "created_at": "[DYNAMIC]"
+          }
+        ],
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "307",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:48 GMT",
+          "etag": "W/\"133-VpGqstXVH9mUZ2eAbxhFiD5cPO8\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 291,
+        "data": {
+          "error": "Super admin access required"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "39",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:49 GMT",
+          "etag": "W/\"27-UeYuQpUHJZ+aZP+2x47f6DmND1o\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::ckxjg-1756439928782-164caf063793"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 68
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 200 vs Prod 403",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Production endpoint may be broken or missing",
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/customers",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:49 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 294,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:49 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::bld84-1756439929398-e53f8e1a0a24"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 71
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/garages/:garageId/customers",
+      "local": {
+        "status": 403,
+        "response_time": 222,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:50 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 293,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:50 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::k8mj6-1756439930016-e3c787375171"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 71
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/customers/:customerId/invoices",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:50 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 350,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:50 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::ckxjg-1756439930633-785cc5114de2"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 127
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/customers/analytics",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:51 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 290,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:51 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::6xwzl-1756439931308-5613a3ebfe1f"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 66
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/customers/search",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:51 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 295,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:52 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::6h2ww-1756439931925-ac67c6bf8aa7"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 71
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/garages/:garageId/customers/sync-visits",
+      "local": {
+        "status": 403,
+        "response_time": 225,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:52 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 291,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:52 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::ckxjg-1756439932545-bd17f66e3582"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 66
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/customers/top-by-revenue",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:53 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 307,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:53 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::ckxjg-1756439933163-1fe6522fef79"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 83
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/customers/top-by-services",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:53 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 289,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:54 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::6h2ww-1756439933792-9ff1e386a0e4"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 66
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/invoices",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:54 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 290,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:54 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::bld84-1756439934408-d277f156722b"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 67
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/garages/:garageId/invoices",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:55 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 292,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:55 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::m25wn-1756439935023-d85ae3a0e9eb"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 68
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "PUT /api/garages/:garageId/invoices/:id",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:55 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 287,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:55 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::zgqm6-1756439935640-0467f3f8635f"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 63
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/job-cards",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:56 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 287,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:56 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::6w7jv-1756439936251-722815d2a8d8"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 63
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/garages/:garageId/job-cards",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:56 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 305,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:57 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::vhn5g-1756439936865-92630e27274e"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 81
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/job-cards/:id",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:57 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 293,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:57 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::bld84-1756439937493-23f033ea3731"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 69
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "PUT /api/garages/:garageId/job-cards/:id",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:58 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 287,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:58 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::xlfgm-1756439938110-cdbcb55055b1"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 64
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/notifications",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:58 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 292,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:58 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::m98lj-1756439938723-a287f1198f11"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 69
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "PUT /api/garages/:garageId/notifications/:id/read",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:59 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 289,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:59 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::6w7jv-1756439939340-39fe4971e404"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 66
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "PUT /api/garages/:garageId/notifications/mark-all-read",
+      "local": {
+        "status": 403,
+        "response_time": 225,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:58:59 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 305,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:00 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::m98lj-1756439939966-fd3976ce04c0"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 80
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/notifications/unread-count",
+      "local": {
+        "status": 403,
+        "response_time": 222,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:00 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 300,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:00 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::m98lj-1756439940585-a8ec60a64cb9"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 78
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/sales/analytics",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:01 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 316,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:01 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::qk5l6-1756439941208-1ac76dc819bf"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 93
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/sales/monthly",
+      "local": {
+        "status": 403,
+        "response_time": 227,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:01 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 294,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:02 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::6w7jv-1756439941853-b45198253bfd"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 67
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/sales/stats",
+      "local": {
+        "status": 403,
+        "response_time": 222,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:02 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 296,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:02 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::fwxwz-1756439942470-e2450ec78016"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 74
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/sales/today",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:03 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 288,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:03 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::vhn5g-1756439943090-cf1cd2064120"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 65
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/spare-parts",
+      "local": {
+        "status": 403,
+        "response_time": 222,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:03 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 291,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:03 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::m25wn-1756439943701-7b81fae6c800"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 69
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/garages/:garageId/spare-parts",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:04 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 294,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:04 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::6w7jv-1756439944317-f98f22ba91a3"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 71
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "PUT /api/garages/:garageId/spare-parts/:id",
+      "local": {
+        "status": 403,
+        "response_time": 227,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:04 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 293,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:05 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::db4hw-1756439944940-1fc5de0a54a1"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 66
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "DELETE /api/garages/:garageId/spare-parts/:id",
+      "local": {
+        "status": 403,
+        "response_time": 222,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:05 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 293,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:05 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::f8vhj-1756439945558-573da705bc27"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 71
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/spare-parts/low-stock",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:06 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 290,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:06 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::hwzz8-1756439946176-161e17dc4ca7"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 66
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/spare-parts/search",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:06 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 292,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:07 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::gs955-1756439946789-f2295e4cbb28"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 69
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:garageId/staff",
+      "local": {
+        "status": 403,
+        "response_time": 222,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:07 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 290,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:07 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::f8vhj-1756439947407-9725f603d584"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 68
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "PUT /api/garages/:id",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:08 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 290,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/garages/test-id-123",
+          "method": "PUT",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "105",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:08 GMT",
+          "etag": "W/\"69-jlvBMO56LtUb7nGTyyHeCClj/9M\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::hwzz8-1756439948022-bae519ab554d"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 67
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 403 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:id/job-cards",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:08 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 300,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:08 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::w4s24-1756439948639-d838d568c1db"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 76
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/garages/:id/sales/stats",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:09 GMT",
+          "etag": "W/\"2a-gschynITptmtoblndzUp80Jo1a4\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 403,
+        "response_time": 300,
+        "data": {
+          "error": "Access denied to this garage"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "40",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:09 GMT",
+          "etag": "W/\"28-GtV8V3G8aJakyfPIdEUbX64uEKo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::2d77v-1756439949263-36364542da3e"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 77
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/health",
+      "local": {
+        "status": 200,
+        "response_time": 43,
+        "data": {
+          "content_type": "text/html; charset=utf-8",
+          "body_length": 42411
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "42411",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:09 GMT",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 292,
+        "data": {
+          "status": "ok",
+          "timestamp": "[DYNAMIC]",
+          "service": "garage-guru-backend",
+          "environment": "production",
+          "database": "connected"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "136",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:09 GMT",
+          "etag": "W/\"88-oR8YLuYFJZ4eE3NNOpuvjjGVlSQ\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::vsz7d-1756439949708-515dc3d7f836"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 249
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/invoices",
+      "local": {
+        "status": 200,
+        "response_time": 2363,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+            "job_card_id": "89b61a09-6bb7-498e-b6c8-ce8ad41399a8",
+            "invoice_number": "INV-1756290875275",
+            "service_charge": "300",
+            "parts_total": "0",
+            "total_amount": "300",
+            "download_token": "upload_failed",
+            "whatsapp_sent": true,
+            "created_at": "[DYNAMIC]",
+            "customer_name": "Ananth",
+            "bike_number": "AP08VD8628",
+            "phone": "9398183509",
+            "visit_count": 3
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+            "job_card_id": "98517de4-7386-4760-a455-470a2c137b46",
+            "invoice_number": "INV-1756289956713",
+            "service_charge": "300",
+            "parts_total": "400",
+            "total_amount": "700",
+            "download_token": "upload_failed",
+            "whatsapp_sent": true,
+            "created_at": "[DYNAMIC]",
+            "customer_name": "Ananth",
+            "bike_number": "AP08VD8628",
+            "phone": "9398183509",
+            "visit_count": 3
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+            "job_card_id": "c235a0f4-695f-4f75-9990-90ebc0098f45",
+            "invoice_number": "INV-1756287191130",
+            "service_charge": "400",
+            "parts_total": "400",
+            "total_amount": "800",
+            "download_token": "upload_failed",
+            "whatsapp_sent": true,
+            "created_at": "[DYNAMIC]",
+            "customer_name": "Ananth",
+            "bike_number": "AP08VD8628",
+            "phone": "9398183509",
+            "visit_count": 3
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "5b522413-5f51-4bec-9614-6ccb4cbb882c",
+            "job_card_id": "328d55dd-e40b-4109-abc9-7e9f015eb27c",
+            "invoice_number": "INV-1756286837967",
+            "service_charge": "0",
+            "parts_total": "0",
+            "total_amount": "0",
+            "download_token": "upload_failed",
+            "whatsapp_sent": true,
+            "created_at": "[DYNAMIC]",
+            "customer_name": "Customer",
+            "bike_number": "AP09TH4546",
+            "phone": "9398183509",
+            "visit_count": 2
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "5b522413-5f51-4bec-9614-6ccb4cbb882c",
+            "job_card_id": "0d2098e1-57e6-4fe2-bee7-bd1c4cd16cae",
+            "invoice_number": "INV-1756238834677",
+            "service_charge": "300",
+            "parts_total": "0",
+            "total_amount": "300",
+            "download_token": "https://res.cloudinary.com/dcueubsl8/raw/upload/v1756238838/pssogbyle3omeewlto6a",
+            "whatsapp_sent": true,
+            "created_at": "[DYNAMIC]",
+            "customer_name": "Customer",
+            "bike_number": "AP09TH4546",
+            "phone": "9398183509",
+            "visit_count": 2
+          }
+        ],
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "2497",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:12 GMT",
+          "etag": "W/\"9c1-LhQaTWUGimW3vgNBg1AGjMCwFAg\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 307,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/invoices",
+          "method": "GET",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "94",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:12 GMT",
+          "etag": "W/\"5e-M4A/oqIj5vaN/nhqMHJVTgcWjr4\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::vhn5g-1756439952465-79475c963415"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 2056
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 200 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Production endpoint may be broken or missing",
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "PATCH /api/invoices/:id",
+      "local": {
+        "status": 200,
+        "response_time": 532,
+        "data": {
+          "error": "Failed to parse JSON response"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "0",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:13 GMT",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 294,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/invoices/test-id-123",
+          "method": "PATCH",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "108",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:13 GMT",
+          "etag": "W/\"6c-lhD8k7q7CeopjOaX0sHs3ssfrBY\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::f8vhj-1756439953405-67758cf603af"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 238
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 200 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Production endpoint may be broken or missing",
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/job-cards",
+      "local": {
+        "status": 200,
+        "response_time": 447,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+            "customer_name": "Ananth",
+            "phone": "9398183509",
+            "bike_number": "AP08VD8628",
+            "spare_parts": [],
+            "service_charge": "300",
+            "total_amount": "300",
+            "status": "completed",
+            "created_at": "[DYNAMIC]",
+            "completed_at": "[TIMESTAMP]",
+            "complaint": "☑ Check l\n☑ ",
+            "completed_by": null,
+            "completion_notes": null,
+            "work_summary": null
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+            "customer_name": "Ananth",
+            "phone": "9398183509",
+            "bike_number": "AP08VD8628",
+            "spare_parts": [
+              {
+                "id": "[DYNAMIC]",
+                "name": "Brake",
+                "price": 400,
+                "quantity": 1,
+                "partNumber": "8905110006008"
+              }
+            ],
+            "service_charge": "0",
+            "total_amount": "400",
+            "status": "completed",
+            "created_at": "[DYNAMIC]",
+            "completed_at": "[TIMESTAMP]",
+            "complaint": "☑ H\n",
+            "completed_by": null,
+            "completion_notes": null,
+            "work_summary": null
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+            "customer_name": "Ananth",
+            "phone": "9398183509",
+            "bike_number": "AP08VD8628",
+            "spare_parts": [
+              {
+                "id": "[DYNAMIC]",
+                "name": "Brake",
+                "price": 400,
+                "quantity": 1,
+                "partNumber": "8905110006008"
+              }
+            ],
+            "service_charge": "400",
+            "total_amount": "400",
+            "status": "completed",
+            "created_at": "[DYNAMIC]",
+            "completed_at": "[TIMESTAMP]",
+            "complaint": "☑ Issue\n",
+            "completed_by": null,
+            "completion_notes": null,
+            "work_summary": null
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "5b522413-5f51-4bec-9614-6ccb4cbb882c",
+            "customer_name": "Customer",
+            "phone": "9398183509",
+            "bike_number": "AP09TH4546",
+            "spare_parts": [],
+            "service_charge": "0",
+            "total_amount": "0",
+            "status": "completed",
+            "created_at": "[DYNAMIC]",
+            "completed_at": "[TIMESTAMP]",
+            "complaint": "☑ Engine Oil\n☑ brake oil",
+            "completed_by": null,
+            "completion_notes": null,
+            "work_summary": null
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "5b522413-5f51-4bec-9614-6ccb4cbb882c",
+            "customer_name": "Customer",
+            "phone": "9398183509",
+            "bike_number": "AP09TH4546",
+            "spare_parts": [],
+            "service_charge": "0",
+            "total_amount": "0",
+            "status": "completed",
+            "created_at": "[DYNAMIC]",
+            "completed_at": "[TIMESTAMP]",
+            "complaint": "☑ Brake\n☑ oil change\n",
+            "completed_by": null,
+            "completion_notes": null,
+            "work_summary": null
+          }
+        ],
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "2644",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:14 GMT",
+          "etag": "W/\"a54-Di2PX/JODqWnVDAHS2ReMciDt/Y\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 491,
+        "data": {
+          "data": [
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+              "customer_name": "Ananth",
+              "phone": "9398183509",
+              "bike_number": "AP08VD8628",
+              "spare_parts": [],
+              "service_charge": "300",
+              "total_amount": "300",
+              "status": "completed",
+              "created_at": "[DYNAMIC]",
+              "completed_at": "[TIMESTAMP]",
+              "complaint": "☑ Check l\n☑ ",
+              "completed_by": null,
+              "completion_notes": null,
+              "work_summary": null,
+              "customer_phone": "9398183509"
+            },
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+              "customer_name": "Ananth",
+              "phone": "9398183509",
+              "bike_number": "AP08VD8628",
+              "spare_parts": [
+                {
+                  "id": "[DYNAMIC]",
+                  "name": "Brake",
+                  "price": 400,
+                  "quantity": 1,
+                  "partNumber": "8905110006008"
+                }
+              ],
+              "service_charge": "0",
+              "total_amount": "400",
+              "status": "completed",
+              "created_at": "[DYNAMIC]",
+              "completed_at": "[TIMESTAMP]",
+              "complaint": "☑ H\n",
+              "completed_by": null,
+              "completion_notes": null,
+              "work_summary": null,
+              "customer_phone": "9398183509"
+            },
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+              "customer_name": "Ananth",
+              "phone": "9398183509",
+              "bike_number": "AP08VD8628",
+              "spare_parts": [
+                {
+                  "id": "[DYNAMIC]",
+                  "name": "Brake",
+                  "price": 400,
+                  "quantity": 1,
+                  "partNumber": "8905110006008"
+                }
+              ],
+              "service_charge": "400",
+              "total_amount": "400",
+              "status": "completed",
+              "created_at": "[DYNAMIC]",
+              "completed_at": "[TIMESTAMP]",
+              "complaint": "☑ Issue\n",
+              "completed_by": null,
+              "completion_notes": null,
+              "work_summary": null,
+              "customer_phone": "9398183509"
+            },
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "customer_id": "5b522413-5f51-4bec-9614-6ccb4cbb882c",
+              "customer_name": "Customer",
+              "phone": "9398183509",
+              "bike_number": "AP09TH4546",
+              "spare_parts": [],
+              "service_charge": "0",
+              "total_amount": "0",
+              "status": "completed",
+              "created_at": "[DYNAMIC]",
+              "completed_at": "[TIMESTAMP]",
+              "complaint": "☑ Engine Oil\n☑ brake oil",
+              "completed_by": null,
+              "completion_notes": null,
+              "work_summary": null,
+              "customer_phone": "9398183509"
+            },
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "customer_id": "5b522413-5f51-4bec-9614-6ccb4cbb882c",
+              "customer_name": "Customer",
+              "phone": "9398183509",
+              "bike_number": "AP09TH4546",
+              "spare_parts": [],
+              "service_charge": "0",
+              "total_amount": "0",
+              "status": "completed",
+              "created_at": "[DYNAMIC]",
+              "completed_at": "[TIMESTAMP]",
+              "complaint": "☑ Brake\n☑ oil change\n",
+              "completed_by": null,
+              "completion_notes": null,
+              "work_summary": null,
+              "customer_phone": "9398183509"
+            }
+          ],
+          "count": 5,
+          "openCount": 0
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-encoding": "br",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:14 GMT",
+          "etag": "W/\"b0b-ZFOBPKeWl76TPtKGk4q/4Ns+u0Y\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::bld84-1756439954249-2a4fa654e7fc"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 44
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/job-cards",
+      "local": {
+        "status": 200,
+        "response_time": 444,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+            "customer_name": "Ananth",
+            "phone": "9398183509",
+            "bike_number": "AP08VD8628",
+            "spare_parts": [],
+            "service_charge": "300",
+            "total_amount": "300",
+            "status": "completed",
+            "created_at": "[DYNAMIC]",
+            "completed_at": "[TIMESTAMP]",
+            "complaint": "☑ Check l\n☑ ",
+            "completed_by": null,
+            "completion_notes": null,
+            "work_summary": null
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+            "customer_name": "Ananth",
+            "phone": "9398183509",
+            "bike_number": "AP08VD8628",
+            "spare_parts": [
+              {
+                "id": "[DYNAMIC]",
+                "name": "Brake",
+                "price": 400,
+                "quantity": 1,
+                "partNumber": "8905110006008"
+              }
+            ],
+            "service_charge": "0",
+            "total_amount": "400",
+            "status": "completed",
+            "created_at": "[DYNAMIC]",
+            "completed_at": "[TIMESTAMP]",
+            "complaint": "☑ H\n",
+            "completed_by": null,
+            "completion_notes": null,
+            "work_summary": null
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+            "customer_name": "Ananth",
+            "phone": "9398183509",
+            "bike_number": "AP08VD8628",
+            "spare_parts": [
+              {
+                "id": "[DYNAMIC]",
+                "name": "Brake",
+                "price": 400,
+                "quantity": 1,
+                "partNumber": "8905110006008"
+              }
+            ],
+            "service_charge": "400",
+            "total_amount": "400",
+            "status": "completed",
+            "created_at": "[DYNAMIC]",
+            "completed_at": "[TIMESTAMP]",
+            "complaint": "☑ Issue\n",
+            "completed_by": null,
+            "completion_notes": null,
+            "work_summary": null
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "5b522413-5f51-4bec-9614-6ccb4cbb882c",
+            "customer_name": "Customer",
+            "phone": "9398183509",
+            "bike_number": "AP09TH4546",
+            "spare_parts": [],
+            "service_charge": "0",
+            "total_amount": "0",
+            "status": "completed",
+            "created_at": "[DYNAMIC]",
+            "completed_at": "[TIMESTAMP]",
+            "complaint": "☑ Engine Oil\n☑ brake oil",
+            "completed_by": null,
+            "completion_notes": null,
+            "work_summary": null
+          },
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "customer_id": "5b522413-5f51-4bec-9614-6ccb4cbb882c",
+            "customer_name": "Customer",
+            "phone": "9398183509",
+            "bike_number": "AP09TH4546",
+            "spare_parts": [],
+            "service_charge": "0",
+            "total_amount": "0",
+            "status": "completed",
+            "created_at": "[DYNAMIC]",
+            "completed_at": "[TIMESTAMP]",
+            "complaint": "☑ Brake\n☑ oil change\n",
+            "completed_by": null,
+            "completion_notes": null,
+            "work_summary": null
+          }
+        ],
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "2644",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:15 GMT",
+          "etag": "W/\"a54-Di2PX/JODqWnVDAHS2ReMciDt/Y\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 482,
+        "data": {
+          "data": [
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+              "customer_name": "Ananth",
+              "phone": "9398183509",
+              "bike_number": "AP08VD8628",
+              "spare_parts": [],
+              "service_charge": "300",
+              "total_amount": "300",
+              "status": "completed",
+              "created_at": "[DYNAMIC]",
+              "completed_at": "[TIMESTAMP]",
+              "complaint": "☑ Check l\n☑ ",
+              "completed_by": null,
+              "completion_notes": null,
+              "work_summary": null,
+              "customer_phone": "9398183509"
+            },
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+              "customer_name": "Ananth",
+              "phone": "9398183509",
+              "bike_number": "AP08VD8628",
+              "spare_parts": [
+                {
+                  "id": "[DYNAMIC]",
+                  "name": "Brake",
+                  "price": 400,
+                  "quantity": 1,
+                  "partNumber": "8905110006008"
+                }
+              ],
+              "service_charge": "0",
+              "total_amount": "400",
+              "status": "completed",
+              "created_at": "[DYNAMIC]",
+              "completed_at": "[TIMESTAMP]",
+              "complaint": "☑ H\n",
+              "completed_by": null,
+              "completion_notes": null,
+              "work_summary": null,
+              "customer_phone": "9398183509"
+            },
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "customer_id": "b2f3d32b-b929-4823-9025-3c94a0a5aeab",
+              "customer_name": "Ananth",
+              "phone": "9398183509",
+              "bike_number": "AP08VD8628",
+              "spare_parts": [
+                {
+                  "id": "[DYNAMIC]",
+                  "name": "Brake",
+                  "price": 400,
+                  "quantity": 1,
+                  "partNumber": "8905110006008"
+                }
+              ],
+              "service_charge": "400",
+              "total_amount": "400",
+              "status": "completed",
+              "created_at": "[DYNAMIC]",
+              "completed_at": "[TIMESTAMP]",
+              "complaint": "☑ Issue\n",
+              "completed_by": null,
+              "completion_notes": null,
+              "work_summary": null,
+              "customer_phone": "9398183509"
+            },
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "customer_id": "5b522413-5f51-4bec-9614-6ccb4cbb882c",
+              "customer_name": "Customer",
+              "phone": "9398183509",
+              "bike_number": "AP09TH4546",
+              "spare_parts": [],
+              "service_charge": "0",
+              "total_amount": "0",
+              "status": "completed",
+              "created_at": "[DYNAMIC]",
+              "completed_at": "[TIMESTAMP]",
+              "complaint": "☑ Engine Oil\n☑ brake oil",
+              "completed_by": null,
+              "completion_notes": null,
+              "work_summary": null,
+              "customer_phone": "9398183509"
+            },
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "customer_id": "5b522413-5f51-4bec-9614-6ccb4cbb882c",
+              "customer_name": "Customer",
+              "phone": "9398183509",
+              "bike_number": "AP09TH4546",
+              "spare_parts": [],
+              "service_charge": "0",
+              "total_amount": "0",
+              "status": "completed",
+              "created_at": "[DYNAMIC]",
+              "completed_at": "[TIMESTAMP]",
+              "complaint": "☑ Brake\n☑ oil change\n",
+              "completed_by": null,
+              "completion_notes": null,
+              "work_summary": null,
+              "customer_phone": "9398183509"
+            }
+          ],
+          "count": 5,
+          "openCount": 0
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-encoding": "br",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:15 GMT",
+          "etag": "W/\"b0b-ZFOBPKeWl76TPtKGk4q/4Ns+u0Y\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::bld84-1756439955290-920414efc1f9"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 38
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/mfa/request",
+      "local": {
+        "status": 400,
+        "response_time": 1,
+        "data": {
+          "message": "Invalid purpose"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "29",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:15 GMT",
+          "etag": "W/\"1d-dBczJy7MwJxMHOSXpLHGh8ixwPs\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 303,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/mfa/request",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "98",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:16 GMT",
+          "etag": "W/\"62-vF7NcllkXda3KbPTAXiBnbG6d4I\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::gs955-1756439955876-e4a4d3ff3e52"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 302
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/mfa/verify",
+      "local": {
+        "status": 400,
+        "response_time": 2,
+        "data": {
+          "message": "Invalid request"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "29",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:16 GMT",
+          "etag": "W/\"1d-WOfdxRb0kq07a3iptVFw02HU+BE\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 294,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/mfa/verify",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "97",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:16 GMT",
+          "etag": "W/\"61-/6RajMLikJMpjUBTW3tlN9/51v4\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::hwfcw-1756439956282-87a2933b520b"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 292
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/password/change",
+      "local": {
+        "status": 400,
+        "response_time": 1,
+        "data": {
+          "message": "Invalid request"
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "29",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:16 GMT",
+          "etag": "W/\"1d-WOfdxRb0kq07a3iptVFw02HU+BE\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 299,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/password/change",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "102",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:16 GMT",
+          "etag": "W/\"66-ShTsXurRYGlC82KXacbNlbA51Ro\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::pbkcb-1756439956678-b61e8b3bad45"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 298
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/setup/seed-database",
+      "local": {
+        "status": 200,
+        "response_time": 223,
+        "data": {
+          "message": "Database already seeded",
+          "userCount": 3
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "51",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:17 GMT",
+          "etag": "W/\"33-Z3tO6UQ292kf0lhACll4i+hJoAk\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 288,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/setup/seed-database",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "106",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:17 GMT",
+          "etag": "W/\"6a-D/vmnjLI+tbOuGJGOA7Is0tHN9g\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::m25wn-1756439957302-3733698d7aae"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 65
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 200 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Production endpoint may be broken or missing",
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/spare-parts",
+      "local": {
+        "status": 200,
+        "response_time": 446,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "name": "Brake",
+            "part_number": "8905110006008",
+            "price": "400",
+            "quantity": 2,
+            "low_stock_threshold": 2,
+            "barcode": "8905110006008",
+            "cost_price": "200",
+            "created_at": "[DYNAMIC]",
+            "partNumber": "8905110006008",
+            "costPrice": "200",
+            "lowStockThreshold": 2,
+            "createdAt": "[TIMESTAMP]"
+          }
+        ],
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "387",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:18 GMT",
+          "etag": "W/\"183-5c7FehRdxrENMpaQJ0jxDaSbb14\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 478,
+        "data": {
+          "data": [
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "name": "Brake",
+              "part_number": "8905110006008",
+              "price": "400",
+              "quantity": 2,
+              "low_stock_threshold": 2,
+              "barcode": "8905110006008",
+              "cost_price": "200",
+              "created_at": "[DYNAMIC]",
+              "partNumber": "8905110006008",
+              "costPrice": "200",
+              "lowStockThreshold": 2,
+              "createdAt": "[TIMESTAMP]"
+            }
+          ],
+          "count": 1,
+          "lowStockCount": 1
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "424",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:18 GMT",
+          "etag": "W/\"1a8-69ZllD1AEJMEndcDN6UktHssAUU\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::m25wn-1756439958137-d11eea076b0e"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 32
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/spare-parts",
+      "local": {
+        "status": 200,
+        "response_time": 444,
+        "data": [
+          {
+            "id": "[DYNAMIC]",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "name": "Brake",
+            "part_number": "8905110006008",
+            "price": "400",
+            "quantity": 2,
+            "low_stock_threshold": 2,
+            "barcode": "8905110006008",
+            "cost_price": "200",
+            "created_at": "[DYNAMIC]",
+            "partNumber": "8905110006008",
+            "costPrice": "200",
+            "lowStockThreshold": 2,
+            "createdAt": "[TIMESTAMP]"
+          }
+        ],
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "387",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:19 GMT",
+          "etag": "W/\"183-5c7FehRdxrENMpaQJ0jxDaSbb14\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 487,
+        "data": {
+          "data": [
+            {
+              "id": "[DYNAMIC]",
+              "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+              "name": "Brake",
+              "part_number": "8905110006008",
+              "price": "400",
+              "quantity": 2,
+              "low_stock_threshold": 2,
+              "barcode": "8905110006008",
+              "cost_price": "200",
+              "created_at": "[DYNAMIC]",
+              "partNumber": "8905110006008",
+              "costPrice": "200",
+              "lowStockThreshold": 2,
+              "createdAt": "[TIMESTAMP]"
+            }
+          ],
+          "count": 1,
+          "lowStockCount": 1
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "424",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:19 GMT",
+          "etag": "W/\"1a8-69ZllD1AEJMEndcDN6UktHssAUU\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::6w7jv-1756439959161-e4f00130602f"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 43
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/super-admin/access-requests",
+      "local": {
+        "status": 403,
+        "response_time": 222,
+        "data": {
+          "message": "Access denied. Super admin access required."
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "57",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:19 GMT",
+          "etag": "W/\"39-uzb2H5GMCEGxxfFxbewmr6MfgBk\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 302,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/super-admin/access-requests",
+          "method": "GET",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "113",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:20 GMT",
+          "etag": "W/\"71-tLJZb6tXqYiV7dqFG0rC9M9HmBs\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::hwfcw-1756439959973-603a82f030a5"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 80
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 403 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/super-admin/access-requests/:requestId",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied. Super admin access required."
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "57",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:20 GMT",
+          "etag": "W/\"39-uzb2H5GMCEGxxfFxbewmr6MfgBk\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 288,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/super-admin/access-requests/test-requestId",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "129",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:20 GMT",
+          "etag": "W/\"81-GYLw5tAbtPvYRFmocAUq0tycaDY\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::gs955-1756439960599-f4b750eb6075"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 65
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 403 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/super-admin/audit-logs",
+      "local": {
+        "status": 403,
+        "response_time": 222,
+        "data": {
+          "message": "Access denied. Super admin access required."
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "57",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:21 GMT",
+          "etag": "W/\"39-uzb2H5GMCEGxxfFxbewmr6MfgBk\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 283,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/super-admin/audit-logs",
+          "method": "GET",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "108",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:21 GMT",
+          "etag": "W/\"6c-Z8EQmSo2453PGnYqR+SX3kOLAmk\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::hwzz8-1756439961210-356f76989bb1"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 61
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 403 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/super-admin/garages",
+      "local": {
+        "status": 403,
+        "response_time": 223,
+        "data": {
+          "message": "Access denied. Super admin access required."
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "57",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:21 GMT",
+          "etag": "W/\"39-uzb2H5GMCEGxxfFxbewmr6MfgBk\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 289,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/super-admin/garages",
+          "method": "GET",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "105",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:22 GMT",
+          "etag": "W/\"69-DvgrUkKP1c6rwj8PjoXQ0HprBNM\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::vhn5g-1756439961818-954cd8534a51"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 66
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 403 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/super-admin/garages/:garageId/users",
+      "local": {
+        "status": 403,
+        "response_time": 224,
+        "data": {
+          "message": "Access denied. Super admin access required."
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "57",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:22 GMT",
+          "etag": "W/\"39-uzb2H5GMCEGxxfFxbewmr6MfgBk\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 290,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/super-admin/garages/test-garage-123/users",
+          "method": "GET",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "127",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:22 GMT",
+          "etag": "W/\"7f-hzhZb/VMBJ0LkxWKOdmPB6crzZY\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::nt4c4-1756439962432-e749414b9b49"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 66
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 403 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "POST /api/super-admin/users/:userId/toggle-role",
+      "local": {
+        "status": 403,
+        "response_time": 222,
+        "data": {
+          "message": "Access denied. Super admin access required."
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "57",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:23 GMT",
+          "etag": "W/\"39-uzb2H5GMCEGxxfFxbewmr6MfgBk\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 290,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/super-admin/users/test-user-123/toggle-role",
+          "method": "POST",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "130",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:23 GMT",
+          "etag": "W/\"82-Ku7LgmpuWW/oMYdjrUO2aLS9VVE\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::hwfcw-1756439963047-11440029bd51"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 68
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 403 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/user/profile",
+      "local": {
+        "status": 200,
+        "response_time": 444,
+        "data": {
+          "user": {
+            "id": "[DYNAMIC]",
+            "email": "ananthkalyan46@gmail.com",
+            "role": "garage_admin",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "name": "Ananth Kalyan Gorla",
+            "created_at": "[DYNAMIC]",
+            "must_change_password": false,
+            "status": "active",
+            "first_login": true,
+            "garageId": "0c3bf28f-06db-40da-81a3-12984eb6cdee"
+          },
+          "garage": {
+            "id": "[DYNAMIC]",
+            "name": "GarageGuru",
+            "owner_name": "Ananth Kalyan Gorla",
+            "phone": "7288856665",
+            "email": "ananthkalyan46@gmail.com",
+            "logo": "https://res.cloudinary.com/dcueubsl8/image/upload/v1756278005/garage-logos/ijfyhltxf1jrcyrxbwnn.png",
+            "created_at": "[DYNAMIC]",
+            "ownerName": "Ananth Kalyan Gorla",
+            "createdAt": "[TIMESTAMP]"
+          }
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "735",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:23 GMT",
+          "etag": "W/\"2df-ykx35G7m4uKCIq5SHlq2kJE7vmA\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 485,
+        "data": {
+          "user": {
+            "id": "[DYNAMIC]",
+            "email": "ananthkalyan46@gmail.com",
+            "name": "Ananth Kalyan Gorla",
+            "role": "garage_admin",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "garageId": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "garage_name": "GarageGuru",
+            "mustChangePassword": false,
+            "firstLogin": true,
+            "status": "active"
+          },
+          "garage": {
+            "id": "[DYNAMIC]",
+            "name": "GarageGuru",
+            "owner_name": "Ananth Kalyan Gorla",
+            "phone": "7288856665",
+            "email": "ananthkalyan46@gmail.com",
+            "logo": "https://res.cloudinary.com/dcueubsl8/image/upload/v1756278005/garage-logos/ijfyhltxf1jrcyrxbwnn.png"
+          }
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "606",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:24 GMT",
+          "etag": "W/\"25e-A/osyQZNl9dNaSM5b34eCwPVWRo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::2d77v-1756439963883-14557631cff2"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 41
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "GET /api/user/profile",
+      "local": {
+        "status": 200,
+        "response_time": 444,
+        "data": {
+          "user": {
+            "id": "[DYNAMIC]",
+            "email": "ananthkalyan46@gmail.com",
+            "role": "garage_admin",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "name": "Ananth Kalyan Gorla",
+            "created_at": "[DYNAMIC]",
+            "must_change_password": false,
+            "status": "active",
+            "first_login": true,
+            "garageId": "0c3bf28f-06db-40da-81a3-12984eb6cdee"
+          },
+          "garage": {
+            "id": "[DYNAMIC]",
+            "name": "GarageGuru",
+            "owner_name": "Ananth Kalyan Gorla",
+            "phone": "7288856665",
+            "email": "ananthkalyan46@gmail.com",
+            "logo": "https://res.cloudinary.com/dcueubsl8/image/upload/v1756278005/garage-logos/ijfyhltxf1jrcyrxbwnn.png",
+            "created_at": "[DYNAMIC]",
+            "ownerName": "Ananth Kalyan Gorla",
+            "createdAt": "[TIMESTAMP]"
+          }
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "735",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:24 GMT",
+          "etag": "W/\"2df-ykx35G7m4uKCIq5SHlq2kJE7vmA\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 200,
+        "response_time": 494,
+        "data": {
+          "user": {
+            "id": "[DYNAMIC]",
+            "email": "ananthkalyan46@gmail.com",
+            "name": "Ananth Kalyan Gorla",
+            "role": "garage_admin",
+            "garage_id": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "garageId": "0c3bf28f-06db-40da-81a3-12984eb6cdee",
+            "garage_name": "GarageGuru",
+            "mustChangePassword": false,
+            "firstLogin": true,
+            "status": "active"
+          },
+          "garage": {
+            "id": "[DYNAMIC]",
+            "name": "GarageGuru",
+            "owner_name": "Ananth Kalyan Gorla",
+            "phone": "7288856665",
+            "email": "ananthkalyan46@gmail.com",
+            "logo": "https://res.cloudinary.com/dcueubsl8/image/upload/v1756278005/garage-logos/ijfyhltxf1jrcyrxbwnn.png"
+          }
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "606",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:25 GMT",
+          "etag": "W/\"25e-A/osyQZNl9dNaSM5b34eCwPVWRo\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "BYPASS",
+          "x-vercel-id": "pdx1::iad1::pbkcb-1756439964915-366398bd0819"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": true,
+        "schema_match": false,
+        "latency_difference": 50
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    },
+    {
+      "endpoint": "PATCH /api/users/:id/status",
+      "local": {
+        "status": 400,
+        "response_time": 223,
+        "data": {
+          "message": "Invalid status. Must be \"active\" or \"suspended\""
+        },
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "connection": "keep-alive",
+          "content-length": "65",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:25 GMT",
+          "etag": "W/\"41-eOMAFPtzKOFatxKW0ujTav/Yt7c\"",
+          "keep-alive": "timeout=5",
+          "vary": "Origin",
+          "x-powered-by": "Express"
+        },
+        "environment": "local"
+      },
+      "prod": {
+        "status": 404,
+        "response_time": 295,
+        "data": {
+          "error": "NOT_FOUND",
+          "path": "/api/users/test-id-123/status",
+          "method": "PATCH",
+          "message": "API endpoint not found"
+        },
+        "headers": {
+          "access-control-allow-headers": "Content-Type, Authorization",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "content-length": "112",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Fri, 29 Aug 2025 03:59:25 GMT",
+          "etag": "W/\"70-1ONFEi5OxwdNl6oULwZqaVyEvlA\"",
+          "server": "Vercel",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "pdx1::iad1::6w7jv-1756439965733-8379a7ca0795"
+        },
+        "environment": "prod"
+      },
+      "comparison": {
+        "status_match": false,
+        "schema_match": false,
+        "latency_difference": 72
+      },
+      "analysis": {
+        "status": "failed",
+        "issues": [
+          "Status code mismatch: Local 400 vs Prod 404",
+          "Response schema differs between environments"
+        ],
+        "recommendations": [
+          "Check for API version differences or missing migrations"
+        ]
+      }
+    }
+  ]
+}
