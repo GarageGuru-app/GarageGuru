@@ -1,39 +1,22 @@
 import { Pool } from 'pg';
 
-// Use Neon database environment variables if available, otherwise fall back to connection string
-let config;
+// Use Supabase database URL as it was working before
+// Priority: SUPABASE_DATABASE_URL first (pooler), then DATABASE_URL as fallback  
+const databaseUrl = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
 
-if (process.env.PGHOST && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE) {
-  // Use individual connection parameters (Neon/Replit setup)
-  config = {
-    host: process.env.PGHOST,
-    port: parseInt(process.env.PGPORT || '5432'),
-    user: process.env.PGUSER,
-    password: process.env.PGPASSWORD,
-    database: process.env.PGDATABASE,
-    ssl: { rejectUnauthorized: false },
-    connectionTimeoutMillis: 30000,
-    idleTimeoutMillis: 30000,
-    max: 20
-  };
-} else {
-  // Fall back to connection string
-  const databaseUrl = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
-  
-  if (!databaseUrl) {
-    throw new Error("Either PGHOST/PGUSER/PGPASSWORD/PGDATABASE or DATABASE_URL/SUPABASE_DATABASE_URL must be set.");
-  }
-
-  config = {
-    connectionString: databaseUrl,
-    ssl: { rejectUnauthorized: false },
-    connectionTimeoutMillis: 30000,
-    idleTimeoutMillis: 30000,
-    max: 20
-  };
+if (!databaseUrl) {
+  throw new Error("SUPABASE_DATABASE_URL or DATABASE_URL must be set.");
 }
 
-export const pool = new Pool(config);
+console.log('🔗 Using database URL:', databaseUrl.split('@')[0] + '@[hidden]');
+
+export const pool = new Pool({ 
+  connectionString: databaseUrl,
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 30000,
+  idleTimeoutMillis: 30000,
+  max: 20
+});
 
 // Test connection
 pool.on('connect', () => {

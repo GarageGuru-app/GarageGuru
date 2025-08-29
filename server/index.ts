@@ -61,7 +61,10 @@ app.use((req, res, next) => {
 async function initializeApp() {
   // Run database migrations on startup
   try {
+    console.log('🔗 Testing database connection...');
     await runMigrations();
+    console.log('✅ Database connected and migrated successfully');
+    
     await createSuperAdmin();
     
     // Sync customer visit counts for all garages on startup
@@ -71,8 +74,15 @@ async function initializeApp() {
       console.log(`✅ Synced visit counts for garage: ${garage.name}`);
     }
   } catch (error) {
-    console.error('Failed to initialize database:', error);
-    if (!process.env.VERCEL) {
+    console.error('❌ Failed to initialize database:', error);
+    console.log('⚠️  Starting server without database connection...');
+    console.log('   Database operations will fail until connection is restored.');
+    
+    // In development, continue running even if database fails
+    // This allows debugging and fixing the database connection
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🚧 Development mode: Server will start despite database issues');
+    } else if (!process.env.VERCEL) {
       process.exit(1);
     }
   }

@@ -1018,10 +1018,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       const mappedData = {
         ...partData,
         garage_id: garageId,
-        part_number: partData.partNumber,
-        price: parseFloat(partData.price),
-        cost_price: parseFloat(partData.costPrice || "0"),
-        low_stock_threshold: partData.lowStockThreshold || 2
+        part_number: partData.part_number,
+        price: parseFloat(partData.price.toString()),
+        cost_price: parseFloat((partData.cost_price || 0).toString()),
+        low_stock_threshold: partData.low_stock_threshold || 2
       };
       console.log('Creating spare part with garageId:', garageId, 'Data:', mappedData);
       
@@ -1049,10 +1049,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       // Map frontend camelCase fields to database snake_case fields and convert types
       const mappedData = {
         ...updateData,
-        part_number: updateData.partNumber,
-        price: updateData.price ? parseFloat(updateData.price) : undefined,
-        cost_price: updateData.costPrice ? parseFloat(updateData.costPrice) : undefined,
-        low_stock_threshold: updateData.lowStockThreshold ?? undefined
+        part_number: updateData.part_number,
+        price: updateData.price ? parseFloat(updateData.price.toString()) : undefined,
+        cost_price: updateData.cost_price ? parseFloat(updateData.cost_price.toString()) : undefined,
+        low_stock_threshold: updateData.low_stock_threshold ?? undefined
       };
       
       const sparePart = await storage.updateSparePart(id, mappedData);
@@ -1125,22 +1125,22 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       // Create or find customer  
       let customer = await storage.getCustomers(garageId).then(customers => 
-        customers.find(c => c.phone === jobCardData.phone && c.bike_number === jobCardData.bikeNumber)
+        customers.find(c => c.phone === jobCardData.phone && c.bike_number === jobCardData.bike_number)
       );
       
       if (!customer) {
         customer = await storage.createCustomer({
           garage_id: garageId,
-          name: jobCardData.customerName,
+          name: jobCardData.customer_name,
           phone: jobCardData.phone,
-          bike_number: jobCardData.bikeNumber
+          bike_number: jobCardData.bike_number
         });
       }
       
       const jobCard = await storage.createJobCard({
         ...jobCardData,
         customerId: customer.id,
-        spare_parts: (jobCardData.spareParts || []) as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>
+        spare_parts: (jobCardData.spare_parts || []) as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>
       } as any);
       
       // Update spare parts quantities
@@ -1169,7 +1169,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       const jobCard = await storage.updateJobCard(id, {
         ...updateData,
-        spare_parts: updateData.spareParts?.map((part: any) => ({
+        spare_parts: updateData.spare_parts?.map((part: any) => ({
           id: part.id,
           partNumber: part.partNumber,
           name: part.name,
@@ -1200,7 +1200,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const invoiceData = insertInvoiceSchema.parse({ ...req.body, garageId });
       
       // Check if invoice already exists for this job card
-      const existingInvoice = await storage.getInvoiceByJobCardId(invoiceData.jobCardId);
+      const existingInvoice = invoiceData.job_card_id ? await storage.getInvoiceByJobCardId(invoiceData.job_card_id) : null;
       if (existingInvoice) {
         return res.status(400).json({ 
           message: 'Invoice already exists for this job card',
@@ -1221,7 +1221,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         completedAt: new Date(),
         completed_by: currentUser?.id,
         completion_notes: req.body.completionNotes || null,
-        work_summary: req.body.workSummary || `Service completed - Invoice ${invoiceData.invoiceNumber} generated`
+        work_summary: req.body.workSummary || `Service completed - Invoice ${invoiceData.invoice_number} generated`
       };
       
       const jobCard = await storage.updateJobCard(invoice.job_card_id!, completionData);
