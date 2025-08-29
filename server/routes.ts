@@ -25,10 +25,10 @@ const insertGarageSchema = z.object({
 });
 
 const insertCustomerSchema = z.object({
-  garage_id: z.string(),
+  garageId: z.string(),
   name: z.string(),
   phone: z.string().optional(),
-  bike_number: z.string().optional(),
+  bikeNumber: z.string().optional(),
   notes: z.string().optional()
 });
 
@@ -913,11 +913,11 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       const customerData = insertCustomerSchema.parse({ ...req.body, garageId });
       
-      // Map frontend camelCase fields to database snake_case fields
+      // Map frontend camelCase fields to database snake_case fields  
       const mappedData = {
         ...customerData,
         garage_id: garageId,
-        bike_number: customerData.bike_number
+        bike_number: customerData.bikeNumber
       };
       
       const customer = await storage.createCustomer(mappedData);
