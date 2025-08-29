@@ -351,7 +351,14 @@ export class DatabaseStorage implements IStorage {
       'SELECT * FROM customers WHERE garage_id = $1 AND (name ILIKE $2 OR phone ILIKE $2 OR bike_number ILIKE $2)',
       [garageId, `%${query}%`]
     );
-    return result.rows;
+    return result.rows.map(customer => ({
+      ...customer,
+      bikeNumber: customer.bike_number,
+      totalJobs: customer.total_jobs,
+      totalSpent: customer.total_spent,
+      lastVisit: customer.last_visit,
+      createdAt: customer.created_at
+    }));
   }
 
   async createCustomer(customer: Partial<Customer>): Promise<Customer> {

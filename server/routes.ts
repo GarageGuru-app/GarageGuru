@@ -36,11 +36,11 @@ const insertSparePartSchema = z.object({
   garageId: z.string(),
   name: z.string(),
   partNumber: z.string().optional(),
-  price: z.number(),
-  quantity: z.number().optional(),
-  lowStockThreshold: z.number().optional(),
+  price: z.union([z.number(), z.string().transform(Number)]),
+  quantity: z.union([z.number(), z.string().transform(Number)]).optional(),
+  lowStockThreshold: z.union([z.number(), z.string().transform(Number)]).optional(),
   barcode: z.string().optional(),
-  costPrice: z.number().optional()
+  costPrice: z.union([z.number(), z.string().transform(Number)]).optional()
 });
 
 const insertJobCardSchema = z.object({
@@ -50,8 +50,8 @@ const insertJobCardSchema = z.object({
   phone: z.string().optional(),
   bikeNumber: z.string().optional(),
   complaint: z.string(),
-  serviceCharge: z.number().optional(),
-  totalAmount: z.number().optional(),
+  serviceCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
+  totalAmount: z.union([z.number(), z.string().transform(Number)]).optional(),
   spareParts: z.array(z.any()).optional()
 });
 
