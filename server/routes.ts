@@ -12,13 +12,13 @@ const insertUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   role: z.string(),
-  garage_id: z.string().optional(),
+  garageId: z.string().optional(),
   name: z.string().optional()
 });
 
 const insertGarageSchema = z.object({
   name: z.string(),
-  owner_name: z.string(),
+  ownerName: z.string(),
   phone: z.string().optional(),
   email: z.string().email().optional(),
   logo: z.string().optional()
@@ -33,36 +33,36 @@ const insertCustomerSchema = z.object({
 });
 
 const insertSparePartSchema = z.object({
-  garage_id: z.string(),
+  garageId: z.string(),
   name: z.string(),
-  part_number: z.string().optional(),
+  partNumber: z.string().optional(),
   price: z.number(),
   quantity: z.number().optional(),
-  low_stock_threshold: z.number().optional(),
+  lowStockThreshold: z.number().optional(),
   barcode: z.string().optional(),
-  cost_price: z.number().optional()
+  costPrice: z.number().optional()
 });
 
 const insertJobCardSchema = z.object({
-  garage_id: z.string(),
-  customer_id: z.string().optional(),
-  customer_name: z.string(),
+  garageId: z.string(),
+  customerId: z.string().optional(),
+  customerName: z.string(),
   phone: z.string().optional(),
-  bike_number: z.string().optional(),
+  bikeNumber: z.string().optional(),
   complaint: z.string(),
-  service_charge: z.number().optional(),
-  total_amount: z.number().optional(),
-  spare_parts: z.array(z.any()).optional()
+  serviceCharge: z.number().optional(),
+  totalAmount: z.number().optional(),
+  spareParts: z.array(z.any()).optional()
 });
 
 const insertInvoiceSchema = z.object({
-  garage_id: z.string(),
-  job_card_id: z.string().optional(),
-  customer_id: z.string().optional(),
-  invoice_number: z.string(),
-  service_charge: z.number().optional(),
-  parts_total: z.number().optional(),
-  total_amount: z.number()
+  garageId: z.string(),
+  jobCardId: z.string().optional(),
+  customerId: z.string().optional(),
+  invoiceNumber: z.string(),
+  serviceCharge: z.number().optional(),
+  partsTotal: z.number().optional(),
+  totalAmount: z.number()
 });
 
 import { GmailEmailService } from "./gmailEmailService";
@@ -1025,10 +1025,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       const mappedData = {
         ...partData,
         garage_id: garageId,
-        part_number: partData.part_number,
+        part_number: partData.partNumber,
         price: parseFloat(partData.price.toString()),
-        cost_price: parseFloat((partData.cost_price || 0).toString()),
-        low_stock_threshold: partData.low_stock_threshold || 2
+        cost_price: parseFloat((partData.costPrice || 0).toString()),
+        low_stock_threshold: partData.lowStockThreshold || 2
       };
       console.log('Creating spare part with garageId:', garageId, 'Data:', mappedData);
       
@@ -1056,10 +1056,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       // Map frontend camelCase fields to database snake_case fields and convert types
       const mappedData = {
         ...updateData,
-        part_number: updateData.part_number,
+        part_number: updateData.partNumber,
         price: updateData.price ? parseFloat(updateData.price.toString()) : undefined,
-        cost_price: updateData.cost_price ? parseFloat(updateData.cost_price.toString()) : undefined,
-        low_stock_threshold: updateData.low_stock_threshold ?? undefined
+        cost_price: updateData.costPrice ? parseFloat(updateData.costPrice.toString()) : undefined,
+        low_stock_threshold: updateData.lowStockThreshold ?? undefined
       };
       
       const sparePart = await storage.updateSparePart(id, mappedData);
@@ -1132,22 +1132,22 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       // Create or find customer  
       let customer = await storage.getCustomers(garageId).then(customers => 
-        customers.find(c => c.phone === jobCardData.phone && c.bike_number === jobCardData.bike_number)
+        customers.find(c => c.phone === jobCardData.phone && c.bike_number === jobCardData.bikeNumber)
       );
       
       if (!customer) {
         customer = await storage.createCustomer({
           garage_id: garageId,
-          name: jobCardData.customer_name,
+          name: jobCardData.customerName,
           phone: jobCardData.phone,
-          bike_number: jobCardData.bike_number
+          bike_number: jobCardData.bikeNumber
         });
       }
       
       const jobCard = await storage.createJobCard({
         ...jobCardData,
         customerId: customer.id,
-        spare_parts: (jobCardData.spare_parts || []) as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>
+        spare_parts: (jobCardData.spareParts || []) as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>
       } as any);
       
       // Update spare parts quantities
@@ -1176,7 +1176,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       const jobCard = await storage.updateJobCard(id, {
         ...updateData,
-        spare_parts: updateData.spare_parts?.map((part: any) => ({
+        spare_parts: updateData.spareParts?.map((part: any) => ({
           id: part.id,
           partNumber: part.partNumber,
           name: part.name,
@@ -1207,7 +1207,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const invoiceData = insertInvoiceSchema.parse({ ...req.body, garageId });
       
       // Check if invoice already exists for this job card
-      const existingInvoice = invoiceData.job_card_id ? await storage.getInvoiceByJobCardId(invoiceData.job_card_id) : null;
+      const existingInvoice = invoiceData.jobCardId ? await storage.getInvoiceByJobCardId(invoiceData.jobCardId) : null;
       if (existingInvoice) {
         return res.status(400).json({ 
           message: 'Invoice already exists for this job card',
@@ -1228,7 +1228,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         completedAt: new Date(),
         completed_by: currentUser?.id,
         completion_notes: req.body.completionNotes || null,
-        work_summary: req.body.workSummary || `Service completed - Invoice ${invoiceData.invoice_number} generated`
+        work_summary: req.body.workSummary || `Service completed - Invoice ${invoiceData.invoiceNumber} generated`
       };
       
       const jobCard = await storage.updateJobCard(invoice.job_card_id!, completionData);
