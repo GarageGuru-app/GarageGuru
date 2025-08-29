@@ -4,7 +4,8 @@
   "framework": null,
   "functions": {
     "api/index.js": {
-      "maxDuration": 15
+      "maxDuration": 30,
+      "memory": 1024
     }
   },
   "rewrites": [
@@ -16,5 +17,8 @@
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
