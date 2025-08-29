@@ -1146,7 +1146,12 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       const jobCard = await storage.createJobCard({
         ...jobCardData,
-        customerId: customer.id,
+        garage_id: garageId,
+        customer_id: customer.id,
+        customer_name: jobCardData.customerName,
+        bike_number: jobCardData.bikeNumber,
+        service_charge: jobCardData.serviceCharge,
+        total_amount: jobCardData.totalAmount,
         spare_parts: (jobCardData.spareParts || []) as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>
       } as any);
       
