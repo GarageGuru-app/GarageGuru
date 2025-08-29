@@ -1,0 +1,155 @@
+2025-08-29T18:08:36.656481154Z 12 vulnerabilities (3 low, 8 moderate, 1 high)
+2025-08-29T18:08:36.656484594Z 
+2025-08-29T18:08:36.656488374Z To address issues that do not require attention, run:
+2025-08-29T18:08:36.656491224Z   npm audit fix
+2025-08-29T18:08:36.656494084Z 
+2025-08-29T18:08:36.656496864Z To address all issues (including breaking changes), run:
+2025-08-29T18:08:36.656500864Z   npm audit fix --force
+2025-08-29T18:08:36.656503524Z 
+2025-08-29T18:08:36.656506564Z Run `npm audit` for details.
+2025-08-29T18:08:36.830405526Z 
+2025-08-29T18:08:36.830429736Z > rest-express@1.0.0 build
+2025-08-29T18:08:36.830434547Z > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist --minify
+2025-08-29T18:08:36.830441697Z 
+2025-08-29T18:08:37.028650864Z vite v5.4.19 building for production...
+2025-08-29T18:08:37.076601019Z transforming...
+2025-08-29T18:08:37.326106743Z Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+2025-08-29T18:08:37.326126784Z   npx update-browserslist-db@latest
+2025-08-29T18:08:37.326131734Z   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+2025-08-29T18:08:44.44229256Z ✓ 2657 modules transformed.
+2025-08-29T18:08:44.774281816Z rendering chunks...
+2025-08-29T18:08:45.243018223Z computing gzip size...
+2025-08-29T18:08:45.279566628Z ../dist/public/index.html                                    0.62 kB │ gzip:   0.39 kB
+2025-08-29T18:08:45.279602839Z ../dist/public/assets/index-BkENBDCA.css                    83.66 kB │ gzip:  14.43 kB
+2025-08-29T18:08:45.279805164Z ../dist/public/assets/qr-scanner.min-4rsmN4tb.js            15.77 kB │ gzip:   5.61 kB
+2025-08-29T18:08:45.279942938Z ../dist/public/assets/purify.es-BFmuJLeH.js                 21.93 kB │ gzip:   8.62 kB
+2025-08-29T18:08:45.280005769Z ../dist/public/assets/qr-scanner-worker.min-D85Z9gVD.js     43.95 kB │ gzip:  10.46 kB
+2025-08-29T18:08:45.280013289Z ../dist/public/assets/index.es-m-97lF1p.js                 150.53 kB │ gzip:  51.48 kB
+2025-08-29T18:08:45.280055411Z ../dist/public/assets/html2canvas.esm-CBrSDip1.js          201.42 kB │ gzip:  48.03 kB
+2025-08-29T18:08:45.280092031Z ../dist/public/assets/index-CZqkIVjw.js                  1,497.83 kB │ gzip: 427.88 kB
+2025-08-29T18:08:45.280207014Z 
+2025-08-29T18:08:45.280223064Z (!) Some chunks are larger than 500 kB after minification. Consider:
+2025-08-29T18:08:45.280246395Z - Using dynamic import() to code-split the application
+2025-08-29T18:08:45.280250955Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-08-29T18:08:45.280253885Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-08-29T18:08:45.280546792Z ✓ built in 8.23s
+2025-08-29T18:08:45.385339151Z 
+2025-08-29T18:08:45.385364651Z   dist/index.js  108.7kb
+2025-08-29T18:08:45.385367431Z 
+2025-08-29T18:08:45.385370221Z ⚡ Done in 10ms
+2025-08-29T18:08:47.269217196Z ==> Uploading build...
+2025-08-29T18:09:05.48594261Z ==> Uploaded in 12.0s. Compression took 6.2s
+2025-08-29T18:09:05.578612381Z ==> Build successful 🎉
+2025-08-29T18:09:18.718065939Z ==> Deploying...
+2025-08-29T18:09:49.882010897Z ==> Running 'npm start'
+2025-08-29T18:09:50.974829966Z 
+2025-08-29T18:09:50.974853866Z > rest-express@1.0.0 start
+2025-08-29T18:09:50.974859397Z > NODE_ENV=production node dist/index.js
+2025-08-29T18:09:50.974862227Z 
+2025-08-29T18:09:58.184971165Z 📧 Gmail SMTP configured successfully
+2025-08-29T18:09:58.187808961Z 🔄 Running database migrations...
+2025-08-29T18:09:58.776215932Z ❌ Migration failed: error: password authentication failed for user "postgres"
+2025-08-29T18:09:58.776263244Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-08-29T18:09:58.776270444Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-29T18:09:58.776275194Z     at async Ae (file:///opt/render/project/src/dist/index.js:574:4195)
+2025-08-29T18:09:58.776279544Z     at async ze (file:///opt/render/project/src/dist/index.js:721:859)
+2025-08-29T18:09:58.776283714Z     at async file:///opt/render/project/src/dist/index.js:721:1304 {
+2025-08-29T18:09:58.776288184Z   length: 78,
+2025-08-29T18:09:58.776292375Z   severity: 'FATAL',
+2025-08-29T18:09:58.776296535Z   code: '28P01',
+2025-08-29T18:09:58.776300975Z   detail: undefined,
+2025-08-29T18:09:58.776305055Z   hint: undefined,
+2025-08-29T18:09:58.776309275Z   position: undefined,
+2025-08-29T18:09:58.776313555Z   internalPosition: undefined,
+2025-08-29T18:09:58.776317445Z   internalQuery: undefined,
+2025-08-29T18:09:58.776321825Z   where: undefined,
+2025-08-29T18:09:58.776326215Z   schema: undefined,
+2025-08-29T18:09:58.776330345Z   table: undefined,
+2025-08-29T18:09:58.776334696Z   column: undefined,
+2025-08-29T18:09:58.776339106Z   dataType: undefined,
+2025-08-29T18:09:58.776343426Z   constraint: undefined,
+2025-08-29T18:09:58.776347976Z   file: undefined,
+2025-08-29T18:09:58.776352776Z   line: undefined,
+2025-08-29T18:09:58.776357256Z   routine: undefined
+2025-08-29T18:09:58.776361546Z }
+2025-08-29T18:09:58.776542931Z Failed to initialize database: error: password authentication failed for user "postgres"
+2025-08-29T18:09:58.776554891Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-08-29T18:09:58.776559242Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-29T18:09:58.776562872Z     at async Ae (file:///opt/render/project/src/dist/index.js:574:4195)
+2025-08-29T18:09:58.776566512Z     at async ze (file:///opt/render/project/src/dist/index.js:721:859)
+2025-08-29T18:09:58.776570102Z     at async file:///opt/render/project/src/dist/index.js:721:1304 {
+2025-08-29T18:09:58.776591812Z   length: 78,
+2025-08-29T18:09:58.776598752Z   severity: 'FATAL',
+2025-08-29T18:09:58.776604253Z   code: '28P01',
+2025-08-29T18:09:58.776610193Z   detail: undefined,
+2025-08-29T18:09:58.776615843Z   hint: undefined,
+2025-08-29T18:09:58.776621133Z   position: undefined,
+2025-08-29T18:09:58.776626623Z   internalPosition: undefined,
+2025-08-29T18:09:58.776632053Z   internalQuery: undefined,
+2025-08-29T18:09:58.776637204Z   where: undefined,
+2025-08-29T18:09:58.776642544Z   schema: undefined,
+2025-08-29T18:09:58.776647724Z   table: undefined,
+2025-08-29T18:09:58.776652944Z   column: undefined,
+2025-08-29T18:09:58.776657894Z   dataType: undefined,
+2025-08-29T18:09:58.776663004Z   constraint: undefined,
+2025-08-29T18:09:58.776667844Z   file: undefined,
+2025-08-29T18:09:58.776672825Z   line: undefined,
+2025-08-29T18:09:58.776677655Z   routine: undefined
+2025-08-29T18:09:58.776682965Z }
+2025-08-29T18:10:01.574162262Z ==> Exited with status 1
+2025-08-29T18:10:01.734316755Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-08-29T18:10:06.355719976Z ==> Running 'npm start'
+2025-08-29T18:10:07.45625479Z 
+2025-08-29T18:10:07.456277771Z > rest-express@1.0.0 start
+2025-08-29T18:10:07.456284181Z > NODE_ENV=production node dist/index.js
+2025-08-29T18:10:07.456287051Z 
+2025-08-29T18:10:14.744480216Z 📧 Gmail SMTP configured successfully
+2025-08-29T18:10:14.751291637Z 🔄 Running database migrations...
+2025-08-29T18:10:15.451844812Z ❌ Migration failed: error: password authentication failed for user "postgres"
+2025-08-29T18:10:15.451864793Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-08-29T18:10:15.451869273Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-29T18:10:15.451873213Z     at async Ae (file:///opt/render/project/src/dist/index.js:574:4195)
+2025-08-29T18:10:15.451876953Z     at async ze (file:///opt/render/project/src/dist/index.js:721:859)
+2025-08-29T18:10:15.451880853Z     at async file:///opt/render/project/src/dist/index.js:721:1304 {
+2025-08-29T18:10:15.451904304Z   length: 78,
+2025-08-29T18:10:15.451909554Z   severity: 'FATAL',
+2025-08-29T18:10:15.451913594Z   code: '28P01',
+2025-08-29T18:10:15.451917634Z   detail: undefined,
+2025-08-29T18:10:15.451921564Z   hint: undefined,
+2025-08-29T18:10:15.451925104Z   position: undefined,
+2025-08-29T18:10:15.451929074Z   internalPosition: undefined,
+2025-08-29T18:10:15.451932554Z   internalQuery: undefined,
+2025-08-29T18:10:15.451936165Z   where: undefined,
+2025-08-29T18:10:15.451939745Z   schema: undefined,
+2025-08-29T18:10:15.451943105Z   table: undefined,
+2025-08-29T18:10:15.451946625Z   column: undefined,
+2025-08-29T18:10:15.451950095Z   dataType: undefined,
+2025-08-29T18:10:15.451953875Z   constraint: undefined,
+2025-08-29T18:10:15.451957625Z   file: undefined,
+2025-08-29T18:10:15.451961315Z   line: undefined,
+2025-08-29T18:10:15.451965235Z   routine: undefined
+2025-08-29T18:10:15.451969406Z }
+2025-08-29T18:10:15.452165271Z Failed to initialize database: error: password authentication failed for user "postgres"
+2025-08-29T18:10:15.452179111Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-08-29T18:10:15.452182551Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-29T18:10:15.452185521Z     at async Ae (file:///opt/render/project/src/dist/index.js:574:4195)
+2025-08-29T18:10:15.452188361Z     at async ze (file:///opt/render/project/src/dist/index.js:721:859)
+2025-08-29T18:10:15.452192941Z     at async file:///opt/render/project/src/dist/index.js:721:1304 {
+2025-08-29T18:10:15.452195912Z   length: 78,
+2025-08-29T18:10:15.452198792Z   severity: 'FATAL',
+2025-08-29T18:10:15.452201561Z   code: '28P01',
+2025-08-29T18:10:15.452204312Z   detail: undefined,
+2025-08-29T18:10:15.452207042Z   hint: undefined,
+2025-08-29T18:10:15.452209812Z   position: undefined,
+2025-08-29T18:10:15.452212572Z   internalPosition: undefined,
+2025-08-29T18:10:15.452215292Z   internalQuery: undefined,
+2025-08-29T18:10:15.452218102Z   where: undefined,
+2025-08-29T18:10:15.452220832Z   schema: undefined,
+2025-08-29T18:10:15.452223582Z   table: undefined,
+2025-08-29T18:10:15.452249683Z   column: undefined,
+2025-08-29T18:10:15.452256493Z   dataType: undefined,
+2025-08-29T18:10:15.452260813Z   constraint: undefined,
+2025-08-29T18:10:15.452265093Z   file: undefined,
+2025-08-29T18:10:15.452269503Z   line: undefined,
+2025-08-29T18:10:15.452273054Z   routine: undefined
+2025-08-29T18:10:15.452275854Z }
