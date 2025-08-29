@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
@@ -22,6 +22,14 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+
+  // Clear any stale auth tokens on component mount
+  React.useEffect(() => {
+    if (localStorage.getItem('auth-token')) {
+      console.log('🧹 Clearing potentially stale auth token on login page load');
+      localStorage.removeItem('auth-token');
+    }
+  }, []);
 
   // Super admin emails
   const SUPER_ADMIN_EMAILS = [

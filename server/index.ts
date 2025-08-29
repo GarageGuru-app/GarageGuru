@@ -8,21 +8,39 @@ import { storage } from "./storage";
 
 const app = express();
 
-// Add CORS configuration
+// Add CORS configuration - Fix browser fetch issues
 app.use(cors({
-  origin: [
-    "http://localhost:5000", 
-    "http://localhost:3000", 
-    "http://127.0.0.1:5000",
-    // Replit domains
-    /^https:\/\/.*\.replit\.app$/,
-    /^https:\/\/.*\.replit\.dev$/,
-    // Allow any origin in development
-    ...(process.env.NODE_ENV === 'development' ? [true] : [])
-  ],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    
+    // Development - allow all origins
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // Production allowed origins
+    const allowedOrigins = [
+      "http://localhost:5000", 
+      "http://localhost:3000", 
+      "http://127.0.0.1:5000",
+      /^https:\/\/.*\.replit\.app$/,
+      /^https:\/\/.*\.replit\.dev$/,
+      /^https:\/\/.*\.onrender\.com$/
+    ];
+    
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') return allowed === origin;
+      return allowed.test(origin);
+    });
+    
+    callback(null, isAllowed);
+  },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+  preflightContinue: false,
+  optionsSuccessStatus: 200
 }));
 
 app.use(express.json());

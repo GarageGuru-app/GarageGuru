@@ -24,10 +24,9 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// API base URL - use relative paths since frontend and backend are served together
-// In development, ensure we use the correct localhost URL
+// API base URL - fix fetch issues by using relative paths in development
 const API_BASE_URL = import.meta.env.VITE_API_URL || (
-  import.meta.env.DEV ? 'http://localhost:5000' : ''
+  import.meta.env.DEV ? '' : ''  // Use relative paths to avoid CORS issues
 );
 
 console.log('🔧 API Configuration:', {
