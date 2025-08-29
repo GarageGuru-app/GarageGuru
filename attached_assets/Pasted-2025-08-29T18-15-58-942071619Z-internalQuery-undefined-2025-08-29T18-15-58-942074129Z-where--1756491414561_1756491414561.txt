@@ -1,0 +1,100 @@
+2025-08-29T18:15:58.942071619Z   internalQuery: undefined,
+2025-08-29T18:15:58.942074129Z   where: undefined,
+2025-08-29T18:15:58.942076469Z   schema: undefined,
+2025-08-29T18:15:58.942079129Z   table: undefined,
+2025-08-29T18:15:58.942081539Z   column: undefined,
+2025-08-29T18:15:58.942083939Z   dataType: undefined,
+2025-08-29T18:15:58.94208633Z   constraint: undefined,
+2025-08-29T18:15:58.942088839Z   file: undefined,
+2025-08-29T18:15:58.94209107Z   line: undefined,
+2025-08-29T18:15:58.942093139Z   routine: undefined
+2025-08-29T18:15:58.94209515Z }
+2025-08-29T18:15:58.94209743Z Failed to initialize database: error: password authentication failed for user "postgres"
+2025-08-29T18:15:58.94209979Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-08-29T18:15:58.94210214Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-29T18:15:58.94210454Z     at async Ae (file:///opt/render/project/src/dist/index.js:574:4195)
+2025-08-29T18:15:58.94210696Z     at async ze (file:///opt/render/project/src/dist/index.js:721:859)
+2025-08-29T18:15:58.94210958Z     at async file:///opt/render/project/src/dist/index.js:721:1304 {
+2025-08-29T18:15:58.94211219Z   length: 78,
+2025-08-29T18:15:58.94211464Z   severity: 'FATAL',
+2025-08-29T18:15:58.94211699Z   code: '28P01',
+2025-08-29T18:15:58.94211955Z   detail: undefined,
+2025-08-29T18:15:58.94212203Z   hint: undefined,
+2025-08-29T18:15:58.94212436Z   position: undefined,
+2025-08-29T18:15:58.94212648Z   internalPosition: undefined,
+2025-08-29T18:15:58.942128551Z   internalQuery: undefined,
+2025-08-29T18:15:58.94213076Z   where: undefined,
+2025-08-29T18:15:58.94213294Z   schema: undefined,
+2025-08-29T18:15:58.942135151Z   table: undefined,
+2025-08-29T18:15:58.942137411Z   column: undefined,
+2025-08-29T18:15:58.942139651Z   dataType: undefined,
+2025-08-29T18:15:58.942141891Z   constraint: undefined,
+2025-08-29T18:15:58.942143951Z   file: undefined,
+2025-08-29T18:15:58.942146401Z   line: undefined,
+2025-08-29T18:15:58.942148971Z   routine: undefined
+2025-08-29T18:15:58.942151261Z }
+2025-08-29T18:16:00.11850086Z ==> Exited with status 1
+2025-08-29T18:16:00.282240042Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-08-29T18:16:04.769849836Z ==> Running 'npm start'
+2025-08-29T18:16:05.674166438Z 
+2025-08-29T18:16:05.674195528Z > rest-express@1.0.0 start
+2025-08-29T18:16:05.674200319Z > NODE_ENV=production node dist/index.js
+2025-08-29T18:16:05.674202899Z 
+2025-08-29T18:16:12.363797333Z 📧 Gmail SMTP configured successfully
+2025-08-29T18:16:12.455207665Z 🔄 Running database migrations...
+2025-08-29T18:16:12.720316066Z ❌ Migration failed: AggregateError [ECONNREFUSED]: 
+2025-08-29T18:16:12.720339587Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-08-29T18:16:12.720343597Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-29T18:16:12.720346617Z     at async Ae (file:///opt/render/project/src/dist/index.js:574:4195)
+2025-08-29T18:16:12.720349767Z     at async ze (file:///opt/render/project/src/dist/index.js:721:859)
+2025-08-29T18:16:12.720352527Z     at async file:///opt/render/project/src/dist/index.js:721:1304 {
+2025-08-29T18:16:12.720355487Z   code: 'ECONNREFUSED',
+2025-08-29T18:16:12.720358417Z   [errors]: [
+2025-08-29T18:16:12.720361427Z     Error: connect ECONNREFUSED 3.111.225.200:6543
+2025-08-29T18:16:12.720364278Z         at createConnectionError (node:net:1677:14)
+2025-08-29T18:16:12.720367207Z         at afterConnectMultiple (node:net:1707:16) {
+2025-08-29T18:16:12.720370028Z       errno: -111,
+2025-08-29T18:16:12.720373238Z       code: 'ECONNREFUSED',
+2025-08-29T18:16:12.720376008Z       syscall: 'connect',
+2025-08-29T18:16:12.720378748Z       address: '3.111.225.200',
+2025-08-29T18:16:12.720381518Z       port: 6543
+2025-08-29T18:16:12.720384278Z     },
+2025-08-29T18:16:12.720387148Z     Error: connect ECONNREFUSED 13.200.110.68:6543
+2025-08-29T18:16:12.720389918Z         at createConnectionError (node:net:1677:14)
+2025-08-29T18:16:12.720394928Z         at afterConnectMultiple (node:net:1707:16) {
+2025-08-29T18:16:12.720397858Z       errno: -111,
+2025-08-29T18:16:12.720400688Z       code: 'ECONNREFUSED',
+2025-08-29T18:16:12.720403479Z       syscall: 'connect',
+2025-08-29T18:16:12.720406268Z       address: '13.200.110.68',
+2025-08-29T18:16:12.720409048Z       port: 6543
+2025-08-29T18:16:12.720411819Z     }
+2025-08-29T18:16:12.720414579Z   ]
+2025-08-29T18:16:12.720417429Z }
+2025-08-29T18:16:12.720737856Z Failed to initialize database: AggregateError [ECONNREFUSED]: 
+2025-08-29T18:16:12.720742396Z     at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+2025-08-29T18:16:12.720745696Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-29T18:16:12.720748567Z     at async Ae (file:///opt/render/project/src/dist/index.js:574:4195)
+2025-08-29T18:16:12.720751387Z     at async ze (file:///opt/render/project/src/dist/index.js:721:859)
+2025-08-29T18:16:12.720754487Z     at async file:///opt/render/project/src/dist/index.js:721:1304 {
+2025-08-29T18:16:12.720757467Z   code: 'ECONNREFUSED',
+2025-08-29T18:16:12.720760257Z   [errors]: [
+2025-08-29T18:16:12.720763167Z     Error: connect ECONNREFUSED 3.111.225.200:6543
+2025-08-29T18:16:12.720765997Z         at createConnectionError (node:net:1677:14)
+2025-08-29T18:16:12.720768957Z         at afterConnectMultiple (node:net:1707:16) {
+2025-08-29T18:16:12.720771717Z       errno: -111,
+2025-08-29T18:16:12.720774517Z       code: 'ECONNREFUSED',
+2025-08-29T18:16:12.720777257Z       syscall: 'connect',
+2025-08-29T18:16:12.720780057Z       address: '3.111.225.200',
+2025-08-29T18:16:12.720784777Z       port: 6543
+2025-08-29T18:16:12.720787608Z     },
+2025-08-29T18:16:12.720790437Z     Error: connect ECONNREFUSED 13.200.110.68:6543
+2025-08-29T18:16:12.720803878Z         at createConnectionError (node:net:1677:14)
+2025-08-29T18:16:12.720805958Z         at afterConnectMultiple (node:net:1707:16) {
+2025-08-29T18:16:12.720808078Z       errno: -111,
+2025-08-29T18:16:12.720809788Z       code: 'ECONNREFUSED',
+2025-08-29T18:16:12.720811478Z       syscall: 'connect',
+2025-08-29T18:16:12.720813228Z       address: '13.200.110.68',
+2025-08-29T18:16:12.720814948Z       port: 6543
+2025-08-29T18:16:12.720816638Z     }
+2025-08-29T18:16:12.720818338Z   ]
+2025-08-29T18:16:12.720820028Z }
