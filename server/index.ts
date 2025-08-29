@@ -94,7 +94,7 @@ async function initializeApp() {
 export { app, initializeApp };
 
 // Only run server if not in Vercel environment
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && !process.env.RENDER) {
   (async () => {
     await initializeApp();
     

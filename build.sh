@@ -1,8 +1,11 @@
 #!/bin/bash
-# Vercel build script for GarageGuru
-echo "Building GarageGuru for production..."
+# Render.com build script for GarageGuru
+echo "Building GarageGuru for Render.com..."
 
-# Build the frontend
+# Install dependencies
+npm install
+
+# Build the application (frontend + backend)
 npm run build
 
-echo "Build completed successfully!"
+echo "Render build completed successfully!"
