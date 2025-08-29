@@ -25,8 +25,10 @@ async function throwIfResNotOk(res: Response) {
 }
 
 // API base URL - use relative paths since frontend and backend are served together
-// In production, if VITE_API_URL is not set, we default to empty string (same origin)
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+// In development, ensure we use the correct localhost URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  import.meta.env.DEV ? 'http://localhost:5000' : ''
+);
 
 console.log('🔧 API Configuration:', {
   VITE_API_URL: import.meta.env.VITE_API_URL,
@@ -45,12 +47,16 @@ export async function apiRequest(
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
   
   console.log(`🌐 API Request: ${method} ${fullUrl}`);
+  console.log(`🔑 Auth Token Present: ${!!localStorage.getItem('auth-token')}`);
   
   const token = localStorage.getItem('auth-token');
   const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
   
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+    console.log(`🔑 Using token: ${token.substring(0, 20)}...`);
+  } else {
+    console.log(`⚠️ No auth token found in localStorage`);
   }
 
   try {
@@ -62,6 +68,12 @@ export async function apiRequest(
     });
 
     console.log(`📡 API Response: ${res.status} ${res.statusText}`);
+    
+    // If unauthorized, check if token needs refresh
+    if (res.status === 401) {
+      console.log(`🚫 401 Unauthorized - token may be expired or invalid`);
+    }
+    
     await throwIfResNotOk(res);
     return res;
   } catch (error) {
