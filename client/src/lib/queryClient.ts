@@ -78,6 +78,32 @@ export async function apiRequest(
     return res;
   } catch (error) {
     console.error(`❌ API Request failed: ${method} ${fullUrl}`, error);
+    
+    // If this is a network error and we're making a login request, clear stale token first
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.log('🧹 Network error detected - this might be caused by stale auth token');
+      if (url.includes('/auth/login') && localStorage.getItem('auth-token')) {
+        console.log('🧹 Clearing potentially stale auth token before login');
+        localStorage.removeItem('auth-token');
+        // Retry the request without the stale token
+        const freshHeaders: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
+        try {
+          const retryRes = await fetch(fullUrl, {
+            method,
+            headers: freshHeaders,
+            body: data ? JSON.stringify(data) : undefined,
+            credentials: "include",
+          });
+          console.log(`🔄 Retry Response: ${retryRes.status} ${retryRes.statusText}`);
+          await throwIfResNotOk(retryRes);
+          return retryRes;
+        } catch (retryError) {
+          console.error(`❌ Retry also failed:`, retryError);
+          throw retryError;
+        }
+      }
+    }
+    
     throw error;
   }
 }
