@@ -1,0 +1,14 @@
+{
+  "name": "garage-guru-testing",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Automated testing for production vs local environment comparison",
+  "scripts": {
+    "test:prod:ci": "node main.js",
+    "test:endpoints": "node endpoint-discovery.js",
+    "test:config": "node -e \"import('./config.js').then(c => console.log(c.validateConfig()))\""
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}

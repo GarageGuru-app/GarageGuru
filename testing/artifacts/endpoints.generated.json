@@ -1,0 +1,811 @@
+{
+  "discovered_at": "2025-08-29T03:55:30.764Z",
+  "total_endpoints": 72,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/access-requests",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/access-requests/:id/process",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "id"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/change-password",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/generate-codes",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "source": "../server/routes.ts",
+      "requiresAuth": false,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "source": "../server/router.ts",
+      "requiresAuth": false,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/register",
+      "source": "../server/routes.ts",
+      "requiresAuth": false,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/register-simple",
+      "source": "../server/routes.ts",
+      "requiresAuth": false,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/request-access",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/customers",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/customers",
+      "source": "../server/router.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/db/ping",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/debug/database",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/forgot-password/request",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/forgot-password/reset",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/forgot-password/verify",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/garages",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages",
+      "source": "../server/router.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/customers",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/garages/:garageId/customers",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/customers/:customerId/invoices",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId",
+        "customerId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/customers/analytics",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/customers/search",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/garages/:garageId/customers/sync-visits",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/customers/top-by-revenue",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/customers/top-by-services",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/invoices",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/garages/:garageId/invoices",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/garages/:garageId/invoices/:id",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId",
+        "id"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/job-cards",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/garages/:garageId/job-cards",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/job-cards/:id",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId",
+        "id"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/garages/:garageId/job-cards/:id",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId",
+        "id"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/notifications",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/garages/:garageId/notifications/:id/read",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId",
+        "id"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/garages/:garageId/notifications/mark-all-read",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/notifications/unread-count",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/sales/analytics",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/sales/monthly",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/sales/stats",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/sales/today",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/spare-parts",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/garages/:garageId/spare-parts",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/garages/:garageId/spare-parts/:id",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId",
+        "id"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/garages/:garageId/spare-parts/:id",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId",
+        "id"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/spare-parts/low-stock",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/spare-parts/search",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:garageId/staff",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/garages/:id",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "id"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:id/job-cards",
+      "source": "../server/router.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "id"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/garages/:id/sales/stats",
+      "source": "../server/router.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "id"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "source": "../server/router.ts",
+      "requiresAuth": false,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/invoices",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/invoices/:id",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "id"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/job-cards",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/job-cards",
+      "source": "../server/router.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/mfa/request",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/mfa/verify",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/password/change",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/setup/seed-database",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/spare-parts",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/spare-parts",
+      "source": "../server/router.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/super-admin/access-requests",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/super-admin/access-requests/:requestId",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "requestId"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/super-admin/audit-logs",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/super-admin/garages",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/super-admin/garages/:garageId/users",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "garageId"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "POST",
+      "path": "/api/super-admin/users/:userId/toggle-role",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "userId"
+      ],
+      "test_data": "// TODO: Add test payload for this endpoint",
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/profile",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/profile",
+      "source": "../server/router.ts",
+      "requiresAuth": true,
+      "parameters": [],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/users/:id/status",
+      "source": "../server/routes.ts",
+      "requiresAuth": true,
+      "parameters": [
+        "id"
+      ],
+      "test_data": null,
+      "expected_status": "// TODO: Define expected status code",
+      "description": "// TODO: Add endpoint description"
+    }
+  ]
+}
