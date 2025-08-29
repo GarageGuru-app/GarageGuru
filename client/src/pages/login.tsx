@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
@@ -24,7 +24,7 @@ export default function Login() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   // Clear any stale auth tokens on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     if (localStorage.getItem('auth-token')) {
       console.log('🧹 Clearing potentially stale auth token on login page load');
       localStorage.removeItem('auth-token');
