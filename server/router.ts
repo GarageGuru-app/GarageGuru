@@ -161,6 +161,50 @@ app.get('/api/garages', authMiddleware, superAdminGuard, async (c: AuthContext) 
   }
 });
 
+// Create garage (garage admin only)
+app.post('/api/garages', authMiddleware, async (c: AuthContext) => {
+  try {
+    const user = c.user!;
+    if (user.role !== 'garage_admin') {
+      return c.json({ error: 'Only garage admins can create garages' }, 403);
+    }
+
+    const body = await c.req.json();
+    const { name, ownerName, phone, email } = body;
+
+    if (!name || !ownerName || !phone) {
+      return c.json({ error: 'Name, owner name, and phone are required' }, 400);
+    }
+
+    const sql = getSupabaseClient();
+    
+    // Create the garage
+    const garageResult = await sql`
+      INSERT INTO garages (name, owner_name, phone, email, created_at, updated_at)
+      VALUES (${name}, ${ownerName}, ${phone}, ${email || user.email}, NOW(), NOW())
+      RETURNING *
+    `;
+
+    if (garageResult.length === 0) {
+      return c.json({ error: 'Failed to create garage' }, 500);
+    }
+
+    const garage = garageResult[0];
+
+    // Update user's garage_id
+    await sql`
+      UPDATE users 
+      SET garage_id = ${garage.id}, updated_at = NOW()
+      WHERE id = ${user.id}
+    `;
+
+    return c.json(garage);
+  } catch (error) {
+    console.error('Create garage error:', error);
+    return c.json({ error: 'Failed to create garage' }, 500);
+  }
+});
+
 // Customers
 app.get('/api/customers', authMiddleware, garageIdResolver, async (c: AuthContext) => {
   try {
@@ -202,7 +246,7 @@ app.get('/api/spare-parts', authMiddleware, garageIdResolver, async (c: AuthCont
     `;
 
     // Map database fields to frontend-expected fields
-    const mappedParts = spareParts.map((part) => ({
+    const mappedParts = spareParts.map((part: any) => ({
       ...part,
       partNumber: part.part_number,
       costPrice: part.cost_price,
@@ -211,7 +255,7 @@ app.get('/api/spare-parts', authMiddleware, garageIdResolver, async (c: AuthCont
       updatedAt: part.updated_at
     }));
 
-    const lowStockCount = mappedParts.filter(part => part.quantity <= (part.lowStockThreshold || 10)).length;
+    const lowStockCount = mappedParts.filter((part: any) => part.quantity <= (part.lowStockThreshold || 10)).length;
 
     return c.json({ data: mappedParts, count: mappedParts.length, lowStockCount });
   } catch (error) {
