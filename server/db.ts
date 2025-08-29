@@ -1,8 +1,10 @@
 import { Pool } from 'pg';
 
 // Use Supabase database URL as it was working before
-// Priority: SUPABASE_DATABASE_URL first (pooler), then DATABASE_URL as fallback  
-const databaseUrl = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
+// Try direct connection first, then pooler as fallback
+const directUrl = "postgresql://postgres:qfcCnQSMimT1Pzhz@db.nquusupugmrlqoagpdot.supabase.co:5432/postgres";
+const poolerUrl = "postgresql://postgres.nquusupugmrlqoagpdot:qfcCnQSMimT1Pzhz@aws-1-ap-south-1.pooler.supabase.com:6543/postgres";
+const databaseUrl = directUrl;
 
 if (!databaseUrl) {
   throw new Error("SUPABASE_DATABASE_URL or DATABASE_URL must be set.");
