@@ -85,6 +85,9 @@ async function initializeApp() {
     
     await createSuperAdmin();
     
+    // Fix existing work_summary with undefined values
+    await storage.fixUndefinedWorkSummaries();
+    
     // Sync customer visit counts for all garages on startup
     const garages = await storage.getAllGarages();
     for (const garage of garages) {

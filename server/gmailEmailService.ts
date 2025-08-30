@@ -245,7 +245,7 @@ export class GmailEmailService {
           <div style="background: #f9fafb; padding: 30px; border-top: 1px solid #e5e7eb;">
             <div style="text-align: center; margin-bottom: 20px;">
               <h3 style="margin: 0 0 10px 0; color: #1e40af; font-size: 20px;">Ananth Automotive Garage</h3>
-              <p style="margin: 0; color: #6b7280; font-size: 14px;">Professional Automotive Service & Management</p>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">Professional Automotive Service and Management</p>
             </div>
             
             <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
@@ -471,7 +471,7 @@ Access Control Notification
           <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="color: #6b7280; font-size: 12px; margin: 0;">
               This email was sent from GarageGuru Management System<br>
-              &copy; 2025 GarageGuru. All rights reserved.
+              © 2025 GarageGuru. All rights reserved.
             </p>
           </div>
           
@@ -570,7 +570,7 @@ GarageGuru Management System
           <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="color: #6b7280; font-size: 12px; margin: 0;">
               This email was sent from GarageGuru Management System<br>
-              &copy; 2025 GarageGuru. All rights reserved.
+              © 2025 GarageGuru. All rights reserved.
             </p>
           </div>
           

@@ -1003,6 +1003,22 @@ export class DatabaseStorage implements IStorage {
       [garageId]
     );
   }
+
+  async fixUndefinedWorkSummaries(): Promise<void> {
+    try {
+      // Fix work summaries that contain "undefined"
+      const result = await pool.query(`
+        UPDATE job_cards 
+        SET work_summary = 'Service completed for ' || bike_number || ' - ' || complaint
+        WHERE work_summary LIKE '%undefined%' AND bike_number IS NOT NULL
+      `);
+      if (result.rowCount && result.rowCount > 0) {
+        console.log(`✅ Fixed ${result.rowCount} work summaries with undefined values`);
+      }
+    } catch (error) {
+      console.error('❌ Failed to fix undefined work summaries:', error);
+    }
+  }
 }
 
 // Export storage instance
