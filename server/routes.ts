@@ -1302,6 +1302,46 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
 
+  // Invoice Data endpoint - returns JSON data for client-side PDF generation
+  app.get("/invoice/data/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      // Find invoice by download token
+      const invoiceResult = await pool.query(`
+        SELECT i.*, j.*, c.name as customer_name, c.phone, c.bike_number, g.name as garage_name, g.phone as garage_phone, g.logo as garage_logo
+        FROM invoices i
+        JOIN job_cards j ON i.job_card_id = j.id
+        JOIN customers c ON i.customer_id = c.id  
+        JOIN garages g ON i.garage_id = g.id
+        WHERE i.download_token = $1
+      `, [token]);
+
+      if (invoiceResult.rows.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Invoice not found' 
+        });
+      }
+
+      const invoiceData = invoiceResult.rows[0];
+      
+      // Return JSON data for client-side PDF generation
+      return res.json({
+        success: true,
+        invoice: invoiceData,
+        message: 'Invoice data retrieved successfully'
+      });
+      
+    } catch (error) {
+      console.error('Invoice data error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to retrieve invoice data' 
+      });
+    }
+  });
+
   // PDF Download endpoint - generates PDF on demand
   app.get("/invoice/download/:token", async (req, res) => {
     try {
@@ -1412,21 +1452,21 @@ export async function registerRoutes(app: Express): Promise<void> {
         doc.font('Helvetica')
            .fontSize(12);
         
-        // Parts Total with wider margin for price display
+        // Parts Total with more space for price display (moved 10 digits left)
         doc.text('Parts Total:', 50, yPos);
-        doc.text(`Rs.${Number(invoiceData.parts_total || 0).toFixed(2)}`, pageWidth - 70, yPos, { align: 'right' });
+        doc.text(`Rs.${Number(invoiceData.parts_total || 0).toFixed(2)}`, pageWidth - 120, yPos, { align: 'right' });
         yPos += 20;
         
-        // Service Charge with wider margin for price display
+        // Service Charge with more space for price display (moved 10 digits left)
         doc.text('Service Charge:', 50, yPos);
-        doc.text(`Rs.${Number(invoiceData.service_charge || 0).toFixed(2)}`, pageWidth - 70, yPos, { align: 'right' });
+        doc.text(`Rs.${Number(invoiceData.service_charge || 0).toFixed(2)}`, pageWidth - 120, yPos, { align: 'right' });
         yPos += 25;
         
-        // Total Amount (bold, emphasized) with wider margin
+        // Total Amount (bold, emphasized) with more space (moved 10 digits left)
         doc.font('Helvetica-Bold')
            .fontSize(14);
         doc.text('Total Amount:', 50, yPos);
-        doc.text(`Rs.${Number(invoiceData.total_amount || 0).toFixed(2)}`, pageWidth - 70, yPos, { align: 'right' });
+        doc.text(`Rs.${Number(invoiceData.total_amount || 0).toFixed(2)}`, pageWidth - 120, yPos, { align: 'right' });
         
         yPos += 70;
         
