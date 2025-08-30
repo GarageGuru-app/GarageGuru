@@ -26,8 +26,8 @@
 
 **Build Configuration:**
 - Build Command: `npm install && vite build`
-- Start Command: `npm start`
-- Uses tsx to run TypeScript directly in production
+- Start Command: `NODE_ENV=production npx tsx server/index.ts`
+- **Important**: Runs TypeScript directly to avoid dependency bundling issues
 
 2. **Environment Variables** (Auto-configured from render.yaml):
    - `DATABASE_URL` - Auto-linked to your database
