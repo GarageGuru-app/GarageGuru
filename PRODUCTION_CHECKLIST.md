@@ -29,8 +29,6 @@ The following environment variables need to be set in Render.com:
 - `PORT=10000`
 - `DATABASE_URL` (linked to Render PostgreSQL)
 - `JWT_SECRET` (auto-generated)
-- `ADMIN_ACTIVATION_CODE` (auto-generated)
-- `STAFF_ACTIVATION_CODE` (auto-generated)
 
 **Manual configuration required:**
 - `GMAIL_USER` - Your Gmail address

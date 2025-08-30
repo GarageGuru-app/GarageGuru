@@ -36,8 +36,6 @@
      - `GMAIL_USER` - Your Gmail address
      - `GMAIL_APP_PASSWORD` - Gmail app-specific password
      - `SUPER_ADMIN_EMAIL` - Your admin email
-     - `ADMIN_ACTIVATION_CODE` - Create secure code
-     - `STAFF_ACTIVATION_CODE` - Create secure code
 
 ### Option B: Manual Configuration
 1. **Basic Settings**:
@@ -55,8 +53,6 @@
    GMAIL_USER=[your-email@gmail.com]
    GMAIL_APP_PASSWORD=[your-gmail-app-password]
    SUPER_ADMIN_EMAIL=[admin@yourdomain.com]
-   ADMIN_ACTIVATION_CODE=[secure-random-string]
-   STAFF_ACTIVATION_CODE=[secure-random-string]
    ```
 
 ## Step 3: Gmail SMTP Setup
