@@ -1408,24 +1408,25 @@ export async function registerRoutes(app: Express): Promise<void> {
         
         yPos += 30;
         
-        // Totals section with proper right alignment
-        doc.font('Helvetica');
+        // Totals section with proper right alignment and spacing
+        doc.font('Helvetica')
+           .fontSize(12);
         
-        // Parts Total
+        // Parts Total with wider margin for price display
         doc.text('Parts Total:', 50, yPos);
-        doc.text(`Rs.${Number(invoiceData.parts_total || 0).toFixed(2)}`, pageWidth - 50, yPos, { align: 'right' });
+        doc.text(`Rs.${Number(invoiceData.parts_total || 0).toFixed(2)}`, pageWidth - 70, yPos, { align: 'right' });
+        yPos += 20;
+        
+        // Service Charge with wider margin for price display
+        doc.text('Service Charge:', 50, yPos);
+        doc.text(`Rs.${Number(invoiceData.service_charge || 0).toFixed(2)}`, pageWidth - 70, yPos, { align: 'right' });
         yPos += 25;
         
-        // Service Charge  
-        doc.text('Service Charge:', 50, yPos);
-        doc.text(`Rs.${Number(invoiceData.service_charge || 0).toFixed(2)}`, pageWidth - 50, yPos, { align: 'right' });
-        yPos += 35;
-        
-        // Total Amount (bold, emphasized)
+        // Total Amount (bold, emphasized) with wider margin
         doc.font('Helvetica-Bold')
            .fontSize(14);
         doc.text('Total Amount:', 50, yPos);
-        doc.text(`Rs.${Number(invoiceData.total_amount || 0).toFixed(2)}`, pageWidth - 50, yPos, { align: 'right' });
+        doc.text(`Rs.${Number(invoiceData.total_amount || 0).toFixed(2)}`, pageWidth - 70, yPos, { align: 'right' });
         
         yPos += 70;
         

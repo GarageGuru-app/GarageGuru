@@ -87,8 +87,9 @@ export default function Invoices() {
     }
     
     try {
-      // Fetch invoice data from the download endpoint
-      const response = await fetch(downloadUrl);
+      // Fetch invoice data from the API endpoint (not the direct PDF download)
+      const apiUrl = downloadUrl.replace('/invoice/download/', '/invoice/data/');
+      const response = await fetch(apiUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch invoice data: ${response.status}`);
       }

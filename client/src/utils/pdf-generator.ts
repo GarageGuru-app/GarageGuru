@@ -89,24 +89,25 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   
   yPos += 30;
   
-  // Totals section with proper alignment
+  // Totals section with proper alignment and spacing
   pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(12);
   
-  // Parts Total
+  // Parts Total with wider margin for price display
   pdf.text('Parts Total:', 20, yPos);
-  pdf.text(`Rs.${partsTotal.toFixed(2)}`, pageWidth - 30, yPos, { align: 'right' });
-  yPos += 18;
+  pdf.text(`Rs.${partsTotal.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
+  yPos += 20;
   
-  // Service Charge
+  // Service Charge with wider margin for price display
   pdf.text('Service Charge:', 20, yPos);
-  pdf.text(`Rs.${serviceCharge.toFixed(2)}`, pageWidth - 30, yPos, { align: 'right' });
+  pdf.text(`Rs.${serviceCharge.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
   yPos += 25;
   
-  // Total Amount (bold, emphasized)
+  // Total Amount (bold, emphasized) with wider margin
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(14);
   pdf.text('Total Amount:', 20, yPos);
-  pdf.text(`Rs.${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 30, yPos, { align: 'right' });
+  pdf.text(`Rs.${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
   
   yPos += 50;
   
