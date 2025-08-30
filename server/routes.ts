@@ -60,9 +60,9 @@ const insertInvoiceSchema = z.object({
   jobCardId: z.string().optional(),
   customerId: z.string().optional(),
   invoiceNumber: z.string(),
-  serviceCharge: z.number().optional(),
-  partsTotal: z.number().optional(),
-  totalAmount: z.number()
+  serviceCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
+  partsTotal: z.union([z.number(), z.string().transform(Number)]).optional(),
+  totalAmount: z.union([z.number(), z.string().transform(Number)])
 });
 
 import { GmailEmailService } from "./gmailEmailService";
