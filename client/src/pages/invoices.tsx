@@ -277,7 +277,7 @@ export default function Invoices() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => sendWhatsApp(invoice.phone || '', `${window.location.origin}/invoice/download/${invoice.download_token}`)}
+                          onClick={() => sendWhatsApp(invoice.phone || '', `${import.meta.env.VITE_APP_URL || window.location.origin}/invoice/download/${invoice.download_token}`)}
                           className="px-3 py-1 text-xs"
                           data-testid={`button-whatsapp-${invoice.id}`}
                         >

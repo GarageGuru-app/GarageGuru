@@ -1225,7 +1225,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const localTimestamp = new Date(istTime);
       
       // Generate download token for PDF access
-      const downloadToken = invoiceData.downloadToken || `${invoiceData.invoiceNumber}-${crypto.randomUUID().substring(0, 8)}-${crypto.randomUUID().substring(0, 6)}`;
+      const downloadToken = `${invoiceData.invoiceNumber}-${crypto.randomUUID().substring(0, 8)}-${crypto.randomUUID().substring(0, 6)}`;
       
       // Map frontend camelCase fields to database snake_case fields
       const mappedInvoiceData = {
