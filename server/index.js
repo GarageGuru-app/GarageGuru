@@ -1,21 +1,3494 @@
-// Production Entry Point for Render.com
-// This file ensures we use the correct server with pg driver
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
 
-console.log('🚀 Starting production server...');
-console.log('📦 Checking pg package availability...');
+// gmailEmailService.ts
+var gmailEmailService_exports = {};
+__export(gmailEmailService_exports, {
+  GmailEmailService: () => GmailEmailService,
+  default: () => gmailEmailService_default
+});
+import nodemailer from "nodemailer";
+var GmailEmailService, gmailEmailService, gmailEmailService_default;
+var init_gmailEmailService = __esm({
+  "gmailEmailService.ts"() {
+    "use strict";
+    GmailEmailService = class _GmailEmailService {
+      static instance;
+      transporter = null;
+      isConfigured = false;
+      constructor() {
+        this.setupGmailTransporter();
+      }
+      static getInstance() {
+        if (!_GmailEmailService.instance) {
+          _GmailEmailService.instance = new _GmailEmailService();
+        }
+        return _GmailEmailService.instance;
+      }
+      setupGmailTransporter() {
+        const gmailUser = process.env.GMAIL_USER;
+        const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+        if (gmailUser && gmailAppPassword) {
+          this.transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+              user: gmailUser,
+              pass: gmailAppPassword
+            }
+          });
+          this.isConfigured = true;
+          console.log("\u{1F4E7} Gmail SMTP configured successfully");
+        } else {
+          console.log("\u{1F4E7} Gmail SMTP not configured - missing credentials");
+        }
+      }
+      async sendOtpEmail(email, otp, purpose = "password reset") {
+        if (!this.isConfigured) {
+          console.log("\u{1F4E7} Gmail SMTP not configured - logging OTP instead");
+          console.log(`\u{1F4E7} OTP for ${email}: ${otp} (${purpose})`);
+          return false;
+        }
+        try {
+          const mailOptions = {
+            from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+            to: email,
+            subject: purpose.includes("notification") ? "GarageGuru Super Admin Password Changed - Security Alert" : purpose.includes("user password") ? `GarageGuru Password Reset Code` : `GarageGuru Super Admin ${purpose.charAt(0).toUpperCase() + purpose.slice(1)} Code`,
+            html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            ${purpose.includes("notification") ? `
+              <h2 style="color: #333;">Security Alert: Password Changed</h2>
+              <p>A super admin password has been successfully changed.</p>
+              <p><strong>Time:</strong> ${(/* @__PURE__ */ new Date()).toLocaleString()}</p>
+              <p>If you did not make this change, please contact support immediately.</p>
+            ` : `
+              <h2 style="color: #333;">GarageGuru ${purpose.charAt(0).toUpperCase() + purpose.slice(1)}</h2>
+              <p>Your ${purpose} verification code is:</p>
+              <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
+                ${otp}
+              </div>
+              <p><strong>\u26A0\uFE0F Security Notice:</strong></p>
+              <ul>
+                <li>This code expires in 10 minutes</li>
+                <li>Only use this code if you requested a ${purpose}</li>
+                <li>Never share this code with anyone</li>
+              </ul>
+              <p>If you didn't request this ${purpose}, please contact support immediately.</p>
+            `}
+          </div>
+        `,
+            text: purpose.includes("notification") ? `Security Alert: A super admin password has been changed at ${(/* @__PURE__ */ new Date()).toLocaleString()}. If you did not make this change, please contact support immediately.` : `Your GarageGuru ${purpose} code is: ${otp}. This code expires in 10 minutes. If you didn't request this ${purpose}, please contact support.`
+          };
+          console.log(`\u{1F4E7} Sending OTP email via Gmail to: ${email}`);
+          await this.transporter.sendMail(mailOptions);
+          console.log(`\u{1F4E7} OTP email sent successfully via Gmail`);
+          return true;
+        } catch (error) {
+          console.error("\u{1F4E7} Gmail OTP send failed:", error);
+          console.log(`\u{1F4E7} OTP for ${email}: ${otp} (${purpose})`);
+          return false;
+        }
+      }
+      async sendAccessRequestNotification(superAdminEmail, requestData) {
+        if (!this.isConfigured) {
+          console.log("\u{1F4E7} Gmail SMTP not configured - logging request instead");
+          this.logAccessRequest(requestData);
+          return false;
+        }
+        try {
+          const mailOptions = {
+            from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+            to: superAdminEmail,
+            subject: `GarageGuru Admin - New Access Request from ${requestData.name}`,
+            html: this.generateAccessRequestEmail(requestData),
+            text: this.generateAccessRequestText(requestData)
+          };
+          console.log(`\u{1F4E7} Sending email via Gmail SMTP to: ${superAdminEmail}`);
+          await this.transporter.sendMail(mailOptions);
+          console.log(`\u{1F4E7} Access request email sent successfully via Gmail`);
+          return true;
+        } catch (error) {
+          console.error("\u{1F4E7} Gmail SMTP send failed:", error);
+          if (error.code === "EAUTH") {
+            console.log("\n\u{1F6A8} GMAIL AUTHENTICATION ERROR \u{1F6A8}");
+            console.log("========================================");
+            console.log("Fix: Generate App-Specific Password");
+            console.log("1. Go to Google Account settings");
+            console.log("2. Security \u2192 2-Step Verification");
+            console.log("3. App passwords \u2192 Generate new password");
+            console.log("4. Use that password as GMAIL_APP_PASSWORD");
+            console.log("========================================\n");
+          }
+          this.logAccessRequest(requestData);
+          return false;
+        }
+      }
+      generateAccessRequestEmail(data) {
+        return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GarageGuru Admin - Access Request</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header with Logo -->
+          <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px 20px; text-align: center;">
+            <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4L9 8H15L12 4Z" fill="#1e40af"/>
+                <path d="M8 10V18C8 19.1 8.9 20 10 20H14C15.1 20 16 19.1 16 18V10H8Z" fill="#3b82f6"/>
+                <circle cx="10" cy="14" r="1" fill="white"/>
+                <circle cx="14" cy="14" r="1" fill="white"/>
+                <rect x="11" y="16" width="2" height="2" fill="white"/>
+              </svg>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">GarageGuru</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Automotive Management System</p>
+          </div>
 
-try {
-  // Test if pg package is available
-  const { Pool } = await import('pg');
-  console.log('✅ pg package loaded successfully');
-  
-  // Start the standalone server
-  await import('./standalone-server.js');
-} catch (error) {
-  console.error('❌ Error starting server:', error);
-  console.error('📦 Package availability check failed');
-  
-  // Try alternative approach
-  console.log('🔄 Attempting fallback server start...');
-  process.exit(1);
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #1e40af; margin: 0 0 20px 0; font-size: 24px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
+              \u{1F511} New Access Request
+            </h2>
+            
+            <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+              <h3 style="margin: 0 0 15px 0; color: #1e40af; font-size: 18px;">Request Details</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151; width: 100px;">\u{1F464} Name:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${data.name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F4E7} Email:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${data.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F3AF} Role:</td>
+                  <td style="padding: 8px 0; color: #1f2937; text-transform: uppercase; font-weight: bold;">${data.requestType}</td>
+                </tr>
+                ${data.garageId && data.garageName ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F3EA} Garage:</td>
+                  <td style="padding: 8px 0; color: #1f2937;"><strong>${data.garageName}</strong><br><small style="color: #6b7280;">Owner: ${data.garageOwner}</small></td>
+                </tr>
+                ` : ""}
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u23F0 Time:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${data.timestamp}</td>
+                </tr>
+                ${data.message ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151; vertical-align: top;">\u{1F4AC} Message:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${data.message}</td>
+                </tr>
+                ` : ""}
+              </table>
+            </div>
+
+            <div style="background: #3b82f6; padding: 25px; border-radius: 12px; margin: 25px 0; text-align: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+              <h4 style="margin: 0 0 15px 0; color: white; font-size: 20px;">\u26A1 ACTION REQUIRED</h4>
+              <div style="background: white; padding: 25px; border-radius: 8px; margin: 15px 0;">
+                <p style="margin: 0 0 10px 0; font-size: 16px; color: #1f2937; font-weight: bold;">Review and Process This Request</p>
+                <p style="margin: 0; font-size: 14px; color: #6b7280;">Use the Super Admin Dashboard to approve or deny this access request</p>
+              </div>
+              <p style="margin: 10px 0 0 0; color: white; font-size: 14px; font-weight: bold;">
+                ${data.requestType.toUpperCase()} ACCESS REQUEST
+              </p>
+            </div>
+
+            <div style="background: #fef3c7; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+              <h4 style="margin: 0 0 15px 0; color: #92400e; font-size: 16px;">\u{1F4DD} How to Process This Request</h4>
+              <ol style="margin: 0; padding-left: 20px; color: #78350f;">
+                <li style="margin-bottom: 8px;">Log in to the Super Admin Dashboard</li>
+                <li style="margin-bottom: 8px;">Go to the "Access Requests" tab</li>
+                <li style="margin-bottom: 8px;">Review the request details</li>
+                <li style="margin-bottom: 8px;">Click "Approve" to create account and send credentials</li>
+                <li>Or click "Deny" to reject the request</li>
+              </ol>
+              <p style="margin: 15px 0 0 0; font-size: 13px; color: #78350f; font-style: italic;">
+                \u{1F4E7} Email notifications will be sent automatically to the user based on your decision.
+              </p>
+            </div>
+          </div>
+
+          <!-- Professional Signature/Footer -->
+          <div style="background: #f9fafb; padding: 30px; border-top: 1px solid #e5e7eb;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h3 style="margin: 0 0 10px 0; color: #1e40af; font-size: 20px;">Ananth Automotive Garage</h3>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">Professional Automotive Service and Management</p>
+            </div>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="text-align: center; padding: 10px; border-right: 1px solid #e5e7eb; width: 33.33%;">
+                    <div style="color: #3b82f6; font-size: 20px; margin-bottom: 5px;">\u{1F4E7}</div>
+                    <div style="font-size: 12px; color: #6b7280;">Email</div>
+                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">ananthautomotivegarage@gmail.com</div>
+                  </td>
+                  <td style="text-align: center; padding: 10px; border-right: 1px solid #e5e7eb; width: 33.33%;">
+                    <div style="color: #10b981; font-size: 20px; margin-bottom: 5px;">\u{1F527}</div>
+                    <div style="font-size: 12px; color: #6b7280;">Service</div>
+                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">Professional Automotive</div>
+                  </td>
+                  <td style="text-align: center; padding: 10px; width: 33.33%;">
+                    <div style="color: #f59e0b; font-size: 20px; margin-bottom: 5px;">\u26A1</div>
+                    <div style="font-size: 12px; color: #6b7280;">System</div>
+                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">GarageGuru Platform</div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+                This is an automated notification from GarageGuru Management System.<br>
+                Powered by Ananth Automotive Garage - Excellence in Automotive Service
+              </p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+      }
+      generateAccessRequestText(data) {
+        return `
+\u{1F511} NEW ACCESS REQUEST - GARAGEGURU
+
+Request Details:
+\u{1F464} Name: ${data.name}
+\u{1F4E7} Email: ${data.email}
+\u{1F3AF} Requested Role: ${data.requestType.toUpperCase()}
+${data.garageId && data.garageName ? `\u{1F3EA} Selected Garage: ${data.garageName} (Owner: ${data.garageOwner})` : ""}
+\u23F0 Time: ${data.timestamp}
+${data.message ? `\u{1F4AC} Message: ${data.message}` : ""}
+
+\u26A1 ACTION REQUIRED: Review and Process Request
+
+To Process This Request:
+1. Log in to the Super Admin Dashboard
+2. Go to the "Access Requests" tab  
+3. Review the request details
+4. Click "Approve" to create account and send credentials
+5. Or click "Deny" to reject the request
+
+\u{1F4E7} Email notifications will be sent automatically to the user.
+
+---
+GarageGuru Management System
+Access Control Notification
+    `;
+      }
+      async sendAccessApprovalNotification(userEmail, approvalData) {
+        if (!this.isConfigured) {
+          console.log("\u{1F4E7} Gmail SMTP not configured - logging approval instead");
+          console.log(`\u2705 ACCESS APPROVED for ${approvalData.email} as ${approvalData.role}`);
+          return false;
+        }
+        try {
+          console.log(`\u{1F4E7} Sending approval notification via Gmail to: ${userEmail}`);
+          const mailOptions = {
+            from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+            to: userEmail,
+            subject: "\u{1F389} Access Approved - GarageGuru Account Created",
+            text: this.generateApprovalEmailText(approvalData),
+            html: this.generateApprovalEmailHTML(approvalData)
+          };
+          await this.transporter.sendMail(mailOptions);
+          console.log("\u{1F4E7} Approval notification sent successfully via Gmail");
+          return true;
+        } catch (error) {
+          console.error("\u{1F4E7} Failed to send approval notification:", error);
+          return false;
+        }
+      }
+      async sendAccessDenialNotification(userEmail, denialData) {
+        if (!this.isConfigured) {
+          console.log("\u{1F4E7} Gmail SMTP not configured - logging denial instead");
+          console.log(`\u274C ACCESS DENIED for ${userEmail}`);
+          return false;
+        }
+        try {
+          console.log(`\u{1F4E7} Sending denial notification via Gmail to: ${userEmail}`);
+          const mailOptions = {
+            from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+            to: userEmail,
+            subject: "\u274C Access Request Update - GarageGuru",
+            text: this.generateDenialEmailText(denialData),
+            html: this.generateDenialEmailHTML(denialData)
+          };
+          await this.transporter.sendMail(mailOptions);
+          console.log("\u{1F4E7} Denial notification sent successfully via Gmail");
+          return true;
+        } catch (error) {
+          console.error("\u{1F4E7} Failed to send denial notification:", error);
+          return false;
+        }
+      }
+      generateApprovalEmailHTML(data) {
+        return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GarageGuru - Access Approved</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 20px; text-align: center;">
+            <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+              <span style="font-size: 40px;">\u{1F389}</span>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Welcome to GarageGuru!</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Your Access Has Been Approved</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #10b981; margin: 0 0 20px 0; font-size: 24px;">\u{1F38A} Congratulations ${data.name}!</h2>
+            
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Your access request has been <strong style="color: #10b981;">approved</strong>! You can now log in to the GarageGuru system with your new account.
+            </p>
+            
+            <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+              <h3 style="margin: 0 0 15px 0; color: #10b981; font-size: 18px;">\u{1F511} Your Login Credentials</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151; width: 100px;">\u{1F4E7} Email:</td>
+                  <td style="padding: 8px 0; color: #1f2937; font-family: monospace; background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">${data.email}</td>
+                </tr>
+                ${data.temporaryPassword ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F512} Password:</td>
+                  <td style="padding: 8px 0; color: #1f2937; font-family: monospace; background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">${data.temporaryPassword}</td>
+                </tr>
+                ` : `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F512} Password:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">Use your existing password</td>
+                </tr>
+                `}
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #374151;">\u{1F464} Role:</td>
+                  <td style="padding: 8px 0; color: #1f2937; text-transform: capitalize;">${data.role.replace("_", " ")}</td>
+                </tr>
+              </table>
+            </div>
+            
+            ${data.temporaryPassword ? `
+            <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+              <h4 style="margin: 0 0 10px 0; color: #d97706; font-size: 16px;">\u26A0\uFE0F Important Security Notice</h4>
+              <p style="color: #92400e; font-size: 14px; margin: 0; line-height: 1.5;">
+                This is a <strong>temporary password</strong>. For security reasons, you will be prompted to change your password when you first log in. Please choose a strong, unique password.
+              </p>
+            </div>
+            ` : `
+            <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+              <h4 style="margin: 0 0 10px 0; color: #1e40af; font-size: 16px;">\u2139\uFE0F Account Updated</h4>
+              <p style="color: #1e3a8a; font-size: 14px; margin: 0; line-height: 1.5;">
+                Your existing account has been updated with new access permissions. You can log in using your current password.
+              </p>
+            </div>
+            `}
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || "https://your-domain.replit.app"}/login" 
+                 style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);">
+                \u{1F680} Login to GarageGuru
+              </a>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 20px 0 0 0;">
+              If you have any questions or need assistance, please contact the system administrator.
+            </p>
+          </div>
+          
+          <!-- Footer -->
+          <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+              This email was sent from GarageGuru Management System<br>
+              \xA9 2025 GarageGuru. All rights reserved.
+            </p>
+          </div>
+          
+        </div>
+      </body>
+      </html>
+    `;
+      }
+      generateApprovalEmailText(data) {
+        return `
+\u{1F389} WELCOME TO GARAGEGURU - ACCESS APPROVED!
+
+Congratulations ${data.name}!
+
+Your access request has been APPROVED! You can now log in to the GarageGuru system.
+
+\u{1F511} LOGIN CREDENTIALS:
+\u{1F4E7} Email: ${data.email}
+\u{1F512} Password: ${data.temporaryPassword ? data.temporaryPassword : "Use your existing password"}
+\u{1F464} Role: ${data.role.replace("_", " ")}
+
+${data.temporaryPassword ? `\u26A0\uFE0F IMPORTANT SECURITY NOTICE:
+This is a temporary password. You will be prompted to change your password when you first log in.` : `\u2139\uFE0F ACCOUNT UPDATED:
+Your existing account has been updated with new access permissions. You can log in using your current password.`}
+
+\u{1F680} LOGIN NOW:
+${process.env.FRONTEND_URL || "https://your-domain.replit.app"}/login
+
+If you have any questions, please contact the system administrator.
+
+---
+GarageGuru Management System
+\xA9 2025 GarageGuru. All rights reserved.
+    `;
+      }
+      generateDenialEmailHTML(data) {
+        return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GarageGuru - Access Request Update</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px 20px; text-align: center;">
+            <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+              <span style="font-size: 40px;">\u{1F4CB}</span>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">GarageGuru</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Access Request Update</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #ef4444; margin: 0 0 20px 0; font-size: 24px;">Access Request Status</h2>
+            
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Dear ${data.name},
+            </p>
+            
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Thank you for your interest in the GarageGuru Management System. After careful review, we are unable to approve your request for <strong>${data.requestType}</strong> access at this time.
+            </p>
+            
+            <div style="background: #fef2f2; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+              <h3 style="margin: 0 0 15px 0; color: #ef4444; font-size: 18px;">\u{1F4CB} Next Steps</h3>
+              <ul style="color: #374151; margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Contact the system administrator for more information</li>
+                <li style="margin-bottom: 8px;">Ensure you have the correct authorization from your organization</li>
+                <li style="margin-bottom: 8px;">You may submit a new request in the future if circumstances change</li>
+              </ul>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 20px 0 0 0;">
+              If you believe this decision was made in error or have questions, please contact the system administrator.
+            </p>
+          </div>
+          
+          <!-- Footer -->
+          <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+              This email was sent from GarageGuru Management System<br>
+              \xA9 2025 GarageGuru. All rights reserved.
+            </p>
+          </div>
+          
+        </div>
+      </body>
+      </html>
+    `;
+      }
+      async sendEmail(to, subject, html) {
+        if (!this.isConfigured) {
+          console.log("\u{1F4E7} Gmail SMTP not configured - logging email instead");
+          console.log(`\u{1F4E7} Email to: ${to}`);
+          console.log(`\u{1F4E7} Subject: ${subject}`);
+          return false;
+        }
+        try {
+          const mailOptions = {
+            from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+            to,
+            subject,
+            html,
+            text: html.replace(/<[^>]*>/g, "")
+            // Simple HTML to text conversion
+          };
+          console.log(`\u{1F4E7} Sending email via Gmail to: ${to}`);
+          await this.transporter.sendMail(mailOptions);
+          console.log(`\u{1F4E7} Email sent successfully via Gmail`);
+          return true;
+        } catch (error) {
+          console.error("\u{1F4E7} Gmail email send failed:", error);
+          return false;
+        }
+      }
+      generateDenialEmailText(data) {
+        return `
+GARAGEGURU - ACCESS REQUEST UPDATE
+
+Dear ${data.name},
+
+Thank you for your interest in the GarageGuru Management System. 
+
+After careful review, we are unable to approve your request for ${data.requestType.toUpperCase()} access at this time.
+
+\u{1F4CB} NEXT STEPS:
+\u2022 Contact the system administrator for more information
+\u2022 Ensure you have the correct authorization from your organization  
+\u2022 You may submit a new request in the future if circumstances change
+
+If you believe this decision was made in error or have questions, please contact the system administrator.
+
+---
+GarageGuru Management System
+\xA9 2025 GarageGuru. All rights reserved.
+    `;
+      }
+      logAccessRequest(data) {
+        console.log("\n\u{1F511} NEW ACCESS REQUEST \u{1F511}");
+        console.log("================================");
+        console.log(`\u{1F4E7} Email: ${data.email}`);
+        console.log(`\u{1F464} Name: ${data.name}`);
+        console.log(`\u{1F3AF} Requested Role: ${data.requestType}`);
+        console.log(`\u{1F4AC} Message: ${data.message || "No message provided"}`);
+        console.log(`\u23F0 Time: ${data.timestamp}`);
+        console.log("================================\n");
+      }
+      // Send temporary password email to new users
+      async sendTemporaryPasswordEmail(email, name, temporaryPassword) {
+        if (!this.isConfigured) {
+          console.log("\u{1F4E7} Gmail SMTP not configured - logging temporary password instead");
+          console.log(`\u{1F4E7} Temporary password for ${email}: ${temporaryPassword}`);
+          return false;
+        }
+        try {
+          const mailOptions = {
+            from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+            to: email,
+            subject: "GarageGuru - Your Account Access Approved",
+            html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #007bff;">Account Access Approved!</h2>
+            <p>Hello ${name},</p>
+            <p>Great news! Your access request to GarageGuru has been <strong>approved</strong>.</p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #333;">Your Login Credentials:</h3>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Temporary Password:</strong> <code style="background: #e9ecef; padding: 4px 8px; border-radius: 4px;">${temporaryPassword}</code></p>
+            </div>
+
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h4 style="margin-top: 0; color: #856404;">\u26A0\uFE0F Important Security Notice:</h4>
+              <ul style="margin-bottom: 0; color: #856404;">
+                <li>This is a temporary password that you <strong>must change</strong> on first login</li>
+                <li>You will be automatically redirected to change your password</li>
+                <li>Choose a strong password with at least 8 characters, including uppercase, lowercase, and numbers</li>
+              </ul>
+            </div>
+
+            <p style="margin-top: 30px;">
+              <a href="${process.env.FRONTEND_URL || "https://garageguru.app"}/login" 
+                 style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Login to GarageGuru
+              </a>
+            </p>
+
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              If you have any questions or need assistance, please contact your system administrator.
+            </p>
+          </div>
+        `
+          };
+          await this.transporter.sendMail(mailOptions);
+          console.log("\u{1F4E7} Temporary password email sent successfully to:", email);
+          return true;
+        } catch (error) {
+          console.error("\u{1F4E7} Failed to send temporary password email:", error);
+          return false;
+        }
+      }
+      // Send approval email to existing users  
+      async sendApprovalEmail(email, name, role) {
+        if (!this.isConfigured) {
+          console.log("\u{1F4E7} Gmail SMTP not configured - logging approval instead");
+          console.log(`\u{1F4E7} Approval notification for ${email}: role ${role}`);
+          return false;
+        }
+        try {
+          const roleDisplay = role === "garage_admin" ? "Garage Administrator" : "Mechanic Staff";
+          const mailOptions = {
+            from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+            to: email,
+            subject: "GarageGuru - Your Access Request Approved",
+            html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #28a745;">Access Request Approved!</h2>
+            <p>Hello ${name},</p>
+            <p>Great news! Your access request to GarageGuru has been <strong>approved</strong>.</p>
+            
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #155724;">Your Account Details:</h3>
+              <p style="margin-bottom: 0; color: #155724;"><strong>Role:</strong> ${roleDisplay}</p>
+            </div>
+
+            <p>You can now access GarageGuru using your existing login credentials.</p>
+
+            <p style="margin-top: 30px;">
+              <a href="${process.env.FRONTEND_URL || "https://garageguru.app"}/login" 
+                 style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Login to GarageGuru
+              </a>
+            </p>
+
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              If you have any questions or need assistance, please contact your system administrator.
+            </p>
+          </div>
+        `
+          };
+          await this.transporter.sendMail(mailOptions);
+          console.log("\u{1F4E7} Approval email sent successfully to:", email);
+          return true;
+        } catch (error) {
+          console.error("\u{1F4E7} Failed to send approval email:", error);
+          return false;
+        }
+      }
+    };
+    gmailEmailService = GmailEmailService.getInstance();
+    gmailEmailService_default = gmailEmailService;
+  }
+});
+
+// standalone.ts
+import express2 from "express";
+import cors from "cors";
+import { createServer } from "http";
+
+// routes.ts
+import express from "express";
+
+// db.ts
+import { Pool } from "pg";
+var databaseUrl = "postgresql://admin:lHgw4ztka79bYIxW2MBGcTMCEKjzUE9w@dpg-d2ov7g0gjchc73f8s5q0-a.singapore-postgres.render.com/garageguru";
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL must be set for Render.com PostgreSQL connection.");
 }
+console.log("\u{1F517} Using database URL:", databaseUrl.split("@")[0] + "@[hidden]");
+var pool = new Pool({
+  connectionString: databaseUrl,
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 3e4,
+  idleTimeoutMillis: 3e4,
+  max: 20
+});
+pool.on("connect", () => {
+  console.log("Connected to PostgreSQL database");
+});
+pool.on("error", (err) => {
+  console.error("PostgreSQL connection error:", err);
+});
+
+// storage.ts
+import crypto from "crypto";
+import bcrypt from "bcrypt";
+var DatabaseStorage = class {
+  async ping() {
+    try {
+      const result = await pool.query("SELECT 1 as ping");
+      return result.rows[0]?.ping === 1;
+    } catch (error) {
+      console.error("Database ping failed:", error);
+      return false;
+    }
+  }
+  async getUserByEmail(email) {
+    try {
+      const result = await pool.query("SELECT * FROM users WHERE email = $1 LIMIT 1", [email]);
+      return result.rows[0];
+    } catch (error) {
+      console.error("getUserByEmail error:", error);
+      return void 0;
+    }
+  }
+  async getUserById(id) {
+    try {
+      const result = await pool.query("SELECT * FROM users WHERE id = $1 LIMIT 1", [id]);
+      return result.rows[0];
+    } catch (error) {
+      console.error("getUserById error:", error);
+      return void 0;
+    }
+  }
+  async createUser(user) {
+    const id = user.id || crypto.randomUUID();
+    const result = await pool.query(
+      "INSERT INTO users (id, email, password, role, garage_id, name, must_change_password, first_login, status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
+      [
+        id,
+        user.email,
+        user.password,
+        user.role,
+        user.garage_id,
+        user.name,
+        user.must_change_password || false,
+        user.firstLogin !== false,
+        // Default to true unless explicitly set to false
+        user.status || "active",
+        /* @__PURE__ */ new Date()
+      ]
+    );
+    return result.rows[0];
+  }
+  async createGarage(garage) {
+    const id = garage.id || crypto.randomUUID();
+    const result = await pool.query(
+      "INSERT INTO garages (id, name, owner_name, phone, email, logo, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+      [id, garage.name, garage.owner_name, garage.phone, garage.email, garage.logo, /* @__PURE__ */ new Date()]
+    );
+    return result.rows[0];
+  }
+  async getGarage(id) {
+    try {
+      const result = await pool.query("SELECT * FROM garages WHERE id = $1", [id]);
+      const garage = result.rows[0];
+      if (garage) {
+        return {
+          ...garage,
+          ownerName: garage.owner_name,
+          createdAt: garage.created_at
+        };
+      }
+      return garage;
+    } catch (error) {
+      console.error("getGarage error:", error);
+      return void 0;
+    }
+  }
+  async getGarageStaff(garageId) {
+    try {
+      const result = await pool.query(
+        `SELECT id, email, name, role, status, garage_id, created_at 
+         FROM users 
+         WHERE garage_id = $1 AND role = 'mechanic_staff'
+         ORDER BY created_at DESC`,
+        [garageId]
+      );
+      return result.rows;
+    } catch (error) {
+      console.error("getGarageStaff error:", error);
+      return [];
+    }
+  }
+  async updateGarage(id, garage) {
+    const result = await pool.query(
+      "UPDATE garages SET name = COALESCE($2, name), owner_name = COALESCE($3, owner_name), phone = COALESCE($4, phone), email = COALESCE($5, email), logo = COALESCE($6, logo) WHERE id = $1 RETURNING *",
+      [id, garage.name, garage.owner_name, garage.phone, garage.email, garage.logo]
+    );
+    return result.rows[0];
+  }
+  async getCustomers(garageId) {
+    const result = await pool.query("SELECT * FROM customers WHERE garage_id = $1 ORDER BY created_at DESC", [garageId]);
+    return result.rows.map((customer) => ({
+      ...customer,
+      bikeNumber: customer.bike_number,
+      totalJobs: customer.total_jobs,
+      totalSpent: customer.total_spent,
+      lastVisit: customer.last_visit,
+      createdAt: customer.created_at
+    }));
+  }
+  async getCustomer(id, garageId) {
+    try {
+      const result = await pool.query("SELECT * FROM customers WHERE id = $1 AND garage_id = $2", [id, garageId]);
+      const customer = result.rows[0];
+      if (!customer) return void 0;
+      return {
+        ...customer,
+        bikeNumber: customer.bike_number,
+        totalJobs: customer.total_jobs,
+        totalSpent: customer.total_spent,
+        lastVisit: customer.last_visit,
+        createdAt: customer.created_at
+      };
+    } catch (error) {
+      console.error("getCustomer error:", error);
+      return void 0;
+    }
+  }
+  async searchCustomers(garageId, query) {
+    const result = await pool.query(
+      "SELECT * FROM customers WHERE garage_id = $1 AND (name ILIKE $2 OR phone ILIKE $2 OR bike_number ILIKE $2)",
+      [garageId, `%${query}%`]
+    );
+    return result.rows.map((customer) => ({
+      ...customer,
+      bikeNumber: customer.bike_number,
+      totalJobs: customer.total_jobs,
+      totalSpent: customer.total_spent,
+      lastVisit: customer.last_visit,
+      createdAt: customer.created_at
+    }));
+  }
+  async createCustomer(customer) {
+    const id = customer.id || crypto.randomUUID();
+    const result = await pool.query(
+      "INSERT INTO customers (id, garage_id, name, phone, bike_number, total_jobs, total_spent, last_visit, created_at, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
+      [id, customer.garage_id, customer.name, customer.phone, customer.bike_number, customer.total_jobs || 0, customer.total_spent || 0, customer.last_visit, /* @__PURE__ */ new Date(), customer.notes]
+    );
+    return result.rows[0];
+  }
+  async updateCustomer(id, customer) {
+    const result = await pool.query(
+      "UPDATE customers SET name = COALESCE($2, name), phone = COALESCE($3, phone), bike_number = COALESCE($4, bike_number), total_jobs = COALESCE($5, total_jobs), total_spent = COALESCE($6, total_spent), last_visit = COALESCE($7, last_visit), notes = COALESCE($8, notes) WHERE id = $1 RETURNING *",
+      [id, customer.name, customer.phone, customer.bike_number, customer.total_jobs, customer.total_spent, customer.last_visit, customer.notes]
+    );
+    const updatedCustomer = result.rows[0];
+    return {
+      ...updatedCustomer,
+      bikeNumber: updatedCustomer.bike_number,
+      totalJobs: updatedCustomer.total_jobs,
+      totalSpent: updatedCustomer.total_spent,
+      lastVisit: updatedCustomer.last_visit,
+      createdAt: updatedCustomer.created_at
+    };
+  }
+  async updateUserGarage(userId, garageId) {
+    const result = await pool.query(
+      "UPDATE users SET garage_id = $2 WHERE id = $1 RETURNING *",
+      [userId, garageId]
+    );
+    return result.rows[0];
+  }
+  async updateUser(userId, updates) {
+    const fields = Object.keys(updates).filter((key) => key !== "id");
+    const values = fields.map((field) => updates[field]);
+    const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(", ");
+    const result = await pool.query(
+      `UPDATE users SET ${setClause} WHERE id = $1 RETURNING *`,
+      [userId, ...values]
+    );
+    return result.rows[0];
+  }
+  async changePassword(userId, newPassword) {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      "UPDATE users SET password = $2, must_change_password = FALSE WHERE id = $1",
+      [userId, hashedPassword]
+    );
+  }
+  // Spare Parts methods
+  async getSpareParts(garageId) {
+    const result = await pool.query("SELECT * FROM spare_parts WHERE garage_id = $1 ORDER BY created_at DESC", [garageId]);
+    return result.rows.map((row) => ({
+      ...row,
+      partNumber: row.part_number,
+      costPrice: row.cost_price,
+      lowStockThreshold: row.low_stock_threshold,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+  }
+  async getLowStockParts(garageId) {
+    const result = await pool.query("SELECT * FROM spare_parts WHERE garage_id = $1 AND quantity <= low_stock_threshold", [garageId]);
+    const lowStockParts = result.rows;
+    for (const part of lowStockParts) {
+      try {
+        const existingNotification = await pool.query(
+          "SELECT id FROM notifications WHERE garage_id = $1 AND type = $2 AND data->>'partId' = $3 AND created_at > NOW() - INTERVAL '24 hours'",
+          [garageId, "low_stock", part.id]
+        );
+        if (existingNotification.rows.length === 0) {
+          await this.createNotification({
+            garageId,
+            title: "Low Stock Alert",
+            message: `${part.name} (${part.part_number || "No part number"}) is running low. Only ${part.quantity} left (threshold: ${part.low_stock_threshold})`,
+            type: "low_stock",
+            data: { partId: part.id, partName: part.name, quantity: part.quantity, threshold: part.low_stock_threshold }
+          });
+        }
+      } catch (error) {
+        console.error("Error creating low stock notification:", error);
+      }
+    }
+    return lowStockParts.map((row) => ({
+      ...row,
+      partNumber: row.part_number,
+      costPrice: row.cost_price,
+      lowStockThreshold: row.low_stock_threshold,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+  }
+  async getSparePart(id, garageId) {
+    try {
+      const result = await pool.query("SELECT * FROM spare_parts WHERE id = $1 AND garage_id = $2", [id, garageId]);
+      if (result.rows[0]) {
+        const row = result.rows[0];
+        return {
+          ...row,
+          partNumber: row.part_number,
+          costPrice: row.cost_price,
+          lowStockThreshold: row.low_stock_threshold,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        };
+      }
+      return void 0;
+    } catch (error) {
+      console.error("getSparePart error:", error);
+      return void 0;
+    }
+  }
+  async searchSpareParts(garageId, query) {
+    const result = await pool.query(
+      "SELECT * FROM spare_parts WHERE garage_id = $1 AND (name ILIKE $2 OR part_number ILIKE $2)",
+      [garageId, `%${query}%`]
+    );
+    return result.rows.map((row) => ({
+      ...row,
+      partNumber: row.part_number,
+      costPrice: row.cost_price,
+      lowStockThreshold: row.low_stock_threshold,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+  }
+  async createSparePart(part) {
+    const id = part.id || crypto.randomUUID();
+    const result = await pool.query(
+      "INSERT INTO spare_parts (id, garage_id, name, part_number, price, quantity, low_stock_threshold, barcode, created_at, cost_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
+      [id, part.garage_id, part.name, part.part_number, part.price, part.quantity || 0, part.low_stock_threshold || 5, part.barcode, /* @__PURE__ */ new Date(), part.cost_price]
+    );
+    const row = result.rows[0];
+    return {
+      ...row,
+      partNumber: row.part_number,
+      costPrice: row.cost_price,
+      lowStockThreshold: row.low_stock_threshold,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  }
+  async updateSparePart(id, part) {
+    const result = await pool.query(
+      "UPDATE spare_parts SET name = COALESCE($2, name), part_number = COALESCE($3, part_number), price = COALESCE($4, price), quantity = COALESCE($5, quantity), low_stock_threshold = COALESCE($6, low_stock_threshold), barcode = COALESCE($7, barcode), cost_price = COALESCE($8, cost_price) WHERE id = $1 RETURNING *",
+      [id, part.name, part.part_number, part.price, part.quantity, part.low_stock_threshold, part.barcode, part.cost_price]
+    );
+    const row = result.rows[0];
+    return {
+      ...row,
+      partNumber: row.part_number,
+      costPrice: row.cost_price,
+      lowStockThreshold: row.low_stock_threshold,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  }
+  async deleteSparePart(id, garageId) {
+    await pool.query("DELETE FROM spare_parts WHERE id = $1 AND garage_id = $2", [id, garageId]);
+  }
+  // Job Cards (simplified implementation)
+  async getJobCards(garageId, status) {
+    let query = "SELECT * FROM job_cards WHERE garage_id = $1";
+    let params = [garageId];
+    if (status) {
+      query += " AND status = $2";
+      params.push(status);
+    }
+    query += " ORDER BY created_at DESC";
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+  async getJobCard(id, garageId) {
+    try {
+      const result = await pool.query("SELECT * FROM job_cards WHERE id = $1 AND garage_id = $2", [id, garageId]);
+      return result.rows[0];
+    } catch (error) {
+      console.error("getJobCard error:", error);
+      return void 0;
+    }
+  }
+  async createJobCard(jobCard) {
+    const id = jobCard.id || crypto.randomUUID();
+    const result = await pool.query(
+      "INSERT INTO job_cards (id, garage_id, customer_id, customer_name, phone, bike_number, complaint, status, spare_parts, service_charge, total_amount, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *",
+      [id, jobCard.garage_id, jobCard.customer_id, jobCard.customer_name, jobCard.phone, jobCard.bike_number, jobCard.complaint, jobCard.status || "pending", JSON.stringify(jobCard.spare_parts), jobCard.service_charge || 0, jobCard.total_amount || 0, /* @__PURE__ */ new Date()]
+    );
+    return result.rows[0];
+  }
+  async updateJobCard(id, jobCard) {
+    const result = await pool.query(
+      "UPDATE job_cards SET complaint = COALESCE($2, complaint), spare_parts = COALESCE($3, spare_parts), service_charge = COALESCE($4, service_charge), total_amount = COALESCE($5, total_amount), status = COALESCE($6, status), completed_at = COALESCE($7, completed_at), completed_by = COALESCE($8, completed_by), completion_notes = COALESCE($9, completion_notes), work_summary = COALESCE($10, work_summary) WHERE id = $1 RETURNING *",
+      [id, jobCard.complaint, jobCard.spare_parts ? JSON.stringify(jobCard.spare_parts) : null, jobCard.service_charge, jobCard.total_amount, jobCard.status, jobCard.completed_at, jobCard.completed_by, jobCard.completion_notes, jobCard.work_summary]
+    );
+    return result.rows[0];
+  }
+  // Invoices (simplified implementation)
+  async getInvoices(garageId) {
+    const result = await pool.query(`
+      SELECT 
+        i.*,
+        c.name as customer_name,
+        c.bike_number,
+        c.phone,
+        c.total_jobs as visit_count
+      FROM invoices i
+      LEFT JOIN customers c ON i.customer_id = c.id
+      WHERE i.garage_id = $1 
+      ORDER BY i.created_at DESC
+    `, [garageId]);
+    return result.rows;
+  }
+  async getCustomerInvoices(customerId, garageId) {
+    const result = await pool.query("SELECT * FROM invoices WHERE customer_id = $1 AND garage_id = $2 ORDER BY created_at DESC", [customerId, garageId]);
+    return result.rows;
+  }
+  async getInvoiceByJobCardId(jobCardId) {
+    const result = await pool.query("SELECT * FROM invoices WHERE job_card_id = $1 LIMIT 1", [jobCardId]);
+    return result.rows[0];
+  }
+  async createInvoice(invoice) {
+    const id = invoice.id || crypto.randomUUID();
+    const result = await pool.query(
+      "INSERT INTO invoices (id, garage_id, job_card_id, customer_id, invoice_number, download_token, whatsapp_sent, total_amount, parts_total, service_charge, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *",
+      [id, invoice.garage_id, invoice.job_card_id, invoice.customer_id, invoice.invoice_number, invoice.download_token, invoice.whatsapp_sent || false, invoice.total_amount || 0, invoice.parts_total || 0, invoice.service_charge || 0, /* @__PURE__ */ new Date()]
+    );
+    if (invoice.customer_id && invoice.garage_id) {
+      try {
+        console.log(`\u{1F4CA} [INVOICE] Updating visit count for customer ${invoice.customer_id}`);
+        await pool.query(
+          "UPDATE customers SET total_jobs = total_jobs + 1, last_visit = $1, total_spent = total_spent + $2 WHERE id = $3 AND garage_id = $4",
+          [/* @__PURE__ */ new Date(), invoice.total_amount || 0, invoice.customer_id, invoice.garage_id]
+        );
+        console.log(`\u2705 [INVOICE] Customer visit count updated successfully`);
+      } catch (error) {
+        console.error("\u274C [INVOICE] Error updating customer visit count:", error);
+      }
+    }
+    const createdInvoice = result.rows[0];
+    if (createdInvoice && !createdInvoice.job_card_id && createdInvoice.job_card_id) {
+      createdInvoice.job_card_id = createdInvoice.job_card_id;
+    }
+    return createdInvoice;
+  }
+  async updateInvoice(id, invoice) {
+    const result = await pool.query(
+      "UPDATE invoices SET whatsapp_sent = COALESCE($2, whatsapp_sent), download_token = COALESCE($3, download_token) WHERE id = $1 RETURNING *",
+      [id, invoice.whatsapp_sent, invoice.download_token]
+    );
+    return result.rows[0];
+  }
+  // Utility function to sync customer visit counts based on existing invoices
+  async syncCustomerVisitCounts(garageId) {
+    try {
+      const result = await pool.query(`
+        UPDATE customers 
+        SET total_jobs = (
+          SELECT COUNT(*) 
+          FROM invoices 
+          WHERE invoices.customer_id = customers.id
+        ),
+        total_spent = (
+          SELECT COALESCE(SUM(total_amount), 0) 
+          FROM invoices 
+          WHERE invoices.customer_id = customers.id
+        ),
+        last_visit = (
+          SELECT MAX(created_at)
+          FROM invoices 
+          WHERE invoices.customer_id = customers.id
+        )
+        WHERE garage_id = $1
+      `, [garageId]);
+      console.log(`\u2705 Synced visit counts and last visit dates for customers in garage ${garageId}`);
+    } catch (error) {
+      console.error("Error syncing customer visit counts:", error);
+    }
+  }
+  // Analytics (simplified implementation)
+  async getSalesStats(garageId) {
+    const result = await pool.query(
+      "SELECT COUNT(*) as total_invoices, COALESCE(SUM(parts_total), 0) as total_parts_total, COALESCE(SUM(service_charge), 0) as total_service_charges, COALESCE(SUM(total_amount), 0) as total_profit FROM invoices WHERE garage_id = $1",
+      [garageId]
+    );
+    const row = result.rows[0];
+    return {
+      totalInvoices: parseInt(row.total_invoices),
+      totalPartsTotal: parseFloat(row.total_parts_total),
+      totalServiceCharges: parseFloat(row.total_service_charges),
+      totalProfit: parseFloat(row.total_profit)
+    };
+  }
+  async getTodaySalesStats(garageId) {
+    const today = /* @__PURE__ */ new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const result = await pool.query(
+      `SELECT 
+        COUNT(*) as today_invoices,
+        COALESCE(SUM(parts_total), 0) as today_parts,
+        COALESCE(SUM(service_charge), 0) as today_service,
+        COALESCE(SUM(total_amount), 0) as today_profit
+       FROM invoices 
+       WHERE garage_id = $1 AND created_at >= $2 AND created_at < $3`,
+      [garageId, today.toISOString(), tomorrow.toISOString()]
+    );
+    const row = result.rows[0];
+    return {
+      todayProfit: parseFloat(row.today_profit || 0),
+      todayInvoices: parseInt(row.today_invoices || 0),
+      todayService: parseFloat(row.today_service || 0),
+      todayParts: parseFloat(row.today_parts || 0)
+    };
+  }
+  async getSalesDataByDateRange(garageId, startDate, endDate) {
+    const result = await pool.query(
+      `SELECT 
+        DATE(created_at) as date,
+        DATE(created_at) as period,
+        COALESCE(SUM(total_amount), 0) as revenue,
+        COALESCE(SUM(total_amount), 0) as total_sales,
+        COALESCE(SUM(service_charge), 0) as service_charges,
+        COALESCE(SUM(parts_total), 0) as parts_revenue,
+        COALESCE(SUM(total_amount), 0) as profit,
+        COUNT(*) as count,
+        COUNT(*) as invoice_count
+       FROM invoices 
+       WHERE garage_id = $1 AND DATE(created_at) BETWEEN $2 AND $3
+       GROUP BY DATE(created_at)
+       ORDER BY DATE(created_at) ASC`,
+      [garageId, startDate, endDate]
+    );
+    return result.rows.map((row) => ({
+      date: row.date,
+      period: row.period,
+      revenue: parseFloat(row.revenue || 0),
+      totalSales: parseFloat(row.total_sales || 0),
+      serviceCharges: parseFloat(row.service_charges || 0),
+      partsRevenue: parseFloat(row.parts_revenue || 0),
+      profit: parseFloat(row.profit || 0),
+      count: parseInt(row.count || 0),
+      invoiceCount: parseInt(row.invoice_count || 0)
+    }));
+  }
+  async getMonthlySalesData(garageId) {
+    const result = await pool.query(
+      `SELECT 
+        EXTRACT(MONTH FROM created_at) as month,
+        EXTRACT(YEAR FROM created_at) as year,
+        COALESCE(SUM(service_charge), 0) as service_charges,
+        COUNT(*) as invoice_count
+       FROM invoices 
+       WHERE garage_id = $1 
+       GROUP BY EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)
+       ORDER BY year DESC, month DESC
+       LIMIT 12`,
+      [garageId]
+    );
+    return result.rows.map((row) => ({
+      month: new Date(0, row.month - 1).toLocaleString("default", { month: "short" }),
+      year: parseInt(row.year),
+      serviceCharges: parseFloat(row.service_charges),
+      invoiceCount: parseInt(row.invoice_count)
+    }));
+  }
+  // Super Admin functionality implementations
+  async getAllGarages() {
+    const result = await pool.query("SELECT * FROM garages ORDER BY created_at DESC");
+    return result.rows;
+  }
+  async getAllUsers() {
+    const result = await pool.query("SELECT * FROM users ORDER BY created_at DESC");
+    return result.rows;
+  }
+  async getUsersByGarage(garageId) {
+    const result = await pool.query("SELECT * FROM users WHERE garage_id = $1 ORDER BY created_at DESC", [garageId]);
+    return result.rows;
+  }
+  async updateUserRole(userId, role, actorId) {
+    if (role === "mechanic_staff") {
+      const user = await pool.query("SELECT garage_id FROM users WHERE id = $1", [userId]);
+      if (user.rows[0]?.garage_id) {
+        const adminCount = await pool.query(
+          "SELECT COUNT(*) as count FROM users WHERE garage_id = $1 AND role = $2",
+          [user.rows[0].garage_id, "garage_admin"]
+        );
+        if (parseInt(adminCount.rows[0].count) <= 1) {
+          throw new Error("Cannot demote the last admin in the garage");
+        }
+      }
+    }
+    const result = await pool.query(
+      "UPDATE users SET role = $1 WHERE id = $2 RETURNING *",
+      [role, userId]
+    );
+    const actor = await pool.query("SELECT email, garage_id FROM users WHERE id = $1", [actorId]);
+    const targetUser = result.rows[0];
+    await this.createAuditLog({
+      actor_id: actorId,
+      actor_email: actor.rows[0]?.email || "system",
+      target_user_id: userId,
+      target_email: targetUser.email,
+      action: "role_change",
+      details: { new_role: role, previous_role: targetUser.role },
+      garage_id: targetUser.garage_id || actor.rows[0]?.garage_id
+    });
+    return result.rows[0];
+  }
+  // OTP Management implementations
+  async createOtpRecord(record) {
+    const id = crypto.randomUUID();
+    const result = await pool.query(
+      "INSERT INTO otp_records (id, email, hashed_otp, salt, purpose, attempts, used, expires_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+      [id, record.email, record.hashed_otp, record.salt, record.purpose, record.attempts || 0, record.used || false, record.expires_at]
+    );
+    return result.rows[0];
+  }
+  async getOtpRecord(email, purpose) {
+    const result = await pool.query(
+      "SELECT * FROM otp_records WHERE email = $1 AND purpose = $2 AND used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1",
+      [email, purpose]
+    );
+    return result.rows[0];
+  }
+  async updateOtpRecord(id, record) {
+    const fields = Object.keys(record).filter((key) => key !== "id");
+    const values = fields.map((field) => record[field]);
+    const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(", ");
+    const result = await pool.query(
+      `UPDATE otp_records SET ${setClause} WHERE id = $1 RETURNING *`,
+      [id, ...values]
+    );
+    return result.rows[0];
+  }
+  // Audit Logs implementations  
+  async createAuditLog(log) {
+    const id = crypto.randomUUID();
+    const result = await pool.query(
+      "INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, target_email, action, details, garage_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+      [id, log.actor_id, log.actor_email, log.target_user_id, log.target_email, log.action, JSON.stringify(log.details), log.garage_id]
+    );
+    return result.rows[0];
+  }
+  async getAuditLogs(garageId) {
+    let query = "SELECT * FROM audit_logs";
+    let params = [];
+    if (garageId) {
+      query += " WHERE garage_id = $1";
+      params = [garageId];
+    }
+    query += " ORDER BY created_at DESC LIMIT 100";
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+  // Access Requests implementations
+  async createAccessRequest(request) {
+    const id = crypto.randomUUID();
+    const result = await pool.query(
+      "INSERT INTO access_requests (id, garage_id, user_id, email, name, requested_role, status, note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+      [id, request.garage_id, request.user_id, request.email, request.name, request.requested_role, request.status || "pending", request.note]
+    );
+    return result.rows[0];
+  }
+  async checkExistingAccessRequest(email) {
+    const result = await pool.query(
+      "SELECT * FROM access_requests WHERE email = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1",
+      [email, "pending"]
+    );
+    return result.rows[0] || null;
+  }
+  async getAccessRequests(garageId) {
+    let query = "SELECT * FROM access_requests";
+    let params = [];
+    if (garageId) {
+      query += " WHERE garage_id = $1";
+      params = [garageId];
+    }
+    query += " ORDER BY created_at DESC";
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+  async updateAccessRequest(id, request) {
+    const fields = Object.keys(request).filter((key) => key !== "id");
+    const values = fields.map((field) => request[field]);
+    if (fields.includes("status") && (request.status === "approved" || request.status === "denied")) {
+      if (!fields.includes("processed_at")) {
+        fields.push("processed_at");
+        values.push(/* @__PURE__ */ new Date());
+      }
+    }
+    const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(", ");
+    const result = await pool.query(
+      `UPDATE access_requests SET ${setClause} WHERE id = $1 RETURNING *`,
+      [id, ...values]
+    );
+    return result.rows[0];
+  }
+  // Notification methods
+  async createNotification(notification) {
+    const id = crypto.randomUUID();
+    const result = await pool.query(
+      "INSERT INTO notifications (id, garage_id, title, message, type, is_read, data, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+      [id, notification.garageId, notification.title, notification.message, notification.type, false, JSON.stringify(notification.data || {}), /* @__PURE__ */ new Date()]
+    );
+    return result.rows[0];
+  }
+  async getNotifications(garageId) {
+    const result = await pool.query(
+      "SELECT * FROM notifications WHERE garage_id = $1 ORDER BY created_at DESC LIMIT 50",
+      [garageId]
+    );
+    return result.rows;
+  }
+  async getUnreadNotificationCount(garageId) {
+    const result = await pool.query(
+      "SELECT COUNT(*) as count FROM notifications WHERE garage_id = $1 AND is_read = false",
+      [garageId]
+    );
+    return parseInt(result.rows[0].count);
+  }
+  async markNotificationAsRead(id, garageId) {
+    await pool.query(
+      "UPDATE notifications SET is_read = true WHERE id = $1 AND garage_id = $2",
+      [id, garageId]
+    );
+  }
+  async markAllNotificationsAsRead(garageId) {
+    await pool.query(
+      "UPDATE notifications SET is_read = true WHERE garage_id = $1 AND is_read = false",
+      [garageId]
+    );
+  }
+  async fixUndefinedWorkSummaries() {
+    try {
+      const result = await pool.query(`
+        UPDATE job_cards 
+        SET work_summary = 'Service completed for ' || bike_number || ' - ' || complaint
+        WHERE work_summary LIKE '%undefined%' AND bike_number IS NOT NULL
+      `);
+      if (result.rowCount && result.rowCount > 0) {
+        console.log(`\u2705 Fixed ${result.rowCount} work summaries with undefined values`);
+      }
+    } catch (error) {
+      console.error("\u274C Failed to fix undefined work summaries:", error);
+    }
+  }
+};
+var storage = new DatabaseStorage();
+
+// routes.ts
+import bcrypt2 from "bcrypt";
+import jwt from "jsonwebtoken";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { z } from "zod";
+
+// invoice-renderer.ts
+import PDFDocument from "pdfkit";
+function formatCurrency(amount) {
+  return `Rs.${amount.toFixed(2)}`;
+}
+function calculateTotals(serviceCharge, spareParts) {
+  const partsTotal = spareParts.reduce((sum, part) => sum + part.price * part.quantity, 0);
+  const subTotal = partsTotal + serviceCharge;
+  const grandTotal = subTotal;
+  return {
+    partsTotal,
+    serviceCharge,
+    subTotal,
+    grandTotal
+  };
+}
+function renderInvoicePDF(invoiceData) {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({
+        size: "A4",
+        margins: { top: 50, bottom: 50, left: 50, right: 50 }
+      });
+      const buffers = [];
+      doc.on("data", buffers.push.bind(buffers));
+      doc.on("end", () => resolve(Buffer.concat(buffers)));
+      doc.on("error", reject);
+      const pageWidth = doc.page.width;
+      let yPos = 80;
+      const totals = calculateTotals(
+        Number(invoiceData.service_charge),
+        invoiceData.spare_parts || []
+      );
+      doc.fontSize(22).font("Helvetica-Bold").fillColor("#000000").text(invoiceData.garage_name, 0, yPos, { align: "center", width: pageWidth });
+      yPos += 35;
+      doc.fontSize(14).font("Helvetica").text(invoiceData.garage_phone || "", 0, yPos, { align: "center", width: pageWidth });
+      yPos += 70;
+      doc.fontSize(24).font("Helvetica-Bold").text("INVOICE", 0, yPos, { align: "center", width: pageWidth });
+      yPos += 50;
+      doc.fontSize(12).font("Helvetica");
+      doc.text(`Invoice Number: ${invoiceData.invoice_number}`, 50, yPos);
+      yPos += 25;
+      doc.text(`Date: ${new Date(invoiceData.created_at).toLocaleDateString("en-GB")}`, 50, yPos);
+      yPos += 25;
+      doc.text(`Customer: ${invoiceData.customer_name}`, 50, yPos);
+      yPos += 25;
+      doc.text(`Phone: ${invoiceData.phone}`, 50, yPos);
+      yPos += 25;
+      doc.text(`Bike Number: ${invoiceData.bike_number}`, 50, yPos);
+      yPos += 50;
+      doc.font("Helvetica-Bold").text("Services and Parts:", 50, yPos);
+      yPos += 25;
+      doc.font("Helvetica").text(invoiceData.complaint || "Service Only", 50, yPos);
+      yPos += 25;
+      const spareParts = invoiceData.spare_parts || [];
+      spareParts.forEach((part) => {
+        doc.text(`${part.name} (Qty: ${part.quantity})`, 50, yPos);
+        yPos += 25;
+      });
+      yPos += 30;
+      doc.font("Helvetica").fontSize(12);
+      doc.text("Parts Total:", 50, yPos);
+      doc.text(formatCurrency(totals.partsTotal), pageWidth - 120, yPos, { align: "right" });
+      yPos += 20;
+      doc.text("Service Charge:", 50, yPos);
+      doc.text(formatCurrency(totals.serviceCharge), pageWidth - 120, yPos, { align: "right" });
+      yPos += 25;
+      doc.font("Helvetica-Bold").fontSize(14);
+      doc.text("Total Amount:", 50, yPos);
+      doc.text(formatCurrency(totals.grandTotal), pageWidth - 120, yPos, { align: "right" });
+      yPos += 70;
+      doc.font("Helvetica").fontSize(14);
+      doc.text(`Thank you for choosing ${invoiceData.garage_name}!`, 0, yPos, { align: "center", width: pageWidth });
+      yPos += 25;
+      doc.fontSize(12);
+      doc.text("Visit us again for all your bike service needs", 0, yPos, { align: "center", width: pageWidth });
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+// routes.ts
+init_gmailEmailService();
+import crypto2 from "crypto";
+var insertUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+  role: z.string(),
+  garageId: z.string().optional(),
+  name: z.string().optional()
+});
+var insertGarageSchema = z.object({
+  name: z.string(),
+  ownerName: z.string(),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  logo: z.string().optional()
+});
+var insertCustomerSchema = z.object({
+  garageId: z.string(),
+  name: z.string(),
+  phone: z.string().optional(),
+  bikeNumber: z.string().optional(),
+  notes: z.string().optional()
+});
+var insertSparePartSchema = z.object({
+  garageId: z.string(),
+  name: z.string(),
+  partNumber: z.string().optional(),
+  price: z.union([z.number(), z.string().transform(Number)]),
+  quantity: z.union([z.number(), z.string().transform(Number)]).optional(),
+  lowStockThreshold: z.union([z.number(), z.string().transform(Number)]).optional(),
+  barcode: z.string().optional(),
+  costPrice: z.union([z.number(), z.string().transform(Number)]).optional()
+});
+var insertJobCardSchema = z.object({
+  garageId: z.string(),
+  customerId: z.string().optional(),
+  customerName: z.string(),
+  phone: z.string().optional(),
+  bikeNumber: z.string().optional(),
+  complaint: z.string(),
+  serviceCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
+  totalAmount: z.union([z.number(), z.string().transform(Number)]).optional(),
+  spareParts: z.array(z.any()).optional()
+});
+var insertInvoiceSchema = z.object({
+  garageId: z.string(),
+  jobCardId: z.string().optional(),
+  customerId: z.string().optional(),
+  invoiceNumber: z.string(),
+  serviceCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
+  partsTotal: z.union([z.number(), z.string().transform(Number)]).optional(),
+  totalAmount: z.union([z.number(), z.string().transform(Number)])
+});
+var JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
+function generateRandomPassword() {
+  const length = 12;
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
+  let password = "";
+  const lowercase = "abcdefghijklmnopqrstuvwxyz";
+  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numbers = "0123456789";
+  const symbols = "!@#$%";
+  password += lowercase[Math.floor(Math.random() * lowercase.length)];
+  password += uppercase[Math.floor(Math.random() * uppercase.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += symbols[Math.floor(Math.random() * symbols.length)];
+  for (let i = 4; i < length; i++) {
+    password += charset[Math.floor(Math.random() * charset.length)];
+  }
+  return password.split("").sort(() => Math.random() - 0.5).join("");
+}
+var SUPER_ADMIN_EMAILS = [
+  "gorla.ananthkalyan@gmail.com",
+  "ananthautomotivegarage@gmail.com"
+];
+var gmailService = GmailEmailService.getInstance();
+var authenticateToken = async (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Access token required" });
+  }
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await storage.getUserByEmail(decoded.email);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: "Invalid token" });
+  }
+};
+var requireRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Insufficient permissions" });
+    }
+    next();
+  };
+};
+var requireGarageAccess = (req, res, next) => {
+  if (req.user.role === "super_admin") {
+    next();
+    return;
+  }
+  const garageId = req.params.garageId || req.params.id || req.body.garageId;
+  if (!garageId || garageId !== req.user.garage_id) {
+    return res.status(403).json({ message: "Access denied to this garage" });
+  }
+  next();
+};
+async function registerRoutes(app2) {
+  app2.get("/health", (req, res) => {
+    res.json({
+      status: "ok",
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      service: "garage-guru-backend",
+      environment: process.env.NODE_ENV || "development"
+    });
+  });
+  app2.get("/api/db/ping", async (req, res) => {
+    try {
+      const pingResult = await storage.ping();
+      const result = await pool.query("SELECT 1 as ping, NOW() as timestamp, version() as db_version");
+      res.json({
+        success: true,
+        ping: result.rows[0].ping,
+        timestamp: result.rows[0].timestamp,
+        database_version: result.rows[0].db_version,
+        storage_ping: pingResult,
+        database_url: process.env.DATABASE_URL ? "configured" : "missing"
+      });
+    } catch (error) {
+      console.error("Database ping error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        database_url: process.env.DATABASE_URL ? "configured" : "missing"
+      });
+    }
+  });
+  app2.get("/api/debug/database", async (req, res) => {
+    try {
+      const testQuery = await pool.query("SELECT NOW() as current_time");
+      const users = await storage.getAllUsers();
+      const garages = await storage.getAllGarages();
+      res.json({
+        databaseConnected: true,
+        currentTime: testQuery.rows[0],
+        userCount: users.length,
+        garageCount: garages.length,
+        sampleUser: users[0] ? { email: users[0].email, role: users[0].role } : null,
+        sampleGarage: garages[0] ? { name: garages[0].name } : null
+      });
+    } catch (error) {
+      console.error("Database debug error:", error);
+      res.json({
+        databaseConnected: false,
+        error: error.message,
+        needsSchemaPush: error.message.includes("relation") || error.message.includes("table")
+      });
+    }
+  });
+  app2.post("/api/setup/seed-database", async (req, res) => {
+    try {
+      const existingUsers = await storage.getAllUsers();
+      if (existingUsers.length > 0) {
+        return res.json({ message: "Database already seeded", userCount: existingUsers.length });
+      }
+      const garage = await storage.createGarage({
+        name: "Ananth Automotive garage",
+        owner_name: "Govind Naidu",
+        phone: "7288856665",
+        email: "gorla.ananthkalyan@gmail.com",
+        logo: "https://res.cloudinary.com/dcueubsl8/image/upload/v1754845196/garage-logos/sjrppoab6sslhvm5rl7a.jpg"
+      });
+      const user = await storage.createUser({
+        email: "gorla.ananthkalyan@gmail.com",
+        name: "Ananth",
+        role: "garage_admin",
+        garage_id: garage.id,
+        password: "password123"
+      });
+      res.json({
+        message: "Database seeded successfully - login ready",
+        garage: { id: garage.id, name: garage.name },
+        user: { id: user.id, email: user.email, role: user.role },
+        loginCredentials: {
+          email: "gorla.ananthkalyan@gmail.com",
+          password: "password123"
+        }
+      });
+    } catch (error) {
+      console.error("Database seeding error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+  if (process.env.NODE_ENV === "production") {
+    app2.get("/", (req, res) => {
+      res.json({
+        message: "Garage Guru Backend API",
+        status: "running",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        version: "1.0.0",
+        endpoints: {
+          health: "/health",
+          auth: "/api/auth/*",
+          garages: "/api/garages/*"
+        }
+      });
+    });
+  }
+  const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || "ananthautomotivegarage@gmail.com";
+  app2.get("/api/garages", async (req, res) => {
+    try {
+      const { purpose } = req.query;
+      const garages = await storage.getAllGarages();
+      if (purpose === "staff_access") {
+        const availableGarages = garages.filter((garage) => {
+          return garage.name && garage.owner_name;
+        });
+        res.json(availableGarages);
+      } else {
+        res.json(garages);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch garages" });
+    }
+  });
+  app2.post("/api/garages", authenticateToken, async (req, res) => {
+    try {
+      const { name, ownerName, phone, email } = req.body;
+      if (!req.user || req.user.role !== "garage_admin") {
+        return res.status(403).json({ message: "Only garage admins can create garages" });
+      }
+      if (!name || !ownerName || !phone) {
+        return res.status(400).json({ message: "Name, owner name, and phone are required" });
+      }
+      const garage = await storage.createGarage({
+        name,
+        owner_name: ownerName,
+        phone,
+        email: email || req.user.email
+      });
+      await storage.updateUserGarage(req.user.id, garage.id);
+      res.json(garage);
+    } catch (error) {
+      console.error("Create garage error:", error);
+      res.status(500).json({ message: "Failed to create garage" });
+    }
+  });
+  app2.post("/api/auth/request-access", async (req, res) => {
+    try {
+      const { email, name, requestType, message, garageId } = req.body;
+      if (!email || !name) {
+        return res.status(400).json({
+          message: "Email and name are required."
+        });
+      }
+      if (requestType === "staff" && !garageId) {
+        return res.status(400).json({
+          message: "Garage selection is required for staff access requests. Please select a garage to continue."
+        });
+      }
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({
+          message: "User with this email already has access to the system. Please login instead."
+        });
+      }
+      const existingRequests = await storage.getAccessRequests();
+      const pendingRequest = existingRequests.find(
+        (req2) => req2.email === email && req2.status === "pending"
+      );
+      if (pendingRequest) {
+        return res.status(400).json({
+          message: "You already have a pending access request. Please wait for super admin approval."
+        });
+      }
+      const accessRequest = await storage.createAccessRequest({
+        garage_id: garageId || void 0,
+        // Handle empty strings properly
+        user_id: void 0,
+        // Will be set when user is created after approval
+        email,
+        name,
+        requested_role: requestType || "staff",
+        status: "pending",
+        note: message
+      });
+      let garageName = "";
+      let garageOwner = "";
+      if (garageId) {
+        const garage = await storage.getGarage(garageId);
+        if (garage) {
+          garageName = garage.name;
+          garageOwner = garage.owner_name;
+        }
+      }
+      const requestData = {
+        email,
+        name,
+        requestType: requestType || "staff",
+        message,
+        garageId,
+        garageName,
+        garageOwner,
+        requestId: accessRequest.id,
+        timestamp: (/* @__PURE__ */ new Date()).toLocaleString()
+      };
+      const gmailService2 = GmailEmailService.getInstance();
+      let emailSent = false;
+      let responseMessage = "";
+      if (requestType === "staff" && garageId) {
+        const garage = await storage.getGarage(garageId);
+        if (garage) {
+          const garageUsers = await storage.getUsersByGarage(garageId);
+          const garageAdmin = garageUsers.find((user) => user.role === "garage_admin");
+          if (garageAdmin) {
+            emailSent = await gmailService2.sendAccessRequestNotification(
+              garageAdmin.email,
+              requestData
+            );
+            responseMessage = emailSent ? `Access request sent to garage admin (${garageAdmin.email}). You will receive an email notification once your request is reviewed.` : `Access request saved for garage admin review. You will receive an email notification once your request is reviewed.`;
+          } else {
+            emailSent = await gmailService2.sendAccessRequestNotification(
+              SUPER_ADMIN_EMAIL,
+              requestData
+            );
+            responseMessage = emailSent ? `Access request sent to super admin (no garage admin found). You will receive an email notification once your request is reviewed.` : `Access request saved for super admin review. You will receive an email notification once your request is reviewed.`;
+          }
+        }
+      } else {
+        emailSent = await gmailService2.sendAccessRequestNotification(
+          SUPER_ADMIN_EMAIL,
+          requestData
+        );
+        responseMessage = emailSent ? `Access request sent to super admin. You will receive an email notification once your request is reviewed.` : `Access request saved for super admin review. You will receive an email notification once your request is reviewed.`;
+      }
+      res.json({ message: responseMessage });
+    } catch (error) {
+      console.error("Access request error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.get("/api/access-requests", authenticateToken, async (req, res) => {
+    try {
+      const { garageId } = req.query;
+      if (req.user?.role === "super_admin") {
+        const requests = await storage.getAccessRequests(garageId);
+        res.json(requests);
+      } else if (req.user?.role === "garage_admin" && req.user.garage_id) {
+        const requests = await storage.getAccessRequests(req.user.garage_id);
+        res.json(requests.filter((r) => r.requested_role === "staff"));
+      } else {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+    } catch (error) {
+      console.error("Get access requests error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.post("/api/access-requests/:id/process", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { action, role } = req.body;
+      const requests = await storage.getAccessRequests();
+      const request = requests.find((r) => r.id === id);
+      if (!request) {
+        return res.status(404).json({ message: "Access request not found" });
+      }
+      if (request.status !== "pending") {
+        return res.status(400).json({ message: "Request has already been processed" });
+      }
+      if (req.user?.role === "garage_admin") {
+        if (request.requested_role !== "staff" || request.garage_id !== req.user.garage_id) {
+          return res.status(403).json({ message: "Insufficient permissions to process this request" });
+        }
+      } else if (req.user?.role !== "super_admin") {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+      if (action === "approve") {
+        const existingUser = await storage.getUserByEmail(request.email);
+        let newUser;
+        let defaultPassword = null;
+        if (existingUser) {
+          const desiredRole = role || (request.requested_role === "admin" ? "garage_admin" : "mechanic_staff");
+          if (existingUser.role !== desiredRole) {
+            const updatedUser = await storage.updateUser(existingUser.id, {
+              role: desiredRole,
+              garage_id: request.garage_id || existingUser.garage_id
+            });
+            newUser = updatedUser;
+          } else {
+            newUser = existingUser;
+          }
+        } else {
+          defaultPassword = generateRandomPassword();
+          const hashedPassword = await bcrypt2.hash(defaultPassword, 10);
+          const userData = {
+            email: request.email,
+            password: hashedPassword,
+            name: request.name,
+            role: role || (request.requested_role === "admin" ? "garage_admin" : "mechanic_staff"),
+            garage_id: request.garage_id,
+            must_change_password: true
+          };
+          newUser = await storage.createUser(userData);
+        }
+        await storage.updateAccessRequest(id, {
+          status: "approved",
+          user_id: newUser.id,
+          processed_by: req.user.email,
+          processed_at: /* @__PURE__ */ new Date()
+        });
+        const gmailService2 = GmailEmailService.getInstance();
+        await gmailService2.sendAccessApprovalNotification(
+          request.email,
+          {
+            name: request.name,
+            role: newUser.role,
+            email: request.email,
+            temporaryPassword: defaultPassword
+            // Will be null for existing users
+          }
+        );
+        res.json({ message: "Access request approved and user created successfully" });
+      } else if (action === "deny") {
+        await storage.updateAccessRequest(id, {
+          status: "denied",
+          processed_by: req.user.email,
+          processed_at: /* @__PURE__ */ new Date()
+        });
+        const gmailService2 = GmailEmailService.getInstance();
+        await gmailService2.sendAccessDenialNotification(
+          request.email,
+          {
+            name: request.name,
+            requestType: request.requested_role
+          }
+        );
+        res.json({ message: "Access request denied" });
+      } else {
+        res.status(400).json({ message: 'Invalid action. Use "approve" or "deny"' });
+      }
+    } catch (error) {
+      console.error("Process access request error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.post("/api/auth/generate-codes", authenticateToken, requireRole(["super_admin"]), async (req, res) => {
+    try {
+      const timestamp = Date.now().toString(36);
+      const randomAdmin = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const randomStaff = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const newAdminCode = `GARAGE-ADMIN-2025-${randomAdmin}`;
+      const newStaffCode = `GARAGE-STAFF-2025-${randomStaff}`;
+      console.log("\n\u{1F511} NEW ACTIVATION CODES GENERATED \u{1F511}");
+      console.log("===================================");
+      console.log(`\u{1F534} Admin Code: ${newAdminCode}`);
+      console.log(`\u{1F535} Staff Code: ${newStaffCode}`);
+      console.log(`\u23F0 Generated: ${(/* @__PURE__ */ new Date()).toLocaleString()}`);
+      console.log("===================================\n");
+      console.log("\u{1F4A1} To use these codes, update your environment variables:");
+      console.log(`ADMIN_ACTIVATION_CODE=${newAdminCode}`);
+      console.log(`STAFF_ACTIVATION_CODE=${newStaffCode}
+`);
+      res.json({
+        adminCode: newAdminCode,
+        staffCode: newStaffCode,
+        message: "New activation codes generated. Update environment variables to activate."
+      });
+    } catch (error) {
+      console.error("Code generation error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.post("/api/auth/register-simple", async (req, res) => {
+    try {
+      const { email, password, name, garageName, ownerName, phone } = req.body;
+      const existingUsers = await storage.getAllUsers();
+      if (existingUsers.length > 0) {
+        return res.status(400).json({ message: "System already has users. Use activation codes." });
+      }
+      const garage = await storage.createGarage({
+        name: garageName || "Default Garage",
+        owner_name: ownerName || name,
+        phone: phone || "0000000000",
+        email
+      });
+      const user = await storage.createUser({
+        email,
+        name,
+        role: "garage_admin",
+        garage_id: garage.id,
+        password
+      });
+      const token = jwt.sign({ email: user.email, id: user.id }, JWT_SECRET);
+      res.json({
+        token,
+        user: { ...user, password: void 0 },
+        garage
+      });
+    } catch (error) {
+      console.error("Simple registration error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+  app2.post("/api/auth/register", async (req, res) => {
+    try {
+      const { email, password, name, activationCode, garageName, ownerName, phone } = req.body;
+      if (email === SUPER_ADMIN_EMAIL) {
+        const user2 = await storage.createUser({
+          email,
+          name,
+          role: "super_admin",
+          garage_id: null,
+          password
+        });
+        const token2 = jwt.sign({ email: user2.email, id: user2.id }, JWT_SECRET);
+        return res.json({
+          token: token2,
+          user: { ...user2, password: void 0 },
+          garage: null
+        });
+      }
+      const codePattern = /^[A-Z0-9]{8}$/;
+      if (!codePattern.test(activationCode)) {
+        return res.status(400).json({
+          message: "Invalid activation code format. Use the 8-character code provided by super admin."
+        });
+      }
+      const role = req.body.requestedRole === "admin" || req.body.isAdminRequest === true ? "garage_admin" : "mechanic_staff";
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+      const hashedPassword = await bcrypt2.hash(password, 10);
+      let garageId = null;
+      if (role === "garage_admin") {
+        const garage = await storage.createGarage({
+          name: garageName,
+          owner_name: ownerName || name,
+          phone,
+          email
+        });
+        garageId = garage.id;
+      } else if (role === "mechanic_staff" && req.body.selectedGarageId) {
+        garageId = req.body.selectedGarageId;
+      }
+      const user = await storage.createUser({
+        email,
+        password: hashedPassword,
+        name,
+        role,
+        garage_id: garageId
+      });
+      const token = jwt.sign({ email: user.email, id: user.id }, JWT_SECRET);
+      res.json({
+        token,
+        user: {
+          ...user,
+          password: void 0,
+          mustChangePassword: user.must_change_password || false,
+          firstLogin: user.firstLogin || false,
+          garageId: user.garage_id
+          // Map garage_id to garageId for frontend
+        },
+        garage: garageId ? await storage.getGarage(garageId) : null
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.post("/api/auth/login", async (req, res) => {
+    try {
+      console.log("Login attempt for:", req.body?.email);
+      const { email, password } = req.body;
+      if (!email || !password) {
+        console.log("Missing email or password:", { email: !!email, password: !!password });
+        return res.status(400).json({ message: "Email and password required" });
+      }
+      const user = await storage.getUserByEmail(email);
+      console.log("User found:", user ? "Yes" : "No");
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      console.log("Comparing password. Length:", password.length);
+      const validPassword = await bcrypt2.compare(password, user.password);
+      console.log("Password valid:", validPassword ? "Yes" : "No");
+      if (!validPassword) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      const token = jwt.sign({ email: user.email, id: user.id }, JWT_SECRET);
+      console.log("JWT token generated successfully");
+      let garage = null;
+      if (user.garage_id) {
+        garage = await storage.getGarage(user.garage_id);
+        console.log("Garage found:", garage ? "Yes" : "No");
+      }
+      res.json({
+        token,
+        user: {
+          ...user,
+          password: void 0,
+          mustChangePassword: user.must_change_password || false,
+          firstLogin: user.firstLogin || false,
+          garageId: user.garage_id
+          // Map garage_id to garageId for frontend
+        },
+        garage
+      });
+    } catch (error) {
+      console.error("Login error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      res.status(500).json({
+        message: "Internal server error",
+        error: process.env.NODE_ENV === "development" ? error.message : void 0
+      });
+    }
+  });
+  app2.post("/api/auth/change-password", authenticateToken, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      if (!newPassword) {
+        return res.status(400).json({ message: "New password is required" });
+      }
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: "New password must be at least 8 characters long" });
+      }
+      const user = await storage.getUserByEmail(req.user.email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      if (!user.must_change_password) {
+        if (!currentPassword) {
+          return res.status(400).json({ message: "Current password is required" });
+        }
+        const isValidPassword = await bcrypt2.compare(currentPassword, user.password);
+        if (!isValidPassword) {
+          return res.status(401).json({ message: "Current password is incorrect" });
+        }
+      }
+      const isSamePassword = await bcrypt2.compare(newPassword, user.password);
+      if (isSamePassword) {
+        return res.status(400).json({ message: "New password cannot be the same as your current password" });
+      }
+      await storage.changePassword(user.id, newPassword);
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      console.error("Change password error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.get("/api/user/profile", authenticateToken, async (req, res) => {
+    try {
+      let garage = null;
+      if (req.user.garage_id) {
+        garage = await storage.getGarage(req.user.garage_id);
+      }
+      res.json({
+        user: {
+          ...req.user,
+          password: void 0,
+          garageId: req.user.garage_id
+          // Map garage_id to garageId for frontend
+        },
+        garage
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.put("/api/garages/:id", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = insertGarageSchema.partial().parse(req.body);
+      const garage = await storage.updateGarage(id, updateData);
+      res.json(garage);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update garage" });
+    }
+  });
+  app2.get("/api/garages/:garageId/customers", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const customers = await storage.getCustomers(garageId);
+      res.json(customers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customers" });
+    }
+  });
+  app2.post("/api/garages/:garageId/customers", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const customerData = insertCustomerSchema.parse({ ...req.body, garageId });
+      const mappedData = {
+        ...customerData,
+        garage_id: garageId,
+        bike_number: customerData.bikeNumber
+      };
+      const customer = await storage.createCustomer(mappedData);
+      res.json(customer);
+    } catch (error) {
+      if (error.message && error.message.includes("already exists")) {
+        res.status(409).json({
+          message: error.message,
+          type: "duplicate_bike_number"
+        });
+      } else {
+        console.error("Error creating customer:", error);
+        res.status(500).json({ message: "Failed to create customer" });
+      }
+    }
+  });
+  app2.get("/api/garages/:garageId/customers/search", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const { q } = req.query;
+      if (!q || typeof q !== "string") {
+        return res.json([]);
+      }
+      const customers = await storage.searchCustomers(garageId, q);
+      res.json(customers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search customers" });
+    }
+  });
+  app2.get("/api/garages/:garageId/spare-parts/search", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const { q } = req.query;
+      if (!q || typeof q !== "string") {
+        return res.json([]);
+      }
+      const spareParts = await storage.searchSpareParts(garageId, q);
+      res.json(spareParts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search spare parts" });
+    }
+  });
+  app2.get("/api/garages/:garageId/customers/:customerId/invoices", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId, customerId } = req.params;
+      const invoices = await storage.getCustomerInvoices(customerId, garageId);
+      res.json(invoices);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer invoices" });
+    }
+  });
+  app2.put("/api/garages/:garageId/invoices/:id", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      const invoice = await storage.updateInvoice(id, updateData);
+      res.json(invoice);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update invoice" });
+    }
+  });
+  app2.get("/api/garages/:garageId/spare-parts", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const spareParts = await storage.getSpareParts(garageId);
+      res.json(spareParts);
+    } catch (error) {
+      console.error("Error in spare parts endpoint:", error);
+      res.status(500).json({ message: "Failed to fetch spare parts" });
+    }
+  });
+  app2.get("/api/garages/:garageId/spare-parts/low-stock", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const lowStockParts = await storage.getLowStockParts(garageId);
+      res.json(lowStockParts);
+    } catch (error) {
+      console.error("Error in low stock endpoint:", error);
+      res.status(500).json({ message: "Failed to fetch low stock parts" });
+    }
+  });
+  app2.post("/api/garages/:garageId/spare-parts", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const partData = insertSparePartSchema.parse({ ...req.body, garageId });
+      const mappedData = {
+        ...partData,
+        garage_id: garageId,
+        part_number: partData.partNumber,
+        price: parseFloat(partData.price.toString()),
+        cost_price: parseFloat((partData.costPrice || 0).toString()),
+        low_stock_threshold: partData.lowStockThreshold || 2
+      };
+      console.log("Creating spare part with garageId:", garageId, "Data:", mappedData);
+      const sparePart = await storage.createSparePart(mappedData);
+      res.json(sparePart);
+    } catch (error) {
+      console.error("Spare part creation error:", error);
+      if (error instanceof Error) {
+        if (error.message.includes("already exists")) {
+          res.status(409).json({ message: error.message });
+        } else {
+          res.status(400).json({ message: error.message });
+        }
+      } else {
+        res.status(500).json({ message: "Failed to create spare part" });
+      }
+    }
+  });
+  app2.put("/api/garages/:garageId/spare-parts/:id", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = insertSparePartSchema.partial().parse(req.body);
+      const mappedData = {
+        ...updateData,
+        part_number: updateData.partNumber,
+        price: updateData.price ? parseFloat(updateData.price.toString()) : void 0,
+        cost_price: updateData.costPrice ? parseFloat(updateData.costPrice.toString()) : void 0,
+        low_stock_threshold: updateData.lowStockThreshold ?? void 0
+      };
+      const sparePart = await storage.updateSparePart(id, mappedData);
+      res.json(sparePart);
+    } catch (error) {
+      console.error("Spare part update error:", error);
+      if (error instanceof Error) {
+        if (error.message.includes("duplicate key") || error.message.includes("unique constraint")) {
+          res.status(409).json({ message: "Part number already exists. Please use a different part number." });
+        } else {
+          res.status(400).json({ message: error.message });
+        }
+      } else {
+        res.status(500).json({ message: "Failed to update spare part" });
+      }
+    }
+  });
+  app2.delete("/api/garages/:garageId/spare-parts/:id", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId, id } = req.params;
+      await storage.deleteSparePart(id, garageId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete spare part" });
+    }
+  });
+  app2.get("/api/garages/:garageId/job-cards", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const { status } = req.query;
+      const jobCards = await storage.getJobCards(garageId, status);
+      res.json(jobCards);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch job cards" });
+    }
+  });
+  app2.get("/api/garages/:garageId/job-cards/:id", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId, id } = req.params;
+      const jobCard = await storage.getJobCard(id, garageId);
+      if (!jobCard) {
+        return res.status(404).json({ message: "Job card not found" });
+      }
+      if (typeof jobCard.spare_parts === "string") {
+        try {
+          jobCard.spare_parts = JSON.parse(jobCard.spare_parts);
+        } catch (e) {
+          jobCard.spare_parts = [];
+        }
+      }
+      res.json(jobCard);
+    } catch (error) {
+      console.error("Error fetching job card:", error);
+      res.status(500).json({ message: "Failed to fetch job card" });
+    }
+  });
+  app2.post("/api/garages/:garageId/job-cards", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const jobCardData = insertJobCardSchema.parse({ ...req.body, garageId });
+      let customer = await storage.getCustomers(garageId).then(
+        (customers) => customers.find((c) => c.phone === jobCardData.phone && c.bike_number === jobCardData.bikeNumber)
+      );
+      if (!customer) {
+        customer = await storage.createCustomer({
+          garage_id: garageId,
+          name: jobCardData.customerName,
+          phone: jobCardData.phone,
+          bike_number: jobCardData.bikeNumber
+        });
+      }
+      const jobCard = await storage.createJobCard({
+        ...jobCardData,
+        garage_id: garageId,
+        customer_id: customer.id,
+        customer_name: jobCardData.customerName,
+        bike_number: jobCardData.bikeNumber,
+        service_charge: jobCardData.serviceCharge,
+        total_amount: jobCardData.totalAmount,
+        spare_parts: jobCardData.spareParts || []
+      });
+      if (jobCard.spare_parts && Array.isArray(jobCard.spare_parts)) {
+        for (const part of jobCard.spare_parts) {
+          const sparePart = await storage.getSparePart(part.id, garageId);
+          if (sparePart) {
+            await storage.updateSparePart(part.id, {
+              quantity: sparePart.quantity - part.quantity
+            });
+          }
+        }
+      }
+      res.json(jobCard);
+    } catch (error) {
+      console.error("Job card creation error:", error);
+      res.status(500).json({ message: "Failed to create job card" });
+    }
+  });
+  app2.put("/api/garages/:garageId/job-cards/:id", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = insertJobCardSchema.partial().parse(req.body);
+      const jobCard = await storage.updateJobCard(id, {
+        ...updateData,
+        spare_parts: updateData.spareParts?.map((part) => ({
+          id: part.id,
+          partNumber: part.partNumber,
+          name: part.name,
+          quantity: part.quantity,
+          price: Number(part.price || part.sellingPrice || 0)
+        }))
+      });
+      res.json(jobCard);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update job card" });
+    }
+  });
+  app2.get("/api/garages/:garageId/invoices", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const invoices = await storage.getInvoices(garageId);
+      res.json(invoices);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch invoices" });
+    }
+  });
+  app2.post("/api/garages/:garageId/invoices", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const invoiceData = insertInvoiceSchema.parse({ ...req.body, garageId });
+      const existingInvoice = invoiceData.jobCardId ? await storage.getInvoiceByJobCardId(invoiceData.jobCardId) : null;
+      if (existingInvoice) {
+        return res.status(400).json({
+          message: "Invoice already exists for this job card",
+          existingInvoice
+        });
+      }
+      const istTime = (/* @__PURE__ */ new Date()).toLocaleString("sv-SE", { timeZone: "Asia/Kolkata" });
+      const localTimestamp = new Date(istTime);
+      const downloadToken = `${invoiceData.invoiceNumber}-${crypto2.randomUUID().substring(0, 8)}-${crypto2.randomUUID().substring(0, 6)}`;
+      const mappedInvoiceData = {
+        ...invoiceData,
+        garage_id: garageId,
+        job_card_id: invoiceData.jobCardId,
+        customer_id: invoiceData.customerId,
+        invoice_number: invoiceData.invoiceNumber,
+        download_token: downloadToken,
+        service_charge: invoiceData.serviceCharge,
+        parts_total: invoiceData.partsTotal,
+        total_amount: invoiceData.totalAmount
+      };
+      const invoice = await storage.createInvoice(mappedInvoiceData);
+      const currentUser = req.user;
+      const completionData = {
+        status: "completed",
+        completedAt: /* @__PURE__ */ new Date(),
+        completed_by: currentUser?.id,
+        completion_notes: req.body.completionNotes || null,
+        work_summary: req.body.workSummary || `Service completed for ${req.body.bikeNumber || (req.body.bike_number || "Vehicle")} - ${req.body.complaint || "Service"} - Invoice ${invoiceData.invoiceNumber} generated`
+      };
+      const jobCard = await storage.updateJobCard(invoice.job_card_id, completionData);
+      console.log("\u2705 Job card status updated:", jobCard.status, "completed_at:", jobCard.completed_at);
+      const customer = await storage.getCustomer(invoice.customer_id, garageId);
+      console.log("\u{1F4CA} Current customer data:", {
+        id: customer?.id,
+        name: customer?.name,
+        totalJobs: customer?.total_jobs,
+        totalSpent: customer?.total_spent
+      });
+      if (customer) {
+        const newTotalJobs = (customer.total_jobs || 0) + 1;
+        console.log("\u{1F4CA} Updating customer visit count:", { currentJobs: customer.total_jobs, newTotalJobs });
+        const updatedCustomer = await storage.updateCustomer(customer.id, {
+          total_jobs: newTotalJobs,
+          total_spent: Number(customer.total_spent || 0) + Number(invoice.total_amount),
+          last_visit: /* @__PURE__ */ new Date()
+        });
+        console.log("\u{1F4CA} Customer updated:", {
+          id: updatedCustomer.id,
+          name: updatedCustomer.name,
+          totalJobs: updatedCustomer.total_jobs
+        });
+        if (newTotalJobs === 50 || newTotalJobs === 100 || newTotalJobs >= 150 && newTotalJobs % 50 === 0) {
+          await storage.createNotification({
+            garageId,
+            customerId: customer.id,
+            type: "milestone",
+            title: `Customer Milestone - ${newTotalJobs} Visits!`,
+            message: `${customer.name} has reached ${newTotalJobs} service visits. Consider offering a loyalty reward!`,
+            data: { visits: newTotalJobs, customerName: customer.name }
+          });
+        }
+      }
+      res.json(invoice);
+    } catch (error) {
+      console.error("Invoice creation error:", error);
+      res.status(500).json({ message: "Failed to create invoice", error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+  app2.get("/invoice/data/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const invoiceResult = await pool.query(`
+        SELECT i.*, j.*, c.name as customer_name, c.phone, c.bike_number, g.name as garage_name, g.phone as garage_phone, g.logo as garage_logo
+        FROM invoices i
+        JOIN job_cards j ON i.job_card_id = j.id
+        JOIN customers c ON i.customer_id = c.id  
+        JOIN garages g ON i.garage_id = g.id
+        WHERE i.download_token = $1
+      `, [token]);
+      if (invoiceResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Invoice not found"
+        });
+      }
+      const invoiceData = invoiceResult.rows[0];
+      const pdfBuffer = await renderInvoicePDF(invoiceData);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="${invoiceData.invoice_number}.pdf"`);
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Invoice download error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to generate invoice PDF"
+      });
+    }
+  });
+  app2.get("/invoice/download/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const invoiceResult = await pool.query(`
+        SELECT i.*, j.*, c.name as customer_name, c.phone, c.bike_number, g.name as garage_name, g.phone as garage_phone
+        FROM invoices i
+        JOIN job_cards j ON i.job_card_id = j.id
+        JOIN customers c ON i.customer_id = c.id  
+        JOIN garages g ON i.garage_id = g.id
+        WHERE i.download_token = $1
+      `, [token]);
+      if (invoiceResult.rows.length === 0) {
+        return res.status(404).json({ message: "Invoice not found or link expired" });
+      }
+      const invoiceData = invoiceResult.rows[0];
+      const pdfBuffer = await renderInvoicePDF(invoiceData);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="${invoiceData.invoice_number}.pdf"`);
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("PDF download error:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+  app2.patch("/api/invoices/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { whatsapp_sent, download_token } = req.body;
+      const invoice = await storage.updateInvoice(id, {
+        whatsapp_sent,
+        download_token
+      });
+      res.json(invoice);
+    } catch (error) {
+      console.error("Invoice update error:", error);
+      res.status(500).json({ message: "Failed to update invoice" });
+    }
+  });
+  app2.get("/api/garages/:garageId/staff", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const staff = await storage.getGarageStaff(garageId);
+      res.json(staff);
+    } catch (error) {
+      console.error("Error fetching garage staff:", error);
+      res.status(500).json({ message: "Failed to fetch garage staff" });
+    }
+  });
+  app2.post("/api/garages/:garageId/customers/sync-visits", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      await storage.syncCustomerVisitCounts(garageId);
+      res.json({ message: "Customer visit counts synced successfully" });
+    } catch (error) {
+      console.error("Error syncing customer visit counts:", error);
+      res.status(500).json({ message: "Failed to sync customer visit counts" });
+    }
+  });
+  app2.get("/api/garages/:garageId/sales/stats", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const stats = await storage.getSalesStats(garageId);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sales stats" });
+    }
+  });
+  app2.get("/api/garages/:garageId/sales/today", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const todayStats = await storage.getTodaySalesStats(garageId);
+      res.json(todayStats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch today sales stats" });
+    }
+  });
+  app2.get("/api/garages/:garageId/sales/monthly", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const monthlyData = await storage.getMonthlySalesData(garageId);
+      res.json(monthlyData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch monthly sales data" });
+    }
+  });
+  app2.get("/api/garages/:garageId/sales/analytics", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const { startDate, endDate, groupBy = "month" } = req.query;
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "Start date and end date are required" });
+      }
+      const analyticsData = await storage.getSalesDataByDateRange(
+        garageId,
+        startDate,
+        endDate
+      );
+      res.json(analyticsData);
+    } catch (error) {
+      console.error("Sales analytics error:", error);
+      res.status(500).json({ message: "Failed to fetch sales analytics" });
+    }
+  });
+  app2.get("/api/garages/:garageId/customers/analytics", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const { startDate, endDate, groupBy = "month" } = req.query;
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "Start date and end date are required" });
+      }
+      const analyticsData = {};
+      res.json(analyticsData);
+    } catch (error) {
+      console.error("Customer analytics error:", error);
+      res.status(500).json({ message: "Failed to fetch customer analytics" });
+    }
+  });
+  app2.get("/api/garages/:garageId/customers/top-by-services", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const { startDate, endDate, limit = "10" } = req.query;
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "Start date and end date are required" });
+      }
+      const topCustomers = [];
+      res.json(topCustomers);
+    } catch (error) {
+      console.error("Top customers by services error:", error);
+      res.status(500).json({ message: "Failed to fetch top customers by services" });
+    }
+  });
+  app2.get("/api/garages/:garageId/customers/top-by-revenue", authenticateToken, requireRole(["garage_admin"]), requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const { startDate, endDate, limit = "10" } = req.query;
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "Start date and end date are required" });
+      }
+      const topCustomers = [];
+      res.json(topCustomers);
+    } catch (error) {
+      console.error("Top customers by revenue error:", error);
+      res.status(500).json({ message: "Failed to fetch top customers by revenue" });
+    }
+  });
+  app2.get("/api/garages/:garageId/notifications", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const notifications = await storage.getNotifications(garageId);
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+  app2.get("/api/garages/:garageId/notifications/unread-count", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const count = await storage.getUnreadNotificationCount(garageId);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch unread notification count" });
+    }
+  });
+  app2.put("/api/garages/:garageId/notifications/:id/read", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.markNotificationAsRead(id, req.params.garageId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+  app2.put("/api/garages/:garageId/notifications/mark-all-read", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      await storage.markAllNotificationsAsRead(garageId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+  app2.put("/api/garages/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { logo } = req.body;
+      const userGarageId = req.user.garage_id;
+      if (userGarageId !== id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      const userRole = req.user.role;
+      if (userRole !== "garage_admin") {
+        return res.status(403).json({ message: "Only garage admins can update garage settings" });
+      }
+      const garage = await storage.updateGarage(id, { logo });
+      res.json(garage);
+    } catch (error) {
+      console.error("Garage update error:", error);
+      res.status(500).json({ message: "Failed to update garage" });
+    }
+  });
+  const generateOtp = () => {
+    return Math.floor(1e5 + Math.random() * 9e5).toString();
+  };
+  const hashOtp = (otp, salt) => {
+    return bcrypt2.hashSync(otp + salt, 10);
+  };
+  const sendOtpEmail = async (otp) => {
+    const gmailUser = process.env.GMAIL_USER;
+    if (!gmailUser) {
+      throw new Error("Gmail service not configured");
+    }
+    const emailHTML = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">GarageGuru Password Reset</h2>
+        <p>Your password reset verification code is:</p>
+        <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
+          ${otp}
+        </div>
+        <p><strong>\u26A0\uFE0F Security Notice:</strong></p>
+        <ul>
+          <li>This code expires in 10 minutes</li>
+          <li>Only use this code if you requested a password reset</li>
+          <li>Never share this code with anyone</li>
+        </ul>
+        <p>If you didn't request this reset, please contact support immediately.</p>
+      </div>
+    `;
+    const emailText = `Your GarageGuru password reset code is: ${otp}. This code expires in 10 minutes. If you didn't request this reset, please contact support.`;
+    const emailPromises = SUPER_ADMIN_EMAILS.map(
+      (email) => gmailService.sendOtpEmail(email, otp, "password reset")
+    );
+    const results = await Promise.all(emailPromises);
+    const allSent = results.every((sent) => sent);
+    if (!allSent) {
+      console.log("\u26A0\uFE0F Some OTP emails may not have been sent via Gmail");
+    }
+  };
+  const sendUserOtpEmail = async (email, otp, userName) => {
+    const gmailUser = process.env.GMAIL_USER;
+    if (!gmailUser) {
+      throw new Error("Gmail service not configured");
+    }
+    const emailHTML = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">GarageGuru Password Reset</h2>
+        <p>Hello ${userName},</p>
+        <p>You requested a password reset for your GarageGuru account. Your verification code is:</p>
+        <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
+          ${otp}
+        </div>
+        <p><strong>\u26A0\uFE0F Security Notice:</strong></p>
+        <ul>
+          <li>This code expires in 10 minutes</li>
+          <li>Only use this code if you requested a password reset</li>
+          <li>Never share this code with anyone</li>
+        </ul>
+        <p>If you didn't request this reset, please ignore this email or contact your administrator.</p>
+        <p>Best regards,<br>GarageGuru Team</p>
+      </div>
+    `;
+    const sent = await gmailService.sendOtpEmail(email, otp, "user password reset");
+    if (!sent) {
+      console.log(`\u26A0\uFE0F OTP email may not have been sent to ${email}`);
+      throw new Error("Failed to send email");
+    }
+  };
+  const rateLimits = /* @__PURE__ */ new Map();
+  const checkRateLimit = (email, maxRequests = 3, windowMs = 60 * 60 * 1e3) => {
+    const now = Date.now();
+    const limit = rateLimits.get(email);
+    if (limit?.locked && limit.lockTime && now < limit.lockTime) {
+      throw new Error("Account locked. Try again in 15 minutes.");
+    }
+    if (!limit || now > limit.resetTime) {
+      rateLimits.set(email, { count: 1, resetTime: now + windowMs });
+      return;
+    }
+    if (limit.count >= maxRequests) {
+      rateLimits.set(email, {
+        ...limit,
+        locked: true,
+        lockTime: now + 15 * 60 * 1e3
+      });
+      throw new Error("Too many requests. Account locked for 15 minutes.");
+    }
+    limit.count++;
+  };
+  app2.post("/api/mfa/request", async (req, res) => {
+    try {
+      const { email, purpose } = req.body;
+      if (purpose !== "password_change") {
+        return res.status(400).json({ message: "Invalid purpose" });
+      }
+      if (!SUPER_ADMIN_EMAILS.includes(email)) {
+        return res.json({ ok: true });
+      }
+      try {
+        checkRateLimit(email);
+      } catch (error) {
+        return res.status(429).json({ message: error.message });
+      }
+      const otp = generateOtp();
+      const salt = crypto2.randomBytes(16).toString("hex");
+      const hashedOtp = hashOtp(otp, salt);
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1e3);
+      const existingOtp = await storage.getOtpRecord(email, purpose);
+      if (existingOtp) {
+        await storage.updateOtpRecord(existingOtp.id, { used: true });
+      }
+      await storage.createOtpRecord({
+        email,
+        hashed_otp: hashedOtp,
+        salt,
+        purpose,
+        expires_at: expiresAt
+      });
+      await sendOtpEmail(otp);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("OTP request error:", error);
+      res.status(500).json({ message: "Failed to send OTP" });
+    }
+  });
+  app2.post("/api/forgot-password/request", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.json({ ok: true, message: "If your email is registered, you will receive a password reset code." });
+      }
+      if (user.status === "suspended") {
+        return res.status(403).json({
+          message: "This account is suspended. Please contact the administrator for assistance.",
+          isSuspended: true
+        });
+      }
+      if (user.status !== "active") {
+        return res.status(403).json({
+          message: "This account is not activated. Please contact the administrator.",
+          isInactive: true
+        });
+      }
+      try {
+        checkRateLimit(email);
+      } catch (error) {
+        return res.status(429).json({ message: error.message });
+      }
+      const otp = generateOtp();
+      const salt = crypto2.randomBytes(16).toString("hex");
+      const hashedOtp = hashOtp(otp, salt);
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1e3);
+      const existingOtp = await storage.getOtpRecord(email, "forgot_password");
+      if (existingOtp) {
+        await storage.updateOtpRecord(existingOtp.id, { used: true });
+      }
+      await storage.createOtpRecord({
+        email,
+        hashed_otp: hashedOtp,
+        salt,
+        purpose: "forgot_password",
+        expires_at: expiresAt
+      });
+      await sendUserOtpEmail(email, otp, user.name || "User");
+      res.json({
+        ok: true,
+        message: "Password reset code sent to your email address."
+      });
+    } catch (error) {
+      console.error("Forgot password request error:", error);
+      res.status(500).json({ message: "Failed to send password reset code" });
+    }
+  });
+  app2.post("/api/forgot-password/verify", async (req, res) => {
+    try {
+      const { email, code } = req.body;
+      if (!email || !code) {
+        return res.status(400).json({ message: "Email and code are required" });
+      }
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(400).json({ message: "Invalid or expired code" });
+      }
+      const otpRecord = await storage.getOtpRecord(email, "forgot_password");
+      if (!otpRecord) {
+        return res.status(400).json({ message: "Invalid or expired code" });
+      }
+      if (otpRecord.attempts >= 5) {
+        await storage.updateOtpRecord(otpRecord.id, { used: true });
+        return res.status(400).json({ message: "Too many attempts. Request a new code." });
+      }
+      const isValid = bcrypt2.compareSync(code + otpRecord.salt, otpRecord.hashed_otp);
+      if (!isValid) {
+        await storage.updateOtpRecord(otpRecord.id, {
+          attempts: otpRecord.attempts + 1
+        });
+        return res.status(400).json({ message: "Invalid code" });
+      }
+      await storage.updateOtpRecord(otpRecord.id, { used: true });
+      const tempToken = jwt.sign({
+        email,
+        userId: user.id,
+        purpose: "forgot_password",
+        type: "otp_verified"
+      }, JWT_SECRET, { expiresIn: "5m" });
+      res.json({
+        success: true,
+        resetToken: tempToken,
+        message: "Code verified successfully. You can now reset your password."
+      });
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      res.status(500).json({ message: "Failed to verify code" });
+    }
+  });
+  app2.post("/api/forgot-password/reset", async (req, res) => {
+    try {
+      const { resetToken, newPassword } = req.body;
+      if (!resetToken || !newPassword) {
+        return res.status(400).json({ message: "Reset token and new password are required" });
+      }
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters long" });
+      }
+      if (!/[A-Z]/.test(newPassword)) {
+        return res.status(400).json({ message: "Password must contain at least one uppercase letter" });
+      }
+      if (!/[a-z]/.test(newPassword)) {
+        return res.status(400).json({ message: "Password must contain at least one lowercase letter" });
+      }
+      if (!/[0-9]/.test(newPassword)) {
+        return res.status(400).json({ message: "Password must contain at least one number" });
+      }
+      let decoded;
+      try {
+        decoded = jwt.verify(resetToken, JWT_SECRET);
+      } catch (error) {
+        return res.status(400).json({ message: "Invalid or expired reset token" });
+      }
+      if (decoded.purpose !== "forgot_password" || decoded.type !== "otp_verified") {
+        return res.status(400).json({ message: "Invalid reset token" });
+      }
+      const user = await storage.getUserByEmail(decoded.email);
+      if (!user) {
+        return res.status(400).json({ message: "User not found" });
+      }
+      const isSamePassword = await bcrypt2.compare(newPassword, user.password);
+      if (isSamePassword) {
+        return res.status(400).json({ message: "New password cannot be the same as your current password" });
+      }
+      await storage.changePassword(user.id, newPassword);
+      res.json({
+        success: true,
+        message: "Password reset successfully. You can now login with your new password."
+      });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+  app2.post("/api/mfa/verify", async (req, res) => {
+    try {
+      const { email, code, purpose } = req.body;
+      if (!SUPER_ADMIN_EMAILS.includes(email)) {
+        return res.status(400).json({ message: "Invalid request" });
+      }
+      const otpRecord = await storage.getOtpRecord(email, purpose);
+      if (!otpRecord) {
+        return res.status(400).json({ message: "Invalid or expired code" });
+      }
+      if (otpRecord.attempts >= 5) {
+        await storage.updateOtpRecord(otpRecord.id, { used: true });
+        return res.status(400).json({ message: "Too many attempts. Request a new code." });
+      }
+      const isValid = bcrypt2.compareSync(code + otpRecord.salt, otpRecord.hashed_otp);
+      if (!isValid) {
+        await storage.updateOtpRecord(otpRecord.id, {
+          attempts: otpRecord.attempts + 1
+        });
+        return res.status(400).json({ message: "Invalid code" });
+      }
+      await storage.updateOtpRecord(otpRecord.id, { used: true });
+      const tempToken = jwt.sign({
+        email,
+        purpose,
+        type: "otp_verified"
+      }, JWT_SECRET, { expiresIn: "5m" });
+      res.json({ token: tempToken });
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      res.status(500).json({ message: "Failed to verify OTP" });
+    }
+  });
+  app2.post("/api/password/change", async (req, res) => {
+    try {
+      const { email, otp_verified_token, new_password } = req.body;
+      if (!SUPER_ADMIN_EMAILS.includes(email)) {
+        return res.status(400).json({ message: "Invalid request" });
+      }
+      let decoded;
+      try {
+        decoded = jwt.verify(otp_verified_token, JWT_SECRET);
+      } catch (error) {
+        return res.status(400).json({ message: "Invalid or expired token" });
+      }
+      if (decoded.email !== email || decoded.purpose !== "password_change" || decoded.type !== "otp_verified") {
+        return res.status(400).json({ message: "Invalid token" });
+      }
+      if (!new_password || new_password.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters long" });
+      }
+      const currentUser = await pool.query("SELECT password FROM users WHERE email = $1", [email]);
+      if (currentUser.rows.length > 0) {
+        const isSamePassword = await bcrypt2.compare(new_password, currentUser.rows[0].password);
+        if (isSamePassword) {
+          return res.status(400).json({ message: "New password cannot be the same as your current password" });
+        }
+      }
+      const hashedPassword = await bcrypt2.hash(new_password, 12);
+      await pool.query("UPDATE users SET password = $1 WHERE email = $2", [hashedPassword, email]);
+      const userResult = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+      const user = userResult.rows[0];
+      const newToken = jwt.sign({
+        email: user.email,
+        id: user.id
+      }, JWT_SECRET);
+      try {
+        const emailPromises = SUPER_ADMIN_EMAILS.map(
+          (notifyEmail) => gmailService.sendOtpEmail(notifyEmail, "SECURITY ALERT", "password change notification")
+        );
+        await Promise.all(emailPromises);
+        console.log("\u{1F4E7} Security notifications sent to all super admin emails");
+      } catch (error) {
+        console.error("Failed to send security notifications:", error);
+      }
+      res.json({
+        success: true,
+        token: newToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role
+        }
+      });
+    } catch (error) {
+      console.error("Password change error:", error);
+      res.status(500).json({ message: "Failed to change password" });
+    }
+  });
+  const requireSuperAdminEmail = (req, res, next) => {
+    if (!req.user || !SUPER_ADMIN_EMAILS.includes(req.user.email)) {
+      return res.status(403).json({ message: "Access denied. Super admin access required." });
+    }
+    next();
+  };
+  app2.get("/api/super-admin/garages", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const garages = await storage.getAllGarages();
+      const garagesWithStats = await Promise.all(garages.map(async (garage) => {
+        const users = await storage.getUsersByGarage(garage.id);
+        const adminCount = users.filter((u) => u.role === "garage_admin").length;
+        const staffCount = users.filter((u) => u.role === "mechanic_staff").length;
+        return {
+          ...garage,
+          userCount: users.length,
+          adminCount,
+          staffCount,
+          users: users.map((u) => ({ ...u, password: void 0 }))
+          // Remove passwords
+        };
+      }));
+      const allUsers = await storage.getAllUsers();
+      const totalUsers = allUsers.length;
+      const totalGarages = garages.length;
+      const now = /* @__PURE__ */ new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1e3);
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1e3);
+      const newUsers7Days = allUsers.filter((u) => new Date(u.created_at) > sevenDaysAgo).length;
+      const newUsers30Days = allUsers.filter((u) => new Date(u.created_at) > thirtyDaysAgo).length;
+      res.json({
+        garages: garagesWithStats,
+        stats: {
+          totalGarages,
+          totalUsers,
+          newUsers7Days,
+          newUsers30Days
+        }
+      });
+    } catch (error) {
+      console.error("Get garages error:", error);
+      res.status(500).json({ message: "Failed to fetch garages" });
+    }
+  });
+  app2.get("/api/super-admin/garages/:garageId/users", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const users = await storage.getUsersByGarage(garageId);
+      const safeUsers = users.map((u) => ({ ...u, password: void 0 }));
+      res.json(safeUsers);
+    } catch (error) {
+      console.error("Get garage users error:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+  app2.post("/api/super-admin/users/:userId/toggle-role", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+      if (!user.rows[0]) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const currentUser = user.rows[0];
+      if (currentUser.role === "super_admin") {
+        return res.status(400).json({ message: "Cannot modify super admin accounts" });
+      }
+      const newRole = currentUser.role === "garage_admin" ? "mechanic_staff" : "garage_admin";
+      const updatedUser = await storage.updateUserRole(userId, newRole, req.user.id);
+      res.json({
+        ...updatedUser,
+        password: void 0
+      });
+    } catch (error) {
+      console.error("Toggle role error:", error);
+      res.status(400).json({ message: error.message || "Failed to toggle role" });
+    }
+  });
+  app2.get("/api/super-admin/access-requests", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const { garageId } = req.query;
+      const requests = await storage.getAccessRequests(garageId);
+      res.json(requests);
+    } catch (error) {
+      console.error("Get access requests error:", error);
+      res.status(500).json({ message: "Failed to fetch access requests" });
+    }
+  });
+  app2.post("/api/super-admin/access-requests/:requestId", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const { requestId } = req.params;
+      const { status, note } = req.body;
+      if (!["approved", "denied"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      const updatedRequest = await storage.updateAccessRequest(requestId, {
+        status,
+        note,
+        processed_by: req.user.id
+      });
+      res.json(updatedRequest);
+    } catch (error) {
+      console.error("Process access request error:", error);
+      res.status(500).json({ message: "Failed to process request" });
+    }
+  });
+  app2.get("/api/super-admin/audit-logs", authenticateToken, requireSuperAdminEmail, async (req, res) => {
+    try {
+      const { garageId } = req.query;
+      const logs = await storage.getAuditLogs(garageId);
+      res.json(logs);
+    } catch (error) {
+      console.error("Get audit logs error:", error);
+      res.status(500).json({ message: "Failed to fetch audit logs" });
+    }
+  });
+  app2.patch("/api/users/:id/status", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      if (!["active", "suspended"].includes(status)) {
+        return res.status(400).json({ message: 'Invalid status. Must be "active" or "suspended"' });
+      }
+      const targetUser = await storage.getUserById(id);
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      if (req.user.role === "super_admin") {
+        if (!["garage_admin", "mechanic_staff"].includes(targetUser.role)) {
+          return res.status(403).json({ message: "Cannot change status of super admin users" });
+        }
+      } else if (req.user.role === "garage_admin") {
+        if (targetUser.role !== "mechanic_staff") {
+          return res.status(403).json({ message: "Garage admin can only manage mechanic staff" });
+        }
+        if (targetUser.garage_id !== req.user.garage_id) {
+          return res.status(403).json({ message: "Can only manage staff in your own garage" });
+        }
+      } else {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+      const updatedUser = await storage.updateUser(id, { status });
+      try {
+        const emailService = (await Promise.resolve().then(() => (init_gmailEmailService(), gmailEmailService_exports))).default;
+        const statusText = status === "active" ? "activated" : "suspended";
+        const subject = `Account Status Update - ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}`;
+        const message = `
+          <h2>Account Status Update</h2>
+          <p>Hello ${targetUser.name || targetUser.email},</p>
+          <p>Your account status has been <strong>${statusText}</strong>.</p>
+          ${status === "suspended" ? "<p>If you believe this is an error, please contact your administrator.</p>" : "<p>You can now access your account normally.</p>"}
+          <p>Best regards,<br>Garage Management Team</p>
+        `;
+        await emailService.sendEmail(targetUser.email, subject, message);
+        console.log(`Status change notification sent to ${targetUser.email}`);
+      } catch (emailError) {
+        console.error("Failed to send status change notification:", emailError);
+      }
+      res.json({
+        message: `User ${status === "suspended" ? "suspended" : "activated"} successfully`,
+        user: updatedUser
+      });
+    } catch (error) {
+      console.error("Update user status error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.get("/api/customers", authenticateToken, async (req, res) => {
+    try {
+      const garageId = req.user.garage_id;
+      if (!garageId && req.user.role !== "super_admin") {
+        return res.status(400).json({ message: "No garage associated with user" });
+      }
+      if (req.user.role === "super_admin") {
+        const { garageId: queryGarageId } = req.query;
+        if (queryGarageId) {
+          const customers2 = await storage.getCustomers(queryGarageId);
+          return res.json(customers2);
+        }
+        return res.json([]);
+      }
+      const customers = await storage.getCustomers(garageId);
+      res.json(customers);
+    } catch (error) {
+      console.error("Error in simplified customers endpoint:", error);
+      res.status(500).json({ message: "Failed to fetch customers" });
+    }
+  });
+  app2.get("/api/spare-parts", authenticateToken, async (req, res) => {
+    try {
+      const garageId = req.user.garage_id;
+      if (!garageId && req.user.role !== "super_admin") {
+        return res.status(400).json({ message: "No garage associated with user" });
+      }
+      if (req.user.role === "super_admin") {
+        const { garageId: queryGarageId } = req.query;
+        if (queryGarageId) {
+          const spareParts2 = await storage.getSpareParts(queryGarageId);
+          return res.json(spareParts2);
+        }
+        return res.json([]);
+      }
+      const spareParts = await storage.getSpareParts(garageId);
+      res.json(spareParts);
+    } catch (error) {
+      console.error("Error in simplified spare parts endpoint:", error);
+      res.status(500).json({ message: "Failed to fetch spare parts" });
+    }
+  });
+  app2.get("/api/job-cards", authenticateToken, async (req, res) => {
+    try {
+      const garageId = req.user.garage_id;
+      if (!garageId && req.user.role !== "super_admin") {
+        return res.status(400).json({ message: "No garage associated with user" });
+      }
+      if (req.user.role === "super_admin") {
+        const { garageId: queryGarageId } = req.query;
+        if (queryGarageId) {
+          const { status: status2 } = req.query;
+          const jobCards2 = await storage.getJobCards(queryGarageId, status2);
+          return res.json(jobCards2);
+        }
+        return res.json([]);
+      }
+      const { status } = req.query;
+      const jobCards = await storage.getJobCards(garageId, status);
+      res.json(jobCards);
+    } catch (error) {
+      console.error("Error in simplified job cards endpoint:", error);
+      res.status(500).json({ message: "Failed to fetch job cards" });
+    }
+  });
+  app2.get("/api/invoices", authenticateToken, async (req, res) => {
+    try {
+      const garageId = req.user.garage_id;
+      if (!garageId && req.user.role !== "super_admin") {
+        return res.status(400).json({ message: "No garage associated with user" });
+      }
+      if (req.user.role === "super_admin") {
+        const { garageId: queryGarageId } = req.query;
+        if (queryGarageId) {
+          const invoices2 = await storage.getInvoices(queryGarageId);
+          return res.json(invoices2);
+        }
+        return res.json([]);
+      }
+      const invoices = await storage.getInvoices(garageId);
+      res.json(invoices);
+    } catch (error) {
+      console.error("Error in simplified invoices endpoint:", error);
+      res.status(500).json({ message: "Failed to fetch invoices" });
+    }
+  });
+  const logoStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadsDir = path.join(process.cwd(), "uploads", "logos");
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      cb(null, `logo-${req.params.garageId}-${timestamp}${ext}`);
+    }
+  });
+  const logoUpload = multer({
+    storage: logoStorage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    // 5MB limit
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error("Only image files (JPG, PNG, GIF) are allowed"));
+      }
+    }
+  });
+  app2.post("/api/garages/:garageId/upload-logo", authenticateToken, logoUpload.single("logo"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      const garageId = req.params.garageId;
+      if (req.user.role !== "super_admin" && req.user.garage_id !== garageId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      const logoUrl = `/uploads/logos/${req.file.filename}`;
+      console.log("\u2705 Logo uploaded successfully:", logoUrl);
+      res.json({ logoUrl });
+    } catch (error) {
+      console.error("\u274C Logo upload error:", error);
+      res.status(500).json({ message: "Failed to upload logo" });
+    }
+  });
+  app2.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+}
+
+// standalone.ts
+var app = express2();
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
+}));
+app.use(express2.json({ limit: "50mb" }));
+app.use(express2.urlencoded({ extended: true, limit: "50mb" }));
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path2 = req.path;
+  let capturedJsonResponse = void 0;
+  const originalResJson = res.json;
+  res.json = function(bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path2.startsWith("/api")) {
+      let logLine = `${req.method} ${path2} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse && res.statusCode >= 400) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+      if (logLine.length > 150) {
+        logLine = logLine.slice(0, 149) + "\u2026";
+      }
+      console.log(logLine);
+    }
+  });
+  next();
+});
+app.get("/health", (req, res) => {
+  res.json({
+    status: "healthy",
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    uptime: process.uptime()
+  });
+});
+app.get("/", (req, res) => {
+  res.json({
+    message: "GarageGuru Backend API",
+    status: "running",
+    version: "1.0.0",
+    endpoints: {
+      health: "/health",
+      auth: "/api/auth/*",
+      garages: "/api/garages/*"
+    }
+  });
+});
+(async () => {
+  try {
+    await registerRoutes(app);
+    app.use((err, _req, res, _next) => {
+      console.error("Unhandled error:", {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      });
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      res.status(status).json({
+        message,
+        error: process.env.NODE_ENV === "development" ? err.stack : void 0
+      });
+    });
+    app.use("*", (req, res) => {
+      res.status(404).json({
+        message: `Route ${req.method} ${req.originalUrl} not found`,
+        availableRoutes: ["GET /", "GET /health", "POST /api/auth/login"]
+      });
+    });
+    const port = process.env.PORT || 1e4;
+    const server = createServer(app);
+    server.listen(port, () => {
+      console.log(`\u{1F680} Server running on port ${port}`);
+      console.log(`\u{1F4CA} Health check: http://localhost:${port}/health`);
+      console.log(`\u{1F510} API Base: http://localhost:${port}/api`);
+      console.log(`\u{1F3AF} Environment: ${process.env.NODE_ENV || "development"}`);
+    });
+    process.on("SIGTERM", () => {
+      console.log("SIGTERM received, shutting down gracefully");
+      server.close(() => {
+        console.log("Server closed");
+        process.exit(0);
+      });
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+})();
