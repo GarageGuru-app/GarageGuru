@@ -1224,7 +1224,19 @@ export async function registerRoutes(app: Express): Promise<void> {
       const istTime = new Date().toLocaleString("sv-SE", {timeZone: "Asia/Kolkata"});
       const localTimestamp = new Date(istTime);
       
-      const invoice = await storage.createInvoice(invoiceData as any);
+      // Map frontend camelCase fields to database snake_case fields
+      const mappedInvoiceData = {
+        ...invoiceData,
+        garage_id: garageId,
+        job_card_id: invoiceData.jobCardId,
+        customer_id: invoiceData.customerId,
+        invoice_number: invoiceData.invoiceNumber,
+        service_charge: invoiceData.serviceCharge,
+        parts_total: invoiceData.partsTotal,
+        total_amount: invoiceData.totalAmount
+      };
+      
+      const invoice = await storage.createInvoice(mappedInvoiceData as any);
       
       // Update job card status to completed with completion details
       const currentUser = (req as any).user;
