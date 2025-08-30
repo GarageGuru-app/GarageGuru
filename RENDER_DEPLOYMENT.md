@@ -24,6 +24,11 @@
    - Connect your GitHub repository
    - Render will automatically detect `render.yaml`
 
+**Build Configuration:**
+- Build Command: `npm install && vite build`
+- Start Command: `npm start`
+- Uses tsx to run TypeScript directly in production
+
 2. **Environment Variables** (Auto-configured from render.yaml):
    - `DATABASE_URL` - Auto-linked to your database
    - `JWT_SECRET` - Auto-generated secure key
