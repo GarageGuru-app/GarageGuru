@@ -121,7 +121,7 @@ export default function Invoices() {
       };
 
       // Generate PDF using client-side generator
-      const pdfBlob = await generateInvoicePDF(invoiceData, invoiceData.garage);
+      const pdfBlob = await generateInvoicePDF(invoiceData.jobCard);
       
       // Create download link
       const url = URL.createObjectURL(pdfBlob);
