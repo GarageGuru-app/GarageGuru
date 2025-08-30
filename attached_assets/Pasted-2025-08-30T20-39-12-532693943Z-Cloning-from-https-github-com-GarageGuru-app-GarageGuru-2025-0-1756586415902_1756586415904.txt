@@ -1,0 +1,33 @@
+2025-08-30T20:39:12.532693943Z ==> Cloning from https://github.com/GarageGuru-app/GarageGuru
+2025-08-30T20:39:29.135837003Z ==> Checking out commit fb3631519770d08bacc0391a97ec1e5c33c97a54 in branch main
+2025-08-30T20:39:30.533563812Z ==> Downloading cache...
+2025-08-30T20:39:42.862223901Z ==> Transferred 222MB in 8s. Extraction took 4s.
+2025-08-30T20:39:51.933646351Z ==> Using Node.js version 22.16.0 (default)
+2025-08-30T20:39:51.958862464Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2025-08-30T20:39:52.019353615Z ==> Running build command 'npm install && npx vite build'...
+2025-08-30T20:39:53.210960421Z 
+2025-08-30T20:39:53.210978261Z up to date, audited 619 packages in 1s
+2025-08-30T20:39:53.210987962Z 
+2025-08-30T20:39:53.210990531Z 77 packages are looking for funding
+2025-08-30T20:39:53.210993091Z   run `npm fund` for details
+2025-08-30T20:39:53.213239466Z 
+2025-08-30T20:39:53.213254237Z 4 vulnerabilities (3 low, 1 high)
+2025-08-30T20:39:53.213258037Z 
+2025-08-30T20:39:53.213261947Z To address all issues, run:
+2025-08-30T20:39:53.213265657Z   npm audit fix
+2025-08-30T20:39:53.213268567Z 
+2025-08-30T20:39:53.213271407Z Run `npm audit` for details.
+2025-08-30T20:39:58.251855109Z failed to load config from /opt/render/project/src/vite.config.ts
+2025-08-30T20:39:58.252080444Z error during build:
+2025-08-30T20:39:58.252090265Z Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /opt/render/project/src/node_modules/.vite-temp/vite.config.ts.timestamp-1756586398249-602f3a6a77f43.mjs
+2025-08-30T20:39:58.252094694Z     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:256:9)
+2025-08-30T20:39:58.252109545Z     at packageResolve (node:internal/modules/esm/resolve:768:81)
+2025-08-30T20:39:58.252113195Z     at moduleResolve (node:internal/modules/esm/resolve:854:18)
+2025-08-30T20:39:58.252116625Z     at defaultResolve (node:internal/modules/esm/resolve:984:11)
+2025-08-30T20:39:58.252121535Z     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+2025-08-30T20:39:58.252124995Z     at #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+2025-08-30T20:39:58.252128555Z     at ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+2025-08-30T20:39:58.252131946Z     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+2025-08-30T20:39:58.252135395Z     at ModuleJob._link (node:internal/modules/esm/module_job:137:49)
+2025-08-30T20:39:58.291395511Z ==> Build failed 😞
+2025-08-30T20:39:58.291417671Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys

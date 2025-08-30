@@ -3,8 +3,8 @@ services:
     name: garageguru-production
     env: node
     plan: starter
-    buildCommand: npm install && npx vite build
-    startCommand: NODE_ENV=production npx tsx server/index.ts
+    buildCommand: npm install
+    startCommand: NODE_ENV=production npx vite build && npx tsx server/index.ts
     envVars:
       - key: NODE_ENV
         value: production
