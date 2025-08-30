@@ -1249,7 +1249,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         completedAt: new Date(),
         completed_by: currentUser?.id,
         completion_notes: req.body.completionNotes || null,
-        work_summary: req.body.workSummary || `Service completed for ${req.body.customerName || 'Customer'} - ${req.body.complaint || 'Service'} - Invoice ${invoiceData.invoiceNumber} generated`
+        work_summary: req.body.workSummary || `Service completed for ${req.body.bikeNumber || 'Vehicle'} - ${req.body.complaint || 'Service'} - Invoice ${invoiceData.invoiceNumber} generated`
       };
       
       const jobCard = await storage.updateJobCard(invoice.job_card_id!, completionData);
