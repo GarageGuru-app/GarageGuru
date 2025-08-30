@@ -8,6 +8,7 @@ import PDFDocument from "pdfkit";
 // import { insertUserSchema, insertGarageSchema, insertCustomerSchema, insertSparePartSchema, insertJobCardSchema, insertInvoiceSchema } from "@shared/schema";
 // For now, create minimal schemas to fix the compilation issue
 import { z } from "zod";
+import { renderInvoicePDF, formatCurrency, type InvoiceData } from "./invoice-renderer.js";
 
 const insertUserSchema = z.object({
   email: z.string().email(),
@@ -1302,7 +1303,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
 
-  // Invoice Data endpoint - returns JSON data for client-side PDF generation
+  // Invoice Download endpoint - generates PDF using single renderer
   app.get("/invoice/data/:token", async (req, res) => {
     try {
       const { token } = req.params;
@@ -1326,18 +1327,22 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const invoiceData = invoiceResult.rows[0];
       
-      // Return JSON data for client-side PDF generation
-      return res.json({
-        success: true,
-        invoice: invoiceData,
-        message: 'Invoice data retrieved successfully'
-      });
+      // Generate PDF using single source of truth renderer
+      const pdfBuffer = await renderInvoicePDF(invoiceData);
+      
+      // Set headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${invoiceData.invoice_number}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      // Send the PDF
+      res.send(pdfBuffer);
       
     } catch (error) {
-      console.error('Invoice data error:', error);
+      console.error('Invoice download error:', error);
       return res.status(500).json({ 
         success: false, 
-        message: 'Failed to retrieve invoice data' 
+        message: 'Failed to generate invoice PDF' 
       });
     }
   });
@@ -1363,127 +1368,16 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const invoiceData = invoiceResult.rows[0];
       
-      // Check if request is from the app (fetch) or direct browser access
-      const userAgent = req.headers['user-agent'] || '';
-      const isBrowserAccess = userAgent.includes('Mozilla') && !userAgent.includes('fetch');
+      // Generate PDF using single source of truth renderer (identical to /invoice/data/)
+      const pdfBuffer = await renderInvoicePDF(invoiceData);
       
-      if (!isBrowserAccess) {
-        // Return JSON data for client-side PDF generation (app download button)
-        res.json({
-          success: true,
-          invoice: invoiceData,
-          message: 'Invoice data retrieved successfully'
-        });
-      } else {
-        // Generate PDF with exact formatting as shown in attached sample
-        const doc = new PDFDocument();
-        
-        // Set response headers for PDF download
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoiceData.invoice_number}.pdf"`);
-        
-        // Pipe PDF to response
-        doc.pipe(res);
-        
-        const pageWidth = doc.page.width;
-        let yPos = 60;
-        
-        // Garage name (centered, large, professional)
-        doc.fontSize(22)
-           .font('Helvetica-Bold')
-           .fillColor('#000000')
-           .text(invoiceData.garage_name, 0, yPos, { align: 'center', width: pageWidth });
-        
-        yPos += 35;
-        
-        // Phone number (centered, proper spacing)
-        doc.fontSize(14)
-           .font('Helvetica')
-           .text(invoiceData.garage_phone || '', 0, yPos, { align: 'center', width: pageWidth });
-        
-        yPos += 70;
-        
-        // INVOICE title (centered, large, professional)
-        doc.fontSize(24)
-           .font('Helvetica-Bold')
-           .text('INVOICE', 0, yPos, { align: 'center', width: pageWidth });
-        
-        yPos += 50;
-        
-        // Invoice details (left aligned, proper spacing)
-        doc.fontSize(12)
-           .font('Helvetica');
-        
-        doc.text(`Invoice Number: ${invoiceData.invoice_number}`, 50, yPos);
-        yPos += 25;
-        
-        doc.text(`Date: ${new Date(invoiceData.created_at).toLocaleDateString('en-GB')}`, 50, yPos);
-        yPos += 25;
-        
-        doc.text(`Customer: ${invoiceData.customer_name}`, 50, yPos);
-        yPos += 25;
-        
-        doc.text(`Phone: ${invoiceData.phone}`, 50, yPos);
-        yPos += 25;
-        
-        doc.text(`Bike Number: ${invoiceData.bike_number}`, 50, yPos);
-        yPos += 50;
-        
-        // Services & Parts section
-        doc.font('Helvetica-Bold')
-           .text('Services & Parts:', 50, yPos);
-        yPos += 25;
-        
-        // Service line
-        doc.font('Helvetica')
-           .text(invoiceData.complaint || 'Service Only', 50, yPos);
-        yPos += 25;
-        
-        // Parts (if any)
-        const spareParts = invoiceData.spare_parts || [];
-        spareParts.forEach((part: any) => {
-          doc.text(`${part.name} (Qty: ${part.quantity})`, 50, yPos);
-          yPos += 25;
-        });
-        
-        yPos += 30;
-        
-        // Totals section with proper right alignment and spacing
-        doc.font('Helvetica')
-           .fontSize(12);
-        
-        // Parts Total with more space for price display (moved 10 digits left)
-        doc.text('Parts Total:', 50, yPos);
-        doc.text(`Rs.${Number(invoiceData.parts_total || 0).toFixed(2)}`, pageWidth - 120, yPos, { align: 'right' });
-        yPos += 20;
-        
-        // Service Charge with more space for price display (moved 10 digits left)
-        doc.text('Service Charge:', 50, yPos);
-        doc.text(`Rs.${Number(invoiceData.service_charge || 0).toFixed(2)}`, pageWidth - 120, yPos, { align: 'right' });
-        yPos += 25;
-        
-        // Total Amount (bold, emphasized) with more space (moved 10 digits left)
-        doc.font('Helvetica-Bold')
-           .fontSize(14);
-        doc.text('Total Amount:', 50, yPos);
-        doc.text(`Rs.${Number(invoiceData.total_amount || 0).toFixed(2)}`, pageWidth - 120, yPos, { align: 'right' });
-        
-        yPos += 70;
-        
-        // Thank you message (centered, professional)
-        doc.font('Helvetica')
-           .fontSize(14)
-           .text(`Thank you for choosing ${invoiceData.garage_name}!`, 0, yPos, { align: 'center', width: pageWidth });
-        
-        yPos += 35;
-        
-        // Visit again message (centered)
-        doc.fontSize(12)
-           .text('Visit us again for all your bike service needs', 0, yPos, { align: 'center', width: pageWidth });
-        
-        // Finalize PDF
-        doc.end();
-      }
+      // Set headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${invoiceData.invoice_number}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      // Send the PDF
+      res.send(pdfBuffer);
       
     } catch (error) {
       console.error('PDF download error:', error);

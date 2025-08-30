@@ -87,77 +87,25 @@ export default function Invoices() {
     }
     
     try {
-      // Fetch invoice data from the API endpoint (not the direct PDF download)
-      console.log('Original download URL:', downloadUrl);
-      const apiUrl = downloadUrl.replace('/download/', '/data/');
-      console.log('API URL for data:', apiUrl);
+      // Use server-side PDF generation for identical output
+      console.log('Downloading PDF from:', downloadUrl);
+      const response = await fetch(downloadUrl);
       
-      const response = await fetch(apiUrl);
       if (!response.ok) {
-        throw new Error(`Failed to fetch invoice data: ${response.status}`);
+        throw new Error(`Failed to download PDF: ${response.status}`);
       }
       
-      const result = await response.json();
-      if (!result.success || !result.invoice) {
-        throw new Error('Invalid invoice data received');
-      }
-
-      // Import PDF generator dynamically
-      const { generateInvoicePDF } = await import('@/utils/pdf-generator');
-      
-      // Create a proper JobCard object that matches the schema
-      const jobCard = {
-        id: result.invoice.id,
-        phone: result.invoice.phone || '',
-        createdAt: new Date(result.invoice.created_at),
-        garageId: result.invoice.garage_id,
-        bikeNumber: result.invoice.bike_number || '',
-        customerId: result.invoice.customer_id,
-        customerName: result.invoice.customer_name || '',
-        complaint: result.invoice.complaint || '',
-        status: result.invoice.status || 'completed',
-        spareParts: result.invoice.spare_parts || [],
-        serviceCharge: Number(result.invoice.service_charge || 0),
-        totalAmount: Number(result.invoice.total_amount || 0),
-        mechanicId: result.invoice.mechanic_id || null,
-        estimatedCompletion: result.invoice.estimated_completion ? new Date(result.invoice.estimated_completion) : null,
-        actualCompletion: result.invoice.actual_completion ? new Date(result.invoice.actual_completion) : null,
-        workSummary: result.invoice.work_summary || null,
-        completedAt: result.invoice.actual_completion ? new Date(result.invoice.actual_completion) : null,
-        completedBy: result.invoice.completed_by || null,
-        completionNotes: result.invoice.completion_notes || null
-      };
-
-      const garage = {
-        id: result.invoice.garage_id,
-        name: result.invoice.garage_name || '',
-        phone: result.invoice.garage_phone || '',
-        logo: result.invoice.garage_logo || null,
-        address: '',
-        email: '',
-        createdAt: new Date(),
-        adminId: ''
-      };
-
-      const invoiceData = {
-        jobCard,
-        garage,
-        serviceCharge: Number(result.invoice.service_charge || 0),
-        invoiceNumber: result.invoice.invoice_number
-      };
-
-      // Generate PDF using client-side generator
-      const pdfBlob = await generateInvoicePDF(invoiceData);
+      // Get the PDF blob directly from server (single source of truth)
+      const pdfBlob = await response.blob();
       
       // Create download link
       const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${invoiceNumber}.pdf`;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${invoiceNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
     } catch (error) {
