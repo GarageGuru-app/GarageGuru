@@ -1335,8 +1335,8 @@ export async function registerRoutes(app: Express): Promise<void> {
           message: 'Invoice data retrieved successfully'
         });
       } else {
-        // Generate and serve PDF directly (direct link access)
-        const doc = new PDFDocument();
+        // Generate styled PDF to match the app version
+        const doc = new PDFDocument({ margin: 50 });
         
         // Set response headers for PDF download
         res.setHeader('Content-Type', 'application/pdf');
@@ -1345,29 +1345,87 @@ export async function registerRoutes(app: Express): Promise<void> {
         // Pipe PDF to response
         doc.pipe(res);
         
-        // Add content to PDF
-        doc.fontSize(20).text('INVOICE', 50, 50);
-        doc.fontSize(12);
-        doc.text(`Invoice Number: ${invoiceData.invoice_number}`, 50, 80);
-        doc.text(`Date: ${new Date(invoiceData.created_at).toLocaleDateString()}`, 50, 100);
-        doc.text('', 50, 120);
+        // Get page dimensions
+        const pageWidth = doc.page.width;
+        let yPos = 50;
         
-        doc.text(`Garage: ${invoiceData.garage_name}`, 50, 140);
-        doc.text(`Phone: ${invoiceData.garage_phone}`, 50, 160);
-        doc.text('', 50, 180);
+        // Header background (blue)
+        doc.rect(0, 0, pageWidth, 60)
+           .fill('#2563eb');
         
-        doc.text(`Customer: ${invoiceData.customer_name}`, 50, 200);
-        doc.text(`Phone: ${invoiceData.phone}`, 50, 220);
-        doc.text(`Vehicle: ${invoiceData.bike_number}`, 50, 240);
-        doc.text('', 50, 260);
+        // Garage name in header (white text)
+        doc.fillColor('#ffffff')
+           .fontSize(20)
+           .font('Helvetica-Bold')
+           .text(invoiceData.garage_name, 0, 30, { align: 'center', width: pageWidth });
         
-        doc.text(`Service: ${invoiceData.complaint}`, 50, 280);
-        doc.text(`Service Charge: ₹${invoiceData.service_charge}`, 50, 300);
-        doc.text(`Parts Total: ₹${invoiceData.parts_total}`, 50, 320);
-        doc.text(`Total Amount: ₹${invoiceData.total_amount}`, 50, 340);
-        doc.text('', 50, 360);
+        // Garage phone in header
+        doc.fontSize(12)
+           .font('Helvetica')
+           .text(invoiceData.garage_phone || 'Contact: N/A', 0, 45, { align: 'center', width: pageWidth });
         
-        doc.text('Thank you for choosing our service!', 50, 380);
+        // Invoice title section (orange)
+        doc.rect(0, 60, pageWidth, 25)
+           .fill('#f97316');
+        
+        doc.fillColor('#ffffff')
+           .fontSize(16)
+           .font('Helvetica-Bold')
+           .text('INVOICE', 0, 72, { align: 'center', width: pageWidth });
+        
+        // Reset to black text for content
+        doc.fillColor('#000000');
+        yPos = 110;
+        
+        // Invoice details
+        doc.fontSize(10)
+           .font('Helvetica')
+           .text(`Invoice Number: ${invoiceData.invoice_number}`, 50, yPos)
+           .text(`Date: ${new Date(invoiceData.created_at).toLocaleDateString()}`, 50, yPos + 15)
+           .text(`Customer: ${invoiceData.customer_name}`, 50, yPos + 30)
+           .text(`Phone: ${invoiceData.phone}`, 50, yPos + 45)
+           .text(`Bike Number: ${invoiceData.bike_number}`, 50, yPos + 60);
+        
+        // Services section
+        yPos += 90;
+        doc.font('Helvetica-Bold')
+           .text('Services & Parts:', 50, yPos);
+        
+        doc.font('Helvetica');
+        yPos += 15;
+        
+        // Service line
+        doc.text(`Service: ${invoiceData.complaint}`, 50, yPos)
+           .text(`₹${invoiceData.service_charge}`, pageWidth - 100, yPos);
+        yPos += 15;
+        
+        // Parts (if any)
+        const spareParts = invoiceData.spare_parts || [];
+        spareParts.forEach((part: any) => {
+          doc.text(`${part.name} (Qty: ${part.quantity})`, 50, yPos)
+             .text(`₹${part.price * part.quantity}`, pageWidth - 100, yPos);
+          yPos += 15;
+        });
+        
+        // Totals section
+        yPos += 10;
+        doc.moveTo(50, yPos).lineTo(pageWidth - 50, yPos).stroke();
+        yPos += 10;
+        
+        doc.text(`Parts Total: ₹${invoiceData.parts_total}`, 50, yPos)
+           .text(`Service Charge: ₹${invoiceData.service_charge}`, 50, yPos + 15);
+        
+        // Total amount (bold)
+        yPos += 35;
+        doc.font('Helvetica-Bold')
+           .fontSize(12)
+           .text(`Total Amount: ₹${invoiceData.total_amount}`, 50, yPos);
+        
+        // Footer
+        yPos += 40;
+        doc.font('Helvetica')
+           .fontSize(10)
+           .text('Thank you for choosing our service!', 50, yPos);
         
         // Finalize PDF
         doc.end();
