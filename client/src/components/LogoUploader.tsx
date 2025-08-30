@@ -43,45 +43,29 @@ export function LogoUploader({ currentLogoUrl, onLogoUpdated }: LogoUploaderProp
     }
   });
 
-  const uploadToCloudinary = async (file: File): Promise<string> => {
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-    
-    console.log('🔧 Cloudinary Config Check:', { 
-      cloudName: cloudName ? 'Set' : 'Missing',
-      uploadPreset: uploadPreset ? 'Set' : 'Missing'
-    });
-    
-    if (!cloudName || !uploadPreset) {
-      throw new Error('Cloudinary configuration missing. Please check VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET environment variables.');
-    }
-
+  const uploadToServer = async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', uploadPreset);
-    formData.append('folder', 'garage-logos');
+    formData.append('logo', file);
     
-    console.log('📤 Uploading to Cloudinary:', file.name, file.size, 'bytes');
+    console.log('📤 Uploading to server:', file.name, file.size, 'bytes');
     
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
+    const response = await fetch(`/api/garages/${garage?.id}/upload-logo`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
       }
-    );
-    
-    console.log('📡 Cloudinary Response:', response.status, response.statusText);
+    });
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Cloudinary Upload Error:', errorText);
+      console.error('❌ Server Upload Error:', errorText);
       throw new Error(`Failed to upload image: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
-    console.log('✅ Upload Success:', data.secure_url);
-    return data.secure_url;
+    console.log('✅ Upload Success:', data.logoUrl);
+    return data.logoUrl;
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,8 +99,8 @@ export function LogoUploader({ currentLogoUrl, onLogoUpdated }: LogoUploaderProp
       const preview = URL.createObjectURL(file);
       setPreviewUrl(preview);
       
-      // Upload to Cloudinary
-      const logoUrl = await uploadToCloudinary(file);
+      // Upload to server
+      const logoUrl = await uploadToServer(file);
       
       // Update garage logo
       await updateGarageLogoMutation.mutateAsync(logoUrl);

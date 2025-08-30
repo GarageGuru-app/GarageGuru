@@ -1,9 +1,13 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import PDFDocument from "pdfkit";
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 // Note: Directly import from shared schema
 // import { insertUserSchema, insertGarageSchema, insertCustomerSchema, insertSparePartSchema, insertJobCardSchema, insertInvoiceSchema } from "@shared/schema";
 // For now, create minimal schemas to fix the compilation issue
@@ -2429,6 +2433,64 @@ export async function registerRoutes(app: Express): Promise<void> {
       res.status(500).json({ message: 'Failed to fetch invoices' });
     }
   });
+
+  // Logo upload endpoint
+  
+  // Configure multer for logo uploads
+  const logoStorage = multer.diskStorage({
+    destination: (req: any, file: any, cb: any) => {
+      const uploadsDir = path.join(process.cwd(), 'uploads', 'logos');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      cb(null, uploadsDir);
+    },
+    filename: (req: any, file: any, cb: any) => {
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      cb(null, `logo-${req.params.garageId}-${timestamp}${ext}`);
+    }
+  });
+  
+  const logoUpload = multer({
+    storage: logoStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req: any, file: any, cb: any) => {
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files (JPG, PNG, GIF) are allowed'));
+      }
+    }
+  });
+
+  app.post('/api/garages/:garageId/upload-logo', authenticateToken, logoUpload.single('logo'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      const garageId = req.params.garageId;
+      
+      // Verify user has access to this garage
+      if (req.user.role !== 'super_admin' && req.user.garage_id !== garageId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      // Create URL for the uploaded file
+      const logoUrl = `/uploads/logos/${req.file.filename}`;
+      
+      console.log('✅ Logo uploaded successfully:', logoUrl);
+      res.json({ logoUrl });
+    } catch (error) {
+      console.error('❌ Logo upload error:', error);
+      res.status(500).json({ message: 'Failed to upload logo' });
+    }
+  });
+
+  // Serve uploaded files
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // No longer need to create or return HTTP server for Vercel functions
 }
