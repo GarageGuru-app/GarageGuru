@@ -1335,8 +1335,8 @@ export async function registerRoutes(app: Express): Promise<void> {
           message: 'Invoice data retrieved successfully'
         });
       } else {
-        // Generate styled PDF to match the app version
-        const doc = new PDFDocument({ margin: 50 });
+        // Generate styled PDF to match the app version exactly
+        const doc = new PDFDocument();
         
         // Set response headers for PDF download
         res.setHeader('Content-Type', 'application/pdf');
@@ -1347,76 +1347,114 @@ export async function registerRoutes(app: Express): Promise<void> {
         
         // Get page dimensions
         const pageWidth = doc.page.width;
-        let yPos = 50;
         
-        // Header background (blue)
+        // Add header background (blue)
         doc.rect(0, 0, pageWidth, 60)
            .fill('#2563eb');
         
-        // Garage name in header (white text)
+        // Add garage logo or default gear icon
+        try {
+          if (invoiceData.garage_logo) {
+            // Try to load custom garage logo
+            const logoResponse = await fetch(invoiceData.garage_logo);
+            if (logoResponse.ok) {
+              const logoBuffer = await logoResponse.buffer();
+              doc.image(logoBuffer, 20, 15, { width: 40, height: 40 });
+            } else {
+              throw new Error('Failed to load custom logo');
+            }
+          } else {
+            throw new Error('No custom logo available');
+          }
+        } catch (error) {
+          // Fallback to default gear logo
+          doc.circle(40, 30, 15)
+             .fillAndStroke('#ffffff', '#cccccc');
+          
+          // Add gear teeth (simple representation)
+          doc.fillColor('#2563eb');
+          for (let i = 0; i < 8; i++) {
+            const angle = (i * 45) * Math.PI / 180;
+            const x = 40 + 12 * Math.cos(angle);
+            const y = 30 + 12 * Math.sin(angle);
+            doc.circle(x, y, 2).fill();
+          }
+          
+          // Center gear hole
+          doc.fillColor('#ffffff')
+             .circle(40, 30, 4)
+             .fill();
+        }
+        
+        // Garage name in header (white text, positioned to avoid logo)
         doc.fillColor('#ffffff')
            .fontSize(20)
            .font('Helvetica-Bold')
-           .text(invoiceData.garage_name, 0, 30, { align: 'center', width: pageWidth });
+           .text(invoiceData.garage_name, 80, 20);
         
         // Garage phone in header
         doc.fontSize(12)
            .font('Helvetica')
-           .text(invoiceData.garage_phone || 'Contact: N/A', 0, 45, { align: 'center', width: pageWidth });
+           .text(invoiceData.garage_phone || 'Contact: N/A', 80, 40);
         
         // Invoice title section (orange)
-        doc.rect(0, 60, pageWidth, 25)
+        doc.rect(0, 60, pageWidth, 30)
            .fill('#f97316');
         
         doc.fillColor('#ffffff')
            .fontSize(16)
            .font('Helvetica-Bold')
-           .text('INVOICE', 0, 72, { align: 'center', width: pageWidth });
+           .text('INVOICE', 0, 75, { align: 'center', width: pageWidth });
         
         // Reset to black text for content
         doc.fillColor('#000000');
-        yPos = 110;
+        let yPos = 110;
         
         // Invoice details
         doc.fontSize(10)
-           .font('Helvetica')
-           .text(`Invoice Number: ${invoiceData.invoice_number}`, 50, yPos)
-           .text(`Date: ${new Date(invoiceData.created_at).toLocaleDateString()}`, 50, yPos + 15)
-           .text(`Customer: ${invoiceData.customer_name}`, 50, yPos + 30)
-           .text(`Phone: ${invoiceData.phone}`, 50, yPos + 45)
-           .text(`Bike Number: ${invoiceData.bike_number}`, 50, yPos + 60);
+           .font('Helvetica');
         
-        // Services section
-        yPos += 90;
+        doc.text(`Invoice Number: ${invoiceData.invoice_number}`, 50, yPos);
+        yPos += 15;
+        doc.text(`Date: ${new Date(invoiceData.created_at).toLocaleDateString()}`, 50, yPos);
+        yPos += 15;
+        doc.text(`Customer: ${invoiceData.customer_name}`, 50, yPos);
+        yPos += 15;
+        doc.text(`Phone: ${invoiceData.phone}`, 50, yPos);
+        yPos += 15;
+        doc.text(`Bike Number: ${invoiceData.bike_number}`, 50, yPos);
+        yPos += 30;
+        
+        // Services section header
         doc.font('Helvetica-Bold')
            .text('Services & Parts:', 50, yPos);
-        
-        doc.font('Helvetica');
-        yPos += 15;
+        yPos += 20;
         
         // Service line
-        doc.text(`Service: ${invoiceData.complaint}`, 50, yPos)
-           .text(`₹${invoiceData.service_charge}`, pageWidth - 100, yPos);
+        doc.font('Helvetica')
+           .text(`Service: ${invoiceData.complaint}`, 50, yPos);
+        doc.text(`₹${invoiceData.service_charge}`, pageWidth - 100, yPos);
         yPos += 15;
         
         // Parts (if any)
         const spareParts = invoiceData.spare_parts || [];
         spareParts.forEach((part: any) => {
-          doc.text(`${part.name} (Qty: ${part.quantity})`, 50, yPos)
-             .text(`₹${part.price * part.quantity}`, pageWidth - 100, yPos);
+          doc.text(`${part.name} (Qty: ${part.quantity})`, 50, yPos);
+          doc.text(`₹${part.price * part.quantity}`, pageWidth - 100, yPos);
           yPos += 15;
         });
         
         // Totals section
-        yPos += 10;
+        yPos += 15;
         doc.moveTo(50, yPos).lineTo(pageWidth - 50, yPos).stroke();
-        yPos += 10;
+        yPos += 15;
         
-        doc.text(`Parts Total: ₹${invoiceData.parts_total}`, 50, yPos)
-           .text(`Service Charge: ₹${invoiceData.service_charge}`, 50, yPos + 15);
+        doc.text(`Parts Total: ₹${invoiceData.parts_total}`, 50, yPos);
+        yPos += 15;
+        doc.text(`Service Charge: ₹${invoiceData.service_charge}`, 50, yPos);
+        yPos += 20;
         
-        // Total amount (bold)
-        yPos += 35;
+        // Total amount (bold and larger)
         doc.font('Helvetica-Bold')
            .fontSize(12)
            .text(`Total Amount: ₹${invoiceData.total_amount}`, 50, yPos);
