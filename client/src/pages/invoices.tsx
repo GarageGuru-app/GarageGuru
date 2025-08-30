@@ -262,13 +262,14 @@ export default function Invoices() {
                   </div>
 
                   <div className="flex justify-end space-x-2">
-                    {invoice.pdf_url && (
+                    {invoice.download_token && (
                       <>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => downloadPDF(invoice.pdf_url, invoice.invoice_number)}
+                          onClick={() => downloadPDF(`/invoice/download/${invoice.download_token}`, invoice.invoice_number)}
                           className="px-3 py-1 text-xs"
+                          data-testid={`button-download-${invoice.id}`}
                         >
                           <Download className="w-3 h-3 mr-1" />
                           Download PDF
@@ -276,8 +277,9 @@ export default function Invoices() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => sendWhatsApp(invoice.phone || '', invoice.pdf_url)}
+                          onClick={() => sendWhatsApp(invoice.phone || '', `${window.location.origin}/invoice/download/${invoice.download_token}`)}
                           className="px-3 py-1 text-xs"
+                          data-testid={`button-whatsapp-${invoice.id}`}
                         >
                           <MessageCircle className="w-3 h-3 mr-1" />
                           WhatsApp

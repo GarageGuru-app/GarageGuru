@@ -1224,6 +1224,9 @@ export async function registerRoutes(app: Express): Promise<void> {
       const istTime = new Date().toLocaleString("sv-SE", {timeZone: "Asia/Kolkata"});
       const localTimestamp = new Date(istTime);
       
+      // Generate download token for PDF access
+      const downloadToken = invoiceData.downloadToken || `${invoiceData.invoiceNumber}-${crypto.randomUUID().substring(0, 8)}-${crypto.randomUUID().substring(0, 6)}`;
+      
       // Map frontend camelCase fields to database snake_case fields
       const mappedInvoiceData = {
         ...invoiceData,
@@ -1231,6 +1234,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         job_card_id: invoiceData.jobCardId,
         customer_id: invoiceData.customerId,
         invoice_number: invoiceData.invoiceNumber,
+        download_token: downloadToken,
         service_charge: invoiceData.serviceCharge,
         parts_total: invoiceData.partsTotal,
         total_amount: invoiceData.totalAmount
