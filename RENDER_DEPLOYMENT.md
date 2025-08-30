@@ -25,9 +25,9 @@
    - Render will automatically detect `render.yaml`
 
 **Build Configuration:**
-- Build Command: `npm install && vite build`
-- Start Command: `NODE_ENV=production npx tsx server/index.ts`
-- **Important**: Runs TypeScript directly to avoid dependency bundling issues
+- Build Command: `npm install`
+- Start Command: `NODE_ENV=production npx vite build --config vite.config.production.js && npx tsx server/index.ts`
+- **Important**: Uses production-specific vite config to avoid module resolution issues
 
 2. **Environment Variables** (Auto-configured from render.yaml):
    - `DATABASE_URL` - Auto-linked to your database
