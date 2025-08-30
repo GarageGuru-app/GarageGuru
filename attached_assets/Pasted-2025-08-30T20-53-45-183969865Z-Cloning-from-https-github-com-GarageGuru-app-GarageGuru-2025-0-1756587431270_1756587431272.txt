@@ -1,0 +1,40 @@
+2025-08-30T20:53:45.183969865Z ==> Cloning from https://github.com/GarageGuru-app/GarageGuru
+2025-08-30T20:53:57.50874995Z ==> Checking out commit b0b6878f4705446d55e89684fba77d8e169be655 in branch main
+2025-08-30T20:54:00.787300097Z ==> Downloading cache...
+2025-08-30T20:54:25.124742986Z ==> Transferred 249MB in 8s. Extraction took 15s.
+2025-08-30T20:55:02.880190575Z ==> Using Node.js version 22.16.0 (default)
+2025-08-30T20:55:02.907952976Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2025-08-30T20:55:02.982099849Z ==> Running build command 'npm install'...
+2025-08-30T20:55:04.315839518Z 
+2025-08-30T20:55:04.31586661Z up to date, audited 620 packages in 1s
+2025-08-30T20:55:04.315871Z 
+2025-08-30T20:55:04.315884361Z 77 packages are looking for funding
+2025-08-30T20:55:04.315888151Z   run `npm fund` for details
+2025-08-30T20:55:04.316877086Z 
+2025-08-30T20:55:04.316893297Z found 0 vulnerabilities
+2025-08-30T20:55:08.750758413Z ==> Uploading build...
+2025-08-30T20:55:29.907499516Z ==> Uploaded in 14.0s. Compression took 7.1s
+2025-08-30T20:55:30.140380892Z ==> Build successful 🎉
+2025-08-30T20:55:38.195929489Z ==> Deploying...
+2025-08-30T20:56:03.321254015Z ==> Running 'NODE_ENV=production npx vite build --config vite.config.production.js && npx tsx server/index.ts'
+2025-08-30T20:56:41.17965288Z ==> No open ports detected, continuing to scan...
+2025-08-30T20:56:41.556369247Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2025-08-30T20:56:53.432222701Z ==> Exited with status 1
+2025-08-30T20:56:53.746620262Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-08-30T20:56:46.515872563Z ✘ [ERROR] Could not resolve "/opt/render/project/src/vite.config.production.js"
+2025-08-30T20:56:46.515894543Z 
+2025-08-30T20:56:46.517118981Z failed to load config from /opt/render/project/src/vite.config.production.js
+2025-08-30T20:56:46.517714815Z error during build:
+2025-08-30T20:56:46.517724345Z Error: Build failed with 1 error:
+2025-08-30T20:56:46.517729315Z error: Could not resolve "/opt/render/project/src/vite.config.production.js"
+2025-08-30T20:56:46.517734285Z     at failureErrorWithLog (/opt/render/.cache/_npx/9ed06546b0653f96/node_modules/esbuild/lib/main.js:1467:15)
+2025-08-30T20:56:46.517739045Z     at /opt/render/.cache/_npx/9ed06546b0653f96/node_modules/esbuild/lib/main.js:926:25
+2025-08-30T20:56:46.517743015Z     at runOnEndCallbacks (/opt/render/.cache/_npx/9ed06546b0653f96/node_modules/esbuild/lib/main.js:1307:45)
+2025-08-30T20:56:46.517746815Z     at buildResponseToResult (/opt/render/.cache/_npx/9ed06546b0653f96/node_modules/esbuild/lib/main.js:924:7)
+2025-08-30T20:56:46.517750615Z     at /opt/render/.cache/_npx/9ed06546b0653f96/node_modules/esbuild/lib/main.js:951:16
+2025-08-30T20:56:46.517756395Z     at responseCallbacks.<computed> (/opt/render/.cache/_npx/9ed06546b0653f96/node_modules/esbuild/lib/main.js:603:9)
+2025-08-30T20:56:46.517760356Z     at handleIncomingPacket (/opt/render/.cache/_npx/9ed06546b0653f96/node_modules/esbuild/lib/main.js:658:12)
+2025-08-30T20:56:46.517764136Z     at Socket.readFromStdout (/opt/render/.cache/_npx/9ed06546b0653f96/node_modules/esbuild/lib/main.js:581:7)
+2025-08-30T20:56:46.517768316Z     at Socket.emit (node:events:518:28)
+2025-08-30T20:56:46.517772546Z     at addChunk (node:internal/streams/readable:561:12)
+2025-08-30T20:56:58.697445126Z ==> Running 'NODE_ENV=production npx vite build --config vite.config.production.js && npx tsx server/index.ts'
