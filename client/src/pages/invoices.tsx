@@ -88,7 +88,10 @@ export default function Invoices() {
     
     try {
       // Fetch invoice data from the API endpoint (not the direct PDF download)
-      const apiUrl = downloadUrl.replace('/invoice/download/', '/invoice/data/');
+      console.log('Original download URL:', downloadUrl);
+      const apiUrl = downloadUrl.replace('/download/', '/data/');
+      console.log('API URL for data:', apiUrl);
+      
       const response = await fetch(apiUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch invoice data: ${response.status}`);
@@ -102,31 +105,41 @@ export default function Invoices() {
       // Import PDF generator dynamically
       const { generateInvoicePDF } = await import('@/utils/pdf-generator');
       
-      // Transform the invoice data to match the expected format for PDF generator
+      // Create a proper JobCard object that matches the schema
       const jobCard = {
         id: result.invoice.id,
-        customerName: result.invoice.customer_name,
-        customer_name: result.invoice.customer_name, // Keep both formats
-        phone: result.invoice.phone,
-        bikeNumber: result.invoice.bike_number,
-        bike_number: result.invoice.bike_number, // Keep both formats
-        complaint: result.invoice.complaint,
-        serviceCharge: Number(result.invoice.service_charge),
+        phone: result.invoice.phone || '',
+        createdAt: new Date(result.invoice.created_at),
+        garageId: result.invoice.garage_id,
+        bikeNumber: result.invoice.bike_number || '',
+        customerId: result.invoice.customer_id,
+        customerName: result.invoice.customer_name || '',
+        complaint: result.invoice.complaint || '',
+        status: result.invoice.status || 'completed',
         spareParts: result.invoice.spare_parts || [],
-        spare_parts: result.invoice.spare_parts || [], // Keep both formats
-        totalAmount: Number(result.invoice.total_amount)
+        serviceCharge: Number(result.invoice.service_charge || 0),
+        totalAmount: Number(result.invoice.total_amount || 0),
+        mechanicId: result.invoice.mechanic_id || null,
+        estimatedCompletion: result.invoice.estimated_completion ? new Date(result.invoice.estimated_completion) : null,
+        actualCompletion: result.invoice.actual_completion ? new Date(result.invoice.actual_completion) : null,
+        workSummary: result.invoice.work_summary || null
       };
 
       const garage = {
-        name: result.invoice.garage_name,
-        phone: result.invoice.garage_phone,
-        logo: null // Will use default logo
+        id: result.invoice.garage_id,
+        name: result.invoice.garage_name || '',
+        phone: result.invoice.garage_phone || '',
+        logo: result.invoice.garage_logo || null,
+        address: '',
+        email: '',
+        createdAt: new Date(),
+        adminId: ''
       };
 
       const invoiceData = {
         jobCard,
         garage,
-        serviceCharge: Number(result.invoice.service_charge),
+        serviceCharge: Number(result.invoice.service_charge || 0),
         invoiceNumber: result.invoice.invoice_number
       };
 
