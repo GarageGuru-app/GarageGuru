@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import PDFDocument from "pdfkit";
 // Note: Directly import from shared schema
 // import { insertUserSchema, insertGarageSchema, insertCustomerSchema, insertSparePartSchema, insertJobCardSchema, insertInvoiceSchema } from "@shared/schema";
 // For now, create minimal schemas to fix the compilation issue
@@ -1322,12 +1323,55 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const invoiceData = invoiceResult.rows[0];
       
-      // Return JSON data for client-side PDF generation
-      res.json({
-        success: true,
-        invoice: invoiceData,
-        message: 'Invoice data retrieved successfully'
-      });
+      // Check if request is from the app (fetch) or direct browser access
+      const userAgent = req.headers['user-agent'] || '';
+      const isBrowserAccess = userAgent.includes('Mozilla') && !userAgent.includes('fetch');
+      
+      if (!isBrowserAccess) {
+        // Return JSON data for client-side PDF generation (app download button)
+        res.json({
+          success: true,
+          invoice: invoiceData,
+          message: 'Invoice data retrieved successfully'
+        });
+      } else {
+        // Generate and serve PDF directly (direct link access)
+        const doc = new PDFDocument();
+        
+        // Set response headers for PDF download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoiceData.invoice_number}.pdf"`);
+        
+        // Pipe PDF to response
+        doc.pipe(res);
+        
+        // Add content to PDF
+        doc.fontSize(20).text('INVOICE', 50, 50);
+        doc.fontSize(12);
+        doc.text(`Invoice Number: ${invoiceData.invoice_number}`, 50, 80);
+        doc.text(`Date: ${new Date(invoiceData.created_at).toLocaleDateString()}`, 50, 100);
+        doc.text('', 50, 120);
+        
+        doc.text(`Garage: ${invoiceData.garage_name}`, 50, 140);
+        doc.text(`Phone: ${invoiceData.garage_phone}`, 50, 160);
+        doc.text('', 50, 180);
+        
+        doc.text(`Customer: ${invoiceData.customer_name}`, 50, 200);
+        doc.text(`Phone: ${invoiceData.phone}`, 50, 220);
+        doc.text(`Vehicle: ${invoiceData.bike_number}`, 50, 240);
+        doc.text('', 50, 260);
+        
+        doc.text(`Service: ${invoiceData.complaint}`, 50, 280);
+        doc.text(`Service Charge: ₹${invoiceData.service_charge}`, 50, 300);
+        doc.text(`Parts Total: ₹${invoiceData.parts_total}`, 50, 320);
+        doc.text(`Total Amount: ₹${invoiceData.total_amount}`, 50, 340);
+        doc.text('', 50, 360);
+        
+        doc.text('Thank you for choosing our service!', 50, 380);
+        
+        // Finalize PDF
+        doc.end();
+      }
       
     } catch (error) {
       console.error('PDF download error:', error);
