@@ -103,9 +103,9 @@ export function renderInvoicePDF(invoiceData: InvoiceData): Promise<Buffer> {
       doc.text(`Bike Number: ${invoiceData.bike_number}`, 50, yPos);
       yPos += 50;
       
-      // Services & Parts section
+      // Services and Parts section
       doc.font('Helvetica-Bold')
-         .text('Services & Parts:', 50, yPos);
+         .text('Services and Parts:', 50, yPos);
       yPos += 25;
       
       // Service line

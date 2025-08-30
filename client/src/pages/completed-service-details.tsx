@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, User, Calendar, Phone, FileText, Settings, DollarSign, Package } from "lucide-react";
+import { ArrowLeft, User, Calendar, Phone, FileText, Settings, IndianRupee, Package } from "lucide-react";
 import { format } from "date-fns";
 
 export default function CompletedServiceDetails() {
@@ -256,7 +256,7 @@ export default function CompletedServiceDetails() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <DollarSign className="w-5 h-5" />
+              <IndianRupee className="w-5 h-5" />
               <span>Billing Summary</span>
             </CardTitle>
           </CardHeader>

@@ -208,7 +208,7 @@ export default function Invoice() {
         serviceCharge: String(serviceCharge),
         whatsappSent: sendWhatsApp,
         completionNotes,
-        workSummary: workSummary || `Service completed for ${jobCard.bikeNumber} - ${jobCard.complaint}`,
+        workSummary: workSummary || `Service completed for ${(jobCard as any).bike_number || jobCard.bikeNumber} - ${jobCard.complaint}`,
       });
       
       // Generate proper filename and update PDF
