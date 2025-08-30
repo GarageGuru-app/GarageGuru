@@ -130,9 +130,21 @@ export function LogoUploader({ currentLogoUrl, onLogoUpdated }: LogoUploaderProp
       
     } catch (error) {
       console.error("Upload error:", error);
+      let errorMessage = "Failed to upload logo. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes("format") && error.message.includes("not allowed")) {
+          errorMessage = "This image format is not supported. Please try uploading a PNG file instead.";
+        } else if (error.message.includes("Cloudinary configuration missing")) {
+          errorMessage = "Upload service not configured. Please contact support.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Upload Failed",
-        description: "Failed to upload logo. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       
