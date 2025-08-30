@@ -22,172 +22,100 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   const pdf = new jsPDF();
   const pageWidth = pdf.internal.pageSize.width;
   
-  let yPos = 20;
+  let yPos = 30;
   
-  // Add header background color
-  pdf.setFillColor(37, 99, 235); // Blue background
-  pdf.rect(0, 0, pageWidth, 45, 'F');
-  
-  // Add garage logo if available
-  const logoUrl = garage.logo || 'https://res.cloudinary.com/dcueubsl8/image/upload/v1754845196/garage-logos/sjrppoab6sslhvm5rl7a.jpg';
-  
-  if (logoUrl) {
-    try {
-      console.log('PDF Generator - Attempting to load logo:', logoUrl);
-      const response = await fetch(logoUrl);
-      
-      if (!response.ok) {
-        console.error('PDF Generator - Logo fetch failed:', response.status);
-        throw new Error(`Failed to fetch logo: ${response.status}`);
-      }
-      
-      const blob = await response.blob();
-      console.log('PDF Generator - Logo blob size:', blob.size);
-      
-      if (blob.size < 5000000) { // Increased size limit to 5MB
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        
-        const logoData = await new Promise<string>((resolve, reject) => {
-          img.onload = () => {
-            canvas.width = 40;
-            canvas.height = 40;
-            ctx?.drawImage(img, 0, 0, 40, 40);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            console.log('PDF Generator - Logo converted to data URL successfully');
-            resolve(dataUrl);
-          };
-          img.onerror = (err) => {
-            console.error('PDF Generator - Image load error:', err);
-            reject(err);
-          };
-          img.src = URL.createObjectURL(blob);
-        });
-        
-        pdf.addImage(logoData, 'JPEG', 20, 5, 20, 20);
-        console.log('PDF Generator - Logo added to PDF successfully');
-      } else {
-        console.error('PDF Generator - Logo file too large:', blob.size);
-      }
-    } catch (error) {
-      console.error('PDF Generator - Failed to load garage logo:', error);
-    }
-  } else {
-    console.log('PDF Generator - No logo URL provided');
-  }
-  
-  // Header text (white on blue background)
-  pdf.setTextColor(255, 255, 255); // White text
-  pdf.setFontSize(20);
+  // Garage name (centered, large)
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(garage.name, pageWidth / 2, 20, { align: 'center' });
+  pdf.text(garage.name, pageWidth / 2, yPos, { align: 'center' });
   
+  yPos += 20;
+  
+  // Phone number (centered)
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'normal');
-  pdf.text(garage.phone || 'Contact: N/A', pageWidth / 2, 32, { align: 'center' });
+  pdf.text(garage.phone || '', pageWidth / 2, yPos, { align: 'center' });
   
-  // Reset text color for rest of document
-  pdf.setTextColor(0, 0, 0); // Black text
+  yPos += 40;
   
-  // Invoice title with orange accent
-  pdf.setFillColor(249, 115, 22); // Orange background
-  pdf.rect(0, 45, pageWidth, 20, 'F');
-  
-  pdf.setTextColor(255, 255, 255); // White text
-  pdf.setFontSize(16);
+  // INVOICE title (centered, large)
+  pdf.setFontSize(20);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('INVOICE', pageWidth / 2, 57, { align: 'center' });
+  pdf.text('INVOICE', pageWidth / 2, yPos, { align: 'center' });
   
-  // Reset text color
-  pdf.setTextColor(0, 0, 0);
+  yPos += 30;
   
-  pdf.setFontSize(10);
+  // Invoice details (left aligned)
+  pdf.setFontSize(12);
   pdf.setFont('helvetica', 'normal');
   
-  // Customer details
-  yPos = 75;
   pdf.text(`Invoice Number: ${invoiceNumber}`, 20, yPos);
-  pdf.text(`Date: ${new Date().toLocaleDateString()}`, 20, yPos + 10);
-  pdf.text(`Customer: ${customerName}`, 20, yPos + 20);
-  pdf.text(`Phone: ${phone}`, 20, yPos + 30);
-  pdf.text(`Bike Number: ${bikeNumber}`, 20, yPos + 40);
+  yPos += 15;
   
-  // Services & Parts
-  yPos += 60;
+  pdf.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 20, yPos);
+  yPos += 15;
+  
+  pdf.text(`Customer: ${customerName}`, 20, yPos);
+  yPos += 15;
+  
+  pdf.text(`Phone: ${phone}`, 20, yPos);
+  yPos += 15;
+  
+  pdf.text(`Bike Number: ${bikeNumber}`, 20, yPos);
+  yPos += 30;
+  
+  // Services & Parts section
   pdf.setFont('helvetica', 'bold');
   pdf.text('Services & Parts:', 20, yPos);
+  yPos += 15;
   
+  // Service line
   pdf.setFont('helvetica', 'normal');
-  yPos += 10;
+  const complaint = (jobCard as any).complaint || jobCard.complaint || 'Service Only';
+  pdf.text(complaint, 20, yPos);
+  yPos += 30;
   
+  // Parts (if any)
   let partsTotal = 0;
-  
   if (spareParts && Array.isArray(spareParts) && spareParts.length > 0) {
     spareParts.forEach((part: any) => {
       const lineTotal = part.price * part.quantity;
       partsTotal += lineTotal;
-      
-      // Display both part number and name
-      // Handle part number field name variations  
-      const partNumber = part.partNumber || part.part_number || '';
-      const partName = part.name || 'Unnamed Part';
-      const partDisplay = partNumber ? `PN: ${partNumber} — ${partName}` : partName;
-      pdf.text(`${partDisplay} — Qty ${part.quantity} x Rs.${Number(part.price).toFixed(2)}`, 20, yPos);
-      pdf.text(`Rs.${lineTotal.toFixed(2)}`, pageWidth - 40, yPos, { align: 'right' });
-      yPos += 10;
+      pdf.text(`${part.name} (Qty: ${part.quantity})`, 20, yPos);
+      yPos += 15;
     });
-  } else {
-    // Add a line for service only (no parts)
-    pdf.text('Service Only', 20, yPos);
-    yPos += 10;
   }
   
-  // Totals section with background
-  yPos += 10;
-  pdf.setFillColor(248, 250, 252); // Light gray background
-  pdf.rect(15, yPos, pageWidth - 30, 40, 'F');
-  pdf.setDrawColor(203, 213, 225); // Gray border
-  pdf.rect(15, yPos, pageWidth - 30, 40, 'S');
+  yPos += 15;
   
-  yPos += 12;
-  pdf.setTextColor(71, 85, 105); // Dark gray text
-  pdf.setFont('helvetica', 'normal');
+  // Parts Total (right aligned)
   pdf.text('Parts Total:', 20, yPos);
-  pdf.text(`Rs.${partsTotal.toFixed(2)}`, pageWidth - 25, yPos, { align: 'right' });
+  pdf.text(`Rs.${partsTotal.toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
+  yPos += 15;
   
-  yPos += 10;
+  // Service Charge (right aligned)
   pdf.text('Service Charge:', 20, yPos);
-  pdf.text(`Rs.${serviceCharge.toFixed(2)}`, pageWidth - 25, yPos, { align: 'right' });
+  pdf.text(`Rs.${serviceCharge.toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
+  yPos += 20;
   
-  // Total amount with emphasis
-  yPos += 12;
-  pdf.setFillColor(37, 99, 235); // Blue background for total
-  pdf.rect(15, yPos - 3, pageWidth - 30, 12, 'F');
-  
-  pdf.setTextColor(255, 255, 255); // White text
+  // Total Amount (bold, right aligned)
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(12);
-  pdf.text('Total Amount:', 20, yPos + 3);
-  pdf.text(`Rs.${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 25, yPos + 3, { align: 'right' });
+  pdf.text('Total Amount:', 20, yPos);
+  pdf.text(`Rs.${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
   
-  pdf.setTextColor(0, 0, 0); // Reset text color
-  pdf.setFontSize(10);
+  yPos += 40;
   
-  // Footer with thank you message
-  yPos += 25;
-  pdf.setFillColor(34, 197, 94); // Green background
-  pdf.rect(0, yPos, pageWidth, 15, 'F');
-  
-  pdf.setTextColor(255, 255, 255); // White text
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Thank you for choosing ' + garage.name + '!', pageWidth / 2, yPos + 8, { align: 'center' });
-  
-  pdf.setTextColor(0, 0, 0); // Reset text color
-  pdf.setFontSize(8);
+  // Thank you message (centered)
   pdf.setFont('helvetica', 'normal');
-  pdf.text('Visit us again for all your bike service needs', pageWidth / 2, yPos + 20, { align: 'center' });
+  pdf.setFontSize(12);
+  pdf.text(`Thank you for choosing ${garage.name}!`, pageWidth / 2, yPos, { align: 'center' });
+  
+  yPos += 20;
+  
+  // Visit again message (centered)
+  pdf.setFontSize(10);
+  pdf.text('Visit us again for all your bike service needs', pageWidth / 2, yPos, { align: 'center' });
   
   return pdf.output('blob');
 }

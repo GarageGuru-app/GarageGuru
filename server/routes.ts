@@ -1335,7 +1335,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           message: 'Invoice data retrieved successfully'
         });
       } else {
-        // Generate styled PDF to match the app version exactly
+        // Generate PDF with exact formatting as shown in attached sample
         const doc = new PDFDocument();
         
         // Set response headers for PDF download
@@ -1345,125 +1345,95 @@ export async function registerRoutes(app: Express): Promise<void> {
         // Pipe PDF to response
         doc.pipe(res);
         
-        // Get page dimensions
         const pageWidth = doc.page.width;
+        let yPos = 50;
         
-        // Add header background (blue)
-        doc.rect(0, 0, pageWidth, 60)
-           .fill('#2563eb');
-        
-        // Add garage logo or default gear icon
-        try {
-          if (invoiceData.garage_logo) {
-            // Try to load custom garage logo
-            const logoResponse = await fetch(invoiceData.garage_logo);
-            if (logoResponse.ok) {
-              const logoBuffer = await logoResponse.buffer();
-              doc.image(logoBuffer, 20, 15, { width: 40, height: 40 });
-            } else {
-              throw new Error('Failed to load custom logo');
-            }
-          } else {
-            throw new Error('No custom logo available');
-          }
-        } catch (error) {
-          // Fallback to default gear logo
-          doc.circle(40, 30, 15)
-             .fillAndStroke('#ffffff', '#cccccc');
-          
-          // Add gear teeth (simple representation)
-          doc.fillColor('#2563eb');
-          for (let i = 0; i < 8; i++) {
-            const angle = (i * 45) * Math.PI / 180;
-            const x = 40 + 12 * Math.cos(angle);
-            const y = 30 + 12 * Math.sin(angle);
-            doc.circle(x, y, 2).fill();
-          }
-          
-          // Center gear hole
-          doc.fillColor('#ffffff')
-             .circle(40, 30, 4)
-             .fill();
-        }
-        
-        // Garage name in header (white text, positioned to avoid logo)
-        doc.fillColor('#ffffff')
-           .fontSize(20)
+        // Garage name (centered, large)
+        doc.fontSize(18)
            .font('Helvetica-Bold')
-           .text(invoiceData.garage_name, 80, 20);
+           .text(invoiceData.garage_name, 0, yPos, { align: 'center', width: pageWidth });
         
-        // Garage phone in header
+        yPos += 30;
+        
+        // Phone number (centered)
         doc.fontSize(12)
            .font('Helvetica')
-           .text(invoiceData.garage_phone || 'Contact: N/A', 80, 40);
+           .text(invoiceData.garage_phone || '', 0, yPos, { align: 'center', width: pageWidth });
         
-        // Invoice title section (orange)
-        doc.rect(0, 60, pageWidth, 30)
-           .fill('#f97316');
+        yPos += 60;
         
-        doc.fillColor('#ffffff')
-           .fontSize(16)
+        // INVOICE title (centered, large)
+        doc.fontSize(20)
            .font('Helvetica-Bold')
-           .text('INVOICE', 0, 75, { align: 'center', width: pageWidth });
+           .text('INVOICE', 0, yPos, { align: 'center', width: pageWidth });
         
-        // Reset to black text for content
-        doc.fillColor('#000000');
-        let yPos = 110;
+        yPos += 40;
         
-        // Invoice details
-        doc.fontSize(10)
+        // Invoice details (left aligned)
+        doc.fontSize(12)
            .font('Helvetica');
         
         doc.text(`Invoice Number: ${invoiceData.invoice_number}`, 50, yPos);
-        yPos += 15;
-        doc.text(`Date: ${new Date(invoiceData.created_at).toLocaleDateString()}`, 50, yPos);
-        yPos += 15;
-        doc.text(`Customer: ${invoiceData.customer_name}`, 50, yPos);
-        yPos += 15;
-        doc.text(`Phone: ${invoiceData.phone}`, 50, yPos);
-        yPos += 15;
-        doc.text(`Bike Number: ${invoiceData.bike_number}`, 50, yPos);
-        yPos += 30;
+        yPos += 20;
         
-        // Services section header
+        doc.text(`Date: ${new Date(invoiceData.created_at).toLocaleDateString('en-GB')}`, 50, yPos);
+        yPos += 20;
+        
+        doc.text(`Customer: ${invoiceData.customer_name}`, 50, yPos);
+        yPos += 20;
+        
+        doc.text(`Phone: ${invoiceData.phone}`, 50, yPos);
+        yPos += 20;
+        
+        doc.text(`Bike Number: ${invoiceData.bike_number}`, 50, yPos);
+        yPos += 40;
+        
+        // Services & Parts section
         doc.font('Helvetica-Bold')
            .text('Services & Parts:', 50, yPos);
         yPos += 20;
         
         // Service line
         doc.font('Helvetica')
-           .text(`Service: ${invoiceData.complaint}`, 50, yPos);
-        doc.text(`₹${invoiceData.service_charge}`, pageWidth - 100, yPos);
-        yPos += 15;
+           .text(invoiceData.complaint || 'Service Only', 50, yPos);
+        yPos += 40;
         
         // Parts (if any)
         const spareParts = invoiceData.spare_parts || [];
         spareParts.forEach((part: any) => {
           doc.text(`${part.name} (Qty: ${part.quantity})`, 50, yPos);
-          doc.text(`₹${part.price * part.quantity}`, pageWidth - 100, yPos);
-          yPos += 15;
+          yPos += 20;
         });
         
-        // Totals section
-        yPos += 15;
-        doc.moveTo(50, yPos).lineTo(pageWidth - 50, yPos).stroke();
-        yPos += 15;
-        
-        doc.text(`Parts Total: ₹${invoiceData.parts_total}`, 50, yPos);
-        yPos += 15;
-        doc.text(`Service Charge: ₹${invoiceData.service_charge}`, 50, yPos);
         yPos += 20;
         
-        // Total amount (bold and larger)
-        doc.font('Helvetica-Bold')
-           .fontSize(12)
-           .text(`Total Amount: ₹${invoiceData.total_amount}`, 50, yPos);
+        // Parts Total (right aligned)
+        doc.text('Parts Total:', 50, yPos);
+        doc.text(`Rs.${invoiceData.parts_total.toFixed(2)}`, 0, yPos, { align: 'right', width: pageWidth - 50 });
+        yPos += 20;
         
-        // Footer
-        yPos += 40;
+        // Service Charge (right aligned)
+        doc.text('Service Charge:', 50, yPos);
+        doc.text(`Rs.${invoiceData.service_charge.toFixed(2)}`, 0, yPos, { align: 'right', width: pageWidth - 50 });
+        yPos += 30;
+        
+        // Total Amount (bold, right aligned)
+        doc.font('Helvetica-Bold');
+        doc.text('Total Amount:', 50, yPos);
+        doc.text(`Rs.${invoiceData.total_amount.toFixed(2)}`, 0, yPos, { align: 'right', width: pageWidth - 50 });
+        
+        yPos += 60;
+        
+        // Thank you message (centered)
         doc.font('Helvetica')
-           .fontSize(10)
-           .text('Thank you for choosing our service!', 50, yPos);
+           .fontSize(12)
+           .text(`Thank you for choosing ${invoiceData.garage_name}!`, 0, yPos, { align: 'center', width: pageWidth });
+        
+        yPos += 30;
+        
+        // Visit again message (centered)
+        doc.fontSize(10)
+           .text('Visit us again for all your bike service needs', 0, yPos, { align: 'center', width: pageWidth });
         
         // Finalize PDF
         doc.end();
