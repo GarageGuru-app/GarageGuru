@@ -50,8 +50,16 @@ export default function StaffDashboard() {
       <div className="gradient-header text-primary-foreground">
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-              <Wrench className="text-primary w-6 h-6" />
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden">
+              {garage?.logo ? (
+                <img 
+                  src={garage.logo} 
+                  alt={`${garage.name} logo`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Wrench className="text-primary w-6 h-6" />
+              )}
             </div>
             <div>
               <h1 className="text-lg font-semibold" data-testid="title-staff-dashboard">
@@ -240,6 +248,15 @@ export default function StaffDashboard() {
                     <div className="text-right">
                       <p className="font-medium text-green-600">₹{job.totalAmount}</p>
                       <p className="text-sm text-green-600 font-medium">Completed</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => navigate(`/completed-service-details/${job.id}`)}
+                        className="mt-1 text-xs"
+                        data-testid={`button-view-details-${job.id}`}
+                      >
+                        View Details
+                      </Button>
                     </div>
                   </div>
                 ))}
