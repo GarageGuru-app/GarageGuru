@@ -95,19 +95,22 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   
   // Parts Total with more space for price display (moved 10 digits left)
   pdf.text('Parts Total:', 20, yPos);
-  pdf.text(`Rs.${partsTotal.toFixed(2)}`, pageWidth - 80, yPos, { align: 'right' });
+  const partsText = `Rs.${partsTotal.toFixed(2)}`;
+  pdf.text(partsText, pageWidth - 80, yPos, { align: 'right' });
   yPos += 20;
   
-  // Service Charge with more space for price display (moved 10 digits left)
+  // Service Charge with more space for price display (moved 10 digits left) 
   pdf.text('Service Charge:', 20, yPos);
-  pdf.text(`Rs.${serviceCharge.toFixed(2)}`, pageWidth - 80, yPos, { align: 'right' });
+  const serviceText = `Rs.${serviceCharge.toFixed(2)}`;
+  pdf.text(serviceText, pageWidth - 80, yPos, { align: 'right' });
   yPos += 25;
   
   // Total Amount (bold, emphasized) with more space (moved 10 digits left)
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(14);
   pdf.text('Total Amount:', 20, yPos);
-  pdf.text(`Rs.${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 80, yPos, { align: 'right' });
+  const totalText = `Rs.${(partsTotal + serviceCharge).toFixed(2)}`;
+  pdf.text(totalText, pageWidth - 80, yPos, { align: 'right' });
   
   yPos += 50;
   

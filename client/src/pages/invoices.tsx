@@ -122,7 +122,10 @@ export default function Invoices() {
         mechanicId: result.invoice.mechanic_id || null,
         estimatedCompletion: result.invoice.estimated_completion ? new Date(result.invoice.estimated_completion) : null,
         actualCompletion: result.invoice.actual_completion ? new Date(result.invoice.actual_completion) : null,
-        workSummary: result.invoice.work_summary || null
+        workSummary: result.invoice.work_summary || null,
+        completedAt: result.invoice.actual_completion ? new Date(result.invoice.actual_completion) : null,
+        completedBy: result.invoice.completed_by || null,
+        completionNotes: result.invoice.completion_notes || null
       };
 
       const garage = {
