@@ -103,8 +103,9 @@ async function initializeApp() {
     // This allows debugging and fixing the database connection
     if (process.env.NODE_ENV === 'development') {
       console.log('🚧 Development mode: Server will start despite database issues');
-    } else if (!process.env.VERCEL) {
-      process.exit(1);
+    } else {
+      // In production, continue without database for static serving
+      console.log('🌐 Production mode: Continuing without database for static serving...');
     }
   }
 

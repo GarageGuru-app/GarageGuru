@@ -3,7 +3,7 @@ services:
     name: garageguru-production
     env: node
     plan: starter
-    buildCommand: npm ci --include=dev && npm run build  
+    buildCommand: npm ci --include=dev && npm run build && mkdir -p public && cp -r dist/public/* public/  
     startCommand: npm start
     envVars:
       - key: NODE_ENV
