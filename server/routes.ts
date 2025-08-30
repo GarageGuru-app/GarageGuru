@@ -1322,33 +1322,12 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const invoiceData = invoiceResult.rows[0];
       
-      // Create simple PDF content
-      const pdfContent = `
-INVOICE: ${invoiceData.invoice_number}
-Date: ${new Date(invoiceData.created_at).toLocaleDateString()}
-
-Garage: ${invoiceData.garage_name}
-Phone: ${invoiceData.garage_phone}
-
-Customer: ${invoiceData.customer_name}
-Phone: ${invoiceData.phone}
-Vehicle: ${invoiceData.bike_number}
-
-Service: ${invoiceData.complaint}
-Service Charge: ₹${invoiceData.service_charge}
-Parts Total: ₹${invoiceData.parts_total}
-Total Amount: ₹${invoiceData.total_amount}
-
-Thank you for choosing our service!
-      `;
-
-      // Set response headers for PDF download
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoiceData.invoice_number}.pdf"`);
-      
-      // For now, return plain text - we'll enhance with proper PDF generation later
-      res.setHeader('Content-Type', 'text/plain');
-      res.send(pdfContent);
+      // Return JSON data for client-side PDF generation
+      res.json({
+        success: true,
+        invoice: invoiceData,
+        message: 'Invoice data retrieved successfully'
+      });
       
     } catch (error) {
       console.error('PDF download error:', error);

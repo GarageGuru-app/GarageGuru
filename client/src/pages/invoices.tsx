@@ -81,26 +81,50 @@ export default function Invoices() {
     return url;
   };
 
-  const downloadPDF = async (pdfUrl: string, invoiceNumber: string) => {
-    if (!pdfUrl) {
+  const downloadPDF = async (downloadUrl: string, invoiceNumber: string) => {
+    if (!downloadUrl) {
       return;
     }
     
     try {
-      // First try to fetch the PDF to verify it exists and is accessible
-      const response = await fetch(pdfUrl);
+      // Fetch invoice data from the download endpoint
+      const response = await fetch(downloadUrl);
       if (!response.ok) {
-        throw new Error(`Failed to access PDF: ${response.status}`);
+        throw new Error(`Failed to fetch invoice data: ${response.status}`);
       }
       
-      const blob = await response.blob();
-      
-      if (blob.size === 0) {
-        throw new Error('PDF file is empty');
+      const result = await response.json();
+      if (!result.success || !result.invoice) {
+        throw new Error('Invalid invoice data received');
       }
+
+      // Import PDF generator dynamically
+      const { generateInvoicePDF } = await import('@/utils/pdf-generator');
+      
+      // Transform the invoice data to match the expected format
+      const invoiceData = {
+        ...result.invoice,
+        jobCard: {
+          id: result.invoice.id,
+          customerName: result.invoice.customer_name,
+          phone: result.invoice.phone,
+          bikeNumber: result.invoice.bike_number,
+          complaint: result.invoice.complaint,
+          serviceCharge: Number(result.invoice.service_charge),
+          spareParts: result.invoice.spare_parts || [],
+          totalAmount: Number(result.invoice.total_amount)
+        },
+        garage: {
+          name: result.invoice.garage_name,
+          phone: result.invoice.garage_phone
+        }
+      };
+
+      // Generate PDF using client-side generator
+      const pdfBlob = await generateInvoicePDF(invoiceData, invoiceData.garage);
       
       // Create download link
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(pdfBlob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `${invoiceNumber}.pdf`;
@@ -109,13 +133,10 @@ export default function Invoices() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      // Fallback: try opening in new tab
-      const a = document.createElement('a');
-      a.href = pdfUrl;
-      a.target = '_blank';
-      a.click();
+      alert('Failed to download PDF. Please try again.');
     }
   };
 
