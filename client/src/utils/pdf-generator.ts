@@ -22,59 +22,59 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   const pdf = new jsPDF();
   const pageWidth = pdf.internal.pageSize.width;
   
-  let yPos = 30;
+  let yPos = 40;
   
-  // Garage name (centered, large)
+  // Garage name (centered, large, professional)
   pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(18);
+  pdf.setFontSize(22);
   pdf.setFont('helvetica', 'bold');
   pdf.text(garage.name, pageWidth / 2, yPos, { align: 'center' });
   
-  yPos += 20;
+  yPos += 25;
   
-  // Phone number (centered)
-  pdf.setFontSize(12);
+  // Phone number (centered, smaller)
+  pdf.setFontSize(14);
   pdf.setFont('helvetica', 'normal');
   pdf.text(garage.phone || '', pageWidth / 2, yPos, { align: 'center' });
   
-  yPos += 40;
+  yPos += 50;
   
-  // INVOICE title (centered, large)
-  pdf.setFontSize(20);
+  // INVOICE title (centered, large, professional)
+  pdf.setFontSize(24);
   pdf.setFont('helvetica', 'bold');
   pdf.text('INVOICE', pageWidth / 2, yPos, { align: 'center' });
   
-  yPos += 30;
+  yPos += 40;
   
-  // Invoice details (left aligned)
+  // Invoice details (left aligned, proper spacing)
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'normal');
   
   pdf.text(`Invoice Number: ${invoiceNumber}`, 20, yPos);
-  yPos += 15;
+  yPos += 20;
   
   pdf.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 20, yPos);
-  yPos += 15;
+  yPos += 20;
   
   pdf.text(`Customer: ${customerName}`, 20, yPos);
-  yPos += 15;
+  yPos += 20;
   
   pdf.text(`Phone: ${phone}`, 20, yPos);
-  yPos += 15;
+  yPos += 20;
   
   pdf.text(`Bike Number: ${bikeNumber}`, 20, yPos);
-  yPos += 30;
+  yPos += 40;
   
   // Services & Parts section
   pdf.setFont('helvetica', 'bold');
   pdf.text('Services & Parts:', 20, yPos);
-  yPos += 15;
+  yPos += 25;
   
   // Service line
   pdf.setFont('helvetica', 'normal');
   const complaint = (jobCard as any).complaint || jobCard.complaint || 'Service Only';
   pdf.text(complaint, 20, yPos);
-  yPos += 30;
+  yPos += 20;
   
   // Parts (if any)
   let partsTotal = 0;
@@ -83,38 +83,42 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
       const lineTotal = part.price * part.quantity;
       partsTotal += lineTotal;
       pdf.text(`${part.name} (Qty: ${part.quantity})`, 20, yPos);
-      yPos += 15;
+      yPos += 18;
     });
   }
   
-  yPos += 15;
+  yPos += 30;
   
-  // Parts Total (right aligned)
-  pdf.text('Parts Total:', 20, yPos);
-  pdf.text(`Rs.${partsTotal.toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
-  yPos += 15;
-  
-  // Service Charge (right aligned)
-  pdf.text('Service Charge:', 20, yPos);
-  pdf.text(`Rs.${serviceCharge.toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
-  yPos += 20;
-  
-  // Total Amount (bold, right aligned)
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Total Amount:', 20, yPos);
-  pdf.text(`Rs.${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
-  
-  yPos += 40;
-  
-  // Thank you message (centered)
+  // Totals section with proper alignment
   pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(12);
+  
+  // Parts Total
+  pdf.text('Parts Total:', 20, yPos);
+  pdf.text(`Rs.${partsTotal.toFixed(2)}`, pageWidth - 30, yPos, { align: 'right' });
+  yPos += 18;
+  
+  // Service Charge
+  pdf.text('Service Charge:', 20, yPos);
+  pdf.text(`Rs.${serviceCharge.toFixed(2)}`, pageWidth - 30, yPos, { align: 'right' });
+  yPos += 25;
+  
+  // Total Amount (bold, emphasized)
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(14);
+  pdf.text('Total Amount:', 20, yPos);
+  pdf.text(`Rs.${(partsTotal + serviceCharge).toFixed(2)}`, pageWidth - 30, yPos, { align: 'right' });
+  
+  yPos += 50;
+  
+  // Thank you message (centered, professional)
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(14);
   pdf.text(`Thank you for choosing ${garage.name}!`, pageWidth / 2, yPos, { align: 'center' });
   
-  yPos += 20;
+  yPos += 25;
   
-  // Visit again message (centered)
-  pdf.setFontSize(10);
+  // Visit again message (centered, smaller)
+  pdf.setFontSize(12);
   pdf.text('Visit us again for all your bike service needs', pageWidth / 2, yPos, { align: 'center' });
   
   return pdf.output('blob');
