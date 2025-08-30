@@ -1,11 +1,15 @@
 #!/bin/bash
-# Render.com build script for GarageGuru
-echo "Building GarageGuru for Render.com..."
+set -e
+
+echo "🚀 Building GarageGuru for Production..."
 
 # Install dependencies
-npm install
+echo "📦 Installing dependencies..."
+npm ci
 
 # Build the application (frontend + backend)
+echo "⚡ Building application..."
 npm run build
 
-echo "Render build completed successfully!"
+echo "✅ Build completed successfully!"
+echo "🌐 Ready for production deployment"

@@ -1,20 +1,21 @@
 import { Pool } from 'pg';
 
-// Use Render.com PostgreSQL database
-const databaseUrl = "postgresql://admin:lHgw4ztka79bYIxW2MBGcTMCEKjzUE9w@dpg-d2ov7g0gjchc73f8s5q0-a.singapore-postgres.render.com/garageguru";
+// Use environment variable for database connection
+const databaseUrl = process.env.DATABASE_URL || "postgresql://admin:lHgw4ztka79bYIxW2MBGcTMCEKjzUE9w@dpg-d2ov7g0gjchc73f8s5q0-a.singapore-postgres.render.com/garageguru";
 
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL must be set for Render.com PostgreSQL connection.");
+  throw new Error("DATABASE_URL must be set for PostgreSQL connection.");
 }
 
 console.log('🔗 Using database URL:', databaseUrl.split('@')[0] + '@[hidden]');
 
+// Production-optimized connection pool
 export const pool = new Pool({ 
   connectionString: databaseUrl,
-  ssl: { rejectUnauthorized: false },
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   connectionTimeoutMillis: 30000,
   idleTimeoutMillis: 30000,
-  max: 20
+  max: process.env.NODE_ENV === 'production' ? 20 : 10
 });
 
 // Test connection
