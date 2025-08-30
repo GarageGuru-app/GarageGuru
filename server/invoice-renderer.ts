@@ -2,12 +2,8 @@ import PDFDocument from 'pdfkit';
 
 // Single source of truth for currency formatting
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount);
+  // Use Rs. prefix instead of ₹ symbol to avoid font encoding issues
+  return `Rs.${amount.toFixed(2)}`;
 }
 
 // Single source of truth for invoice calculations
