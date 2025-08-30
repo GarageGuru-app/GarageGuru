@@ -1,0 +1,101 @@
+Goal: Fix Render deploy errors:
+
+“failed to load config … vite.config.production.js”
+
+“Cannot find package 'vite' …”
+
+“No open ports detected”
+
+Root causes (likely):
+
+Render builds with NODE_ENV=production so devDependencies (like vite and tsx) are NOT installed → npx vite and npx tsx fail.
+
+Start command runs a TS file with tsx at runtime (also a devDependency).
+
+App may not bind to process.env.PORT / 0.0.0.0, so Render can’t detect an open port.
+
+What to change:
+
+Ensure devDependencies are available during build on Render.
+
+EITHER set NPM_CONFIG_PRODUCTION=false in Render Env so devDeps install, and keep build using vite.
+
+OR move vite (and if truly needed at runtime, tsx) to dependencies. Prefer NOT running tsx in production—compile first, then run Node on JS output.
+
+Adjust package scripts for a proper production flow:
+
+Build step should:
+
+Install with dev deps.
+
+Build client with vite.
+
+Transpile server TypeScript to JS (use tsc) so runtime doesn’t need tsx.
+
+Start step should:
+
+Run the compiled server with node, not tsx.
+
+Server must listen on the Render port.
+
+In the server code, ensure it uses:
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, '0.0.0.0', ...)
+
+Make these concrete changes:
+
+Update package.json:
+
+Add/confirm scripts (use these names; keep existing ones if present, just ensure behavior matches):
+
+"build:client": "vite build --config vite.config.production.js"
+
+"build:server": "tsc -p tsconfig.json"
+
+"build": "npm run build:client && npm run build:server"
+
+"start": "node dist/server/index.js"
+
+Ensure typescript and @types/* are devDependencies.
+
+Keep vite as devDependency if we set NPM_CONFIG_PRODUCTION=false on Render. If we cannot set that env var, then move vite to dependencies so npx vite is available during build.
+
+Remove reliance on tsx for production start. If tsx is currently used, keep it only as a dev tool (dev script).
+
+Update Render settings:
+
+Build Command: npm install && npm run build
+
+If Render forces production install, set Environment Variable NPM_CONFIG_PRODUCTION=false so devDeps install. (Key: NPM_CONFIG_PRODUCTION, Value: false)
+
+Start Command: npm start
+
+Node version: Set “Node 20 LTS” in Render (or specify "engines": {"node":"20.x"} in package.json) to avoid Node 22 surprises.
+
+Update server binding:
+
+Ensure server uses process.env.PORT and host 0.0.0.0. Example (do not hardcode 3000 only):
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => console.log(`Server on ${PORT}`));
+
+
+Verify config file path: vite.config.production.js must exist and be importable. If only vite.config.ts exists, change build script to vite build (no custom config) or create a proper vite.config.production.js that imports/exports the config correctly.
+
+Acceptance criteria:
+
+Render “Build successful” followed by successful “Deploying… Service live” (no “Cannot find package 'vite'” and no “No open ports detected”).
+
+Hitting the Render URL serves the app without 500s.
+
+Logs show the server started on the Render port.
+
+If issues remain:
+
+Log process.env.PORT at startup.
+
+Print process.cwd() at startup to confirm paths.
+
+Show the final package.json scripts and the exact Render Build/Start commands you set.

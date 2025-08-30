@@ -1,0 +1,48 @@
+2025-08-30T20:59:03.025012461Z ==> Cloning from https://github.com/GarageGuru-app/GarageGuru
+2025-08-30T20:59:14.276308533Z ==> Checking out commit 017ce7de83b437579126860fc8524b8650b73b57 in branch main
+2025-08-30T20:59:15.803465051Z ==> Downloading cache...
+2025-08-30T20:59:29.843626107Z ==> Transferred 249MB in 8s. Extraction took 5s.
+2025-08-30T20:59:38.46333356Z ==> Using Node.js version 22.16.0 (default)
+2025-08-30T20:59:38.488902568Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2025-08-30T20:59:38.54909165Z ==> Running build command 'npm install'...
+2025-08-30T20:59:39.787930576Z 
+2025-08-30T20:59:39.787956046Z up to date, audited 620 packages in 1s
+2025-08-30T20:59:39.787966096Z 
+2025-08-30T20:59:39.787977047Z 77 packages are looking for funding
+2025-08-30T20:59:39.787985277Z   run `npm fund` for details
+2025-08-30T20:59:39.788954717Z 
+2025-08-30T20:59:39.788965877Z found 0 vulnerabilities
+2025-08-30T20:59:40.317347885Z ==> Uploading build...
+2025-08-30T20:59:55.063075717Z ==> Uploaded in 10.8s. Compression took 4.0s
+2025-08-30T20:59:55.138709138Z ==> Build successful 🎉
+2025-08-30T20:59:57.653421273Z ==> Deploying...
+2025-08-30T21:00:32.080550614Z ==> Running 'NODE_ENV=production npx vite build --config vite.config.production.js && npx tsx server/index.ts'
+2025-08-30T21:01:03.987762629Z ==> No open ports detected, continuing to scan...
+2025-08-30T21:01:04.427413295Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2025-08-30T21:01:08.169560371Z failed to load config from /opt/render/project/src/vite.config.production.js
+2025-08-30T21:01:08.170071522Z error during build:
+2025-08-30T21:01:08.170085034Z Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /opt/render/project/src/node_modules/.vite-temp/vite.config.production.js.timestamp-1756587668078-f86d40330996.mjs
+2025-08-30T21:01:08.170091504Z     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:256:9)
+2025-08-30T21:01:08.170096534Z     at packageResolve (node:internal/modules/esm/resolve:768:81)
+2025-08-30T21:01:08.170100855Z     at moduleResolve (node:internal/modules/esm/resolve:854:18)
+2025-08-30T21:01:08.170104775Z     at defaultResolve (node:internal/modules/esm/resolve:984:11)
+2025-08-30T21:01:08.170109145Z     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+2025-08-30T21:01:08.170113426Z     at #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+2025-08-30T21:01:08.170118166Z     at ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+2025-08-30T21:01:08.170123026Z     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+2025-08-30T21:01:08.170127747Z     at ModuleJob._link (node:internal/modules/esm/module_job:137:49)
+2025-08-30T21:01:10.321470759Z ==> Exited with status 1
+2025-08-30T21:01:10.482791324Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-08-30T21:01:16.963975453Z ==> Running 'NODE_ENV=production npx vite build --config vite.config.production.js && npx tsx server/index.ts'
+2025-08-30T21:01:58.665809315Z failed to load config from /opt/render/project/src/vite.config.production.js
+2025-08-30T21:01:58.666208047Z error during build:
+2025-08-30T21:01:58.666219998Z Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /opt/render/project/src/node_modules/.vite-temp/vite.config.production.js.timestamp-1756587718657-c54e781ff6414.mjs
+2025-08-30T21:01:58.666227659Z     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:256:9)
+2025-08-30T21:01:58.666232209Z     at packageResolve (node:internal/modules/esm/resolve:768:81)
+2025-08-30T21:01:58.66623627Z     at moduleResolve (node:internal/modules/esm/resolve:854:18)
+2025-08-30T21:01:58.66624035Z     at defaultResolve (node:internal/modules/esm/resolve:984:11)
+2025-08-30T21:01:58.666245541Z     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+2025-08-30T21:01:58.666249551Z     at #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+2025-08-30T21:01:58.666253381Z     at ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+2025-08-30T21:01:58.666257502Z     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+2025-08-30T21:01:58.666261572Z     at ModuleJob._link (node:internal/modules/esm/module_job:137:49)
