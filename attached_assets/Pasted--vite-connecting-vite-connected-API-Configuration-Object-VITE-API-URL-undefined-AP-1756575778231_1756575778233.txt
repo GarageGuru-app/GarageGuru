@@ -1,0 +1,54 @@
+[vite] connecting...
+[vite] connected.
+🔧 API Configuration: 
+Object {VITE_API_URL: undefined, API_BASE_URL: "", NODE_ENV: undefined, MODE: "development", DEV: true, …}
+🌐 API Request: GET /api/user/profile
+🔑 Auth Token Present: true
+🔑 Using token: eyJhbGciOiJIUzI1NiIs...
+📡 API Response: 200 OK
+🌐 API Request: GET /api/garages/85a83c6d-31a4-4a2b-ac56-71a2c57fcd04/job-cards?status=pending
+🔑 Auth Token Present: true
+🔑 Using token: eyJhbGciOiJIUzI1NiIs...
+🌐 API Request: GET /api/garages/85a83c6d-31a4-4a2b-ac56-71a2c57fcd04/sales/stats
+🔑 Auth Token Present: true
+🔑 Using token: eyJhbGciOiJIUzI1NiIs...
+🌐 API Request: GET /api/garages/85a83c6d-31a4-4a2b-ac56-71a2c57fcd04/sales/today
+🔑 Auth Token Present: true
+🔑 Using token: eyJhbGciOiJIUzI1NiIs...
+🌐 API Request: GET /api/garages/85a83c6d-31a4-4a2b-ac56-71a2c57fcd04/spare-parts/low-stock
+🔑 Auth Token Present: true
+🔑 Using token: eyJhbGciOiJIUzI1NiIs...
+🌐 API Request: GET /api/garages/85a83c6d-31a4-4a2b-ac56-71a2c57fcd04/notifications/unread-count
+🔑 Auth Token Present: true
+🔑 Using token: eyJhbGciOiJIUzI1NiIs...
+🌐 API Request: GET /api/garages/85a83c6d-31a4-4a2b-ac56-71a2c57fcd04/job-cards?status=pending
+🔑 Auth Token Present: true
+🔑 Using token: eyJhbGciOiJIUzI1NiIs...
+🌐 API Request: GET /api/garages/85a83c6d-31a4-4a2b-ac56-71a2c57fcd04/staff
+🔑 Auth Token Present: true
+🔑 Using token: eyJhbGciOiJIUzI1NiIs...
+🌐 API Request: GET /api/access-requests?garageId=85a83c6d-31a4-4a2b-ac56-71a2c57fcd04
+🔑 Auth Token Present: true
+🔑 Using token: eyJhbGciOiJIUzI1NiIs...
+🌐 API Request: GET /api/garages/85a83c6d-31a4-4a2b-ac56-71a2c57fcd04/invoices
+🔑 Auth Token Present: true
+🔑 Using token: eyJhbGciOiJIUzI1NiIs...
+📡 API Response: 200 OK
+PDF Generator - Received jobCard data: undefined
+Error downloading PDF: 
+TypeError {}
+
+PDF Generator - Received jobCard data: undefined
+Error downloading PDF: 
+TypeError {}
+message: "Cannot read properties of undefined (reading 'customer_name')"
+stack: "TypeError: Cannot read properties of undefined (reading 'customer_name')↵ at generateInvoicePDF (https://4a93e558-d9a0-40e1-9d16-30d32b640614-00-s2fzh4bwbj7g.spock.replit.dev/src/utils/pdf-generator.ts:5:32)↵ at downloadPDF (https://4a93e558-d9a0-40e1-9d16-30d32b640614-00-s2fzh4bwbj7g.spock.replit.dev/src/pages/invoices.tsx:119:29)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+at t.value (https://4a93e558-d9a0-40e1-9d16-30d32b640614-00-s2fzh4bwbj7g.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://4a93e558-d9a0-40e1-9d16-30d32b640614-00-s2fzh4bwbj7g.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://4a93e558-d9a0-40e1-9d16-30d32b640614-00-s2fzh4bwbj7g.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://4a93e558-d9a0-40e1-9d16-30d32b640614-00-s2fzh4bwbj7g.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+

@@ -101,27 +101,36 @@ export default function Invoices() {
       // Import PDF generator dynamically
       const { generateInvoicePDF } = await import('@/utils/pdf-generator');
       
-      // Transform the invoice data to match the expected format
+      // Transform the invoice data to match the expected format for PDF generator
+      const jobCard = {
+        id: result.invoice.id,
+        customerName: result.invoice.customer_name,
+        customer_name: result.invoice.customer_name, // Keep both formats
+        phone: result.invoice.phone,
+        bikeNumber: result.invoice.bike_number,
+        bike_number: result.invoice.bike_number, // Keep both formats
+        complaint: result.invoice.complaint,
+        serviceCharge: Number(result.invoice.service_charge),
+        spareParts: result.invoice.spare_parts || [],
+        spare_parts: result.invoice.spare_parts || [], // Keep both formats
+        totalAmount: Number(result.invoice.total_amount)
+      };
+
+      const garage = {
+        name: result.invoice.garage_name,
+        phone: result.invoice.garage_phone,
+        logo: null // Will use default logo
+      };
+
       const invoiceData = {
-        ...result.invoice,
-        jobCard: {
-          id: result.invoice.id,
-          customerName: result.invoice.customer_name,
-          phone: result.invoice.phone,
-          bikeNumber: result.invoice.bike_number,
-          complaint: result.invoice.complaint,
-          serviceCharge: Number(result.invoice.service_charge),
-          spareParts: result.invoice.spare_parts || [],
-          totalAmount: Number(result.invoice.total_amount)
-        },
-        garage: {
-          name: result.invoice.garage_name,
-          phone: result.invoice.garage_phone
-        }
+        jobCard,
+        garage,
+        serviceCharge: Number(result.invoice.service_charge),
+        invoiceNumber: result.invoice.invoice_number
       };
 
       // Generate PDF using client-side generator
-      const pdfBlob = await generateInvoicePDF(invoiceData.jobCard);
+      const pdfBlob = await generateInvoicePDF(invoiceData);
       
       // Create download link
       const url = URL.createObjectURL(pdfBlob);
