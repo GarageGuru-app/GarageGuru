@@ -30,6 +30,7 @@ import {
   UserCog,
   BookOpen
 } from 'lucide-react';
+import { MesthriChatbot } from './MesthriChatbot';
 
 interface DesktopLayoutProps {
   children: React.ReactNode;
@@ -289,6 +290,9 @@ export default function DesktopLayout({ children, showFab = true }: DesktopLayou
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
       />
+
+      {/* Mesthri Chatbot */}
+      <MesthriChatbot />
     </div>
   );
 }
