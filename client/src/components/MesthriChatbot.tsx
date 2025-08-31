@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import { Button } from './ui/button';
+import { useAuth } from '@/lib/auth';
 
 interface Message {
   id: string;
@@ -13,6 +14,7 @@ interface ChatbotKnowledge {
   keywords: string[];
   response: string;
   category: string;
+  allowedRoles?: string[]; // Roles that can see this response
 }
 
 const MESTHRI_KNOWLEDGE: ChatbotKnowledge[] = [
@@ -51,11 +53,20 @@ const MESTHRI_KNOWLEDGE: ChatbotKnowledge[] = [
     category: 'invoices'
   },
   
-  // Analytics
+  // Analytics (Admin only)
   {
     keywords: ['analytics', 'reports', 'revenue', 'profit', 'dashboard', 'statistics', 'sales'],
     response: "Track your garage performance with our analytics! 📊\n\n📈 Available reports:\n• Daily/Weekly/Monthly revenue\n• Parts vs Service revenue breakdown\n• Profit margins (cost vs selling price)\n• Customer statistics\n• Top-selling parts\n\n💡 Use the Dashboard to see real-time performance metrics and export reports for accounting.",
-    category: 'analytics'
+    category: 'analytics',
+    allowedRoles: ['garage_admin', 'super_admin']
+  },
+
+  // Analytics - Staff restricted message
+  {
+    keywords: ['analytics', 'reports', 'revenue', 'profit', 'dashboard', 'statistics', 'sales'],
+    response: "I understand you're interested in analytics and sales reports! 📊\n\n🔒 **Access Level:** Analytics features are restricted to garage administrators for business security reasons.\n\n✅ **What you can access:**\n• Customer management\n• Job card creation and updates\n• Spare parts inventory\n• Invoice generation\n• Service completion tracking\n\n💡 For sales reports and analytics, please contact your garage administrator.",
+    category: 'analytics-restricted',
+    allowedRoles: ['mechanic_staff']
   },
   
   // Mobile and Features
@@ -88,15 +99,9 @@ const MESTHRI_KNOWLEDGE: ChatbotKnowledge[] = [
 ];
 
 export function MesthriChatbot() {
+  const { user, garage } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'bot',
-      content: "Hi! I'm Mesthri, your garage assistant! 👋 How can I help you today?",
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -109,14 +114,40 @@ export function MesthriChatbot() {
     scrollToBottom();
   }, [messages]);
 
+  // Initialize personalized greeting
+  useEffect(() => {
+    if (user && messages.length === 0) {
+      const garageName = garage?.name || 'your garage';
+      const roleLabel = user.role === 'garage_admin' ? 'Admin' : 
+                       user.role === 'super_admin' ? 'Super Admin' : 'Staff';
+      
+      const personalizedGreeting = user.role === 'super_admin' 
+        ? `Hi! I'm Mesthri, your garage assistant! 👋\n\nWelcome, ${roleLabel}! I can help you with system-wide management, user access, and garage oversight.\n\nHow can I assist you today?`
+        : `Hi! I'm Mesthri, your garage assistant! 👋\n\nWelcome to ${garageName}! I can help you with your daily operations.\n\nHow can I assist you today?`;
+      
+      setMessages([{
+        id: '1',
+        type: 'bot',
+        content: personalizedGreeting,
+        timestamp: new Date()
+      }]);
+    }
+  }, [user, garage, messages.length]);
+
   const findBestResponse = (userMessage: string): string => {
     const lowerMessage = userMessage.toLowerCase();
+    const userRole = user?.role || 'mechanic_staff';
+    
+    // Filter knowledge based on user role
+    const availableKnowledge = MESTHRI_KNOWLEDGE.filter(knowledge => 
+      !knowledge.allowedRoles || knowledge.allowedRoles.includes(userRole)
+    );
     
     // Find the best matching knowledge entry
     let bestMatch: ChatbotKnowledge | null = null;
     let maxMatches = 0;
     
-    for (const knowledge of MESTHRI_KNOWLEDGE) {
+    for (const knowledge of availableKnowledge) {
       const matches = knowledge.keywords.filter(keyword => 
         lowerMessage.includes(keyword.toLowerCase())
       ).length;
@@ -128,11 +159,21 @@ export function MesthriChatbot() {
     }
     
     if (bestMatch && maxMatches > 0) {
-      return bestMatch.response;
+      // Personalize response with garage context
+      let response = bestMatch.response;
+      if (garage?.name && userRole !== 'super_admin') {
+        response = response.replace(/your garage/gi, garage.name);
+      }
+      return response;
     }
     
-    // Default response for unrecognized queries
-    return "I'm not sure about that specific question, but I can help you with:\n\n🏢 Customer Management\n🔧 Job Cards & Services\n📦 Spare Parts Inventory\n🧾 Invoice Generation\n📊 Analytics & Reports\n📱 Mobile Features\n\nTry asking about any of these topics, or contact our support team at ananthautomotivegarage@gmail.com for detailed assistance!";
+    // Role-based default response
+    const isStaff = userRole === 'mechanic_staff';
+    const defaultFeatures = isStaff 
+      ? "🏢 Customer Management\n🔧 Job Cards & Services\n📦 Spare Parts Inventory\n🧾 Invoice Generation\n📱 Mobile Features"
+      : "🏢 Customer Management\n🔧 Job Cards & Services\n📦 Spare Parts Inventory\n🧾 Invoice Generation\n📊 Analytics & Reports\n📱 Mobile Features";
+    
+    return `I'm not sure about that specific question, but I can help you with:\n\n${defaultFeatures}\n\nTry asking about any of these topics, or contact our support team at ananthautomotivegarage@gmail.com for detailed assistance!`;
   };
 
   const handleSendMessage = async () => {

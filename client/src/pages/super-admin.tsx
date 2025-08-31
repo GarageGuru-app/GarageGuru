@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,9 +9,21 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
+import { MesthriChatbot } from '@/components/MesthriChatbot';
 import { 
   Users, 
   Building2, 
@@ -327,11 +340,13 @@ const MFAPasswordChange: React.FC = () => {
 
 // Main Super Admin Page Component
 export default function SuperAdminPage() {
+  const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGarage, setSelectedGarage] = useState<Garage | null>(null);
   const [showMFA, setShowMFA] = useState(false);
   const [processingAction, setProcessingAction] = useState<{ requestId: string; action: 'approve' | 'deny' } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -488,6 +503,12 @@ export default function SuperAdminPage() {
     processRequestMutation.mutate({ requestId, action: 'deny' });
   };
 
+  const handleLogoutConfirm = () => {
+    logout();
+    navigate('/login');
+    setShowLogoutDialog(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -575,15 +596,37 @@ export default function SuperAdminPage() {
                 <Key className="w-4 h-4" />
                 <span className="hidden sm:inline ml-2">Change Password</span>
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                data-testid="button-logout"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline ml-2">Logout</span>
-              </Button>
+              <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    data-testid="button-logout"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden sm:inline ml-2">Logout</span>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to logout? You will need to sign in again to access your account.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel data-testid="button-cancel-logout-superadmin">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleLogoutConfirm}
+                      data-testid="button-confirm-logout-superadmin"
+                    >
+                      Logout
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </div>
@@ -880,6 +923,9 @@ export default function SuperAdminPage() {
           <MFAPasswordChange />
         </DialogContent>
       </Dialog>
+
+      {/* Mesthri Chatbot */}
+      <MesthriChatbot />
     </div>
   );
 }
