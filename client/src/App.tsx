@@ -31,6 +31,7 @@ import CompletedServices from "@/pages/completed-services";
 import CompletedServiceDetails from "@/pages/completed-service-details";
 import Unauthorized from "@/pages/unauthorized";
 import NotFound from "@/pages/not-found";
+import { UserManual } from "@/pages/UserManual";
 
 function Router() {
   return (
@@ -175,6 +176,14 @@ function Router() {
       <Route path="/super-admin">
         <ProtectedRoute roles={["super_admin"]}>
           <SuperAdmin />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/user-manual">
+        <ProtectedRoute>
+          <Layout>
+            <UserManual />
+          </Layout>
         </ProtectedRoute>
       </Route>
       

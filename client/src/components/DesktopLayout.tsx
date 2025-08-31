@@ -27,7 +27,8 @@ import {
   Plus,
   ChevronRight,
   BarChart3,
-  UserCog
+  UserCog,
+  BookOpen
 } from 'lucide-react';
 
 interface DesktopLayoutProps {
@@ -99,7 +100,10 @@ export default function DesktopLayout({ children, showFab = true }: DesktopLayou
       );
     }
 
-    baseItems.push({ path: '/profile', icon: User, label: 'Profile' });
+    baseItems.push(
+      { path: '/user-manual', icon: BookOpen, label: 'User Manual' },
+      { path: '/profile', icon: User, label: 'Profile' }
+    );
 
     return baseItems;
   };
@@ -114,6 +118,7 @@ export default function DesktopLayout({ children, showFab = true }: DesktopLayou
       '/invoices': 'Invoices',
       '/spare-parts': 'Spare Parts',
       '/sales': 'Sales',
+      '/user-manual': 'User Manual',
       '/profile': 'Profile',
       '/job-card': 'New Job Card',
       '/super-admin': 'Super Admin'

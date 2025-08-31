@@ -13,6 +13,7 @@ import fs from 'fs';
 // For now, create minimal schemas to fix the compilation issue
 import { z } from "zod";
 import { renderInvoicePDF, formatCurrency, type InvoiceData } from "./invoice-renderer.js";
+import { UserManualGenerator } from "./user-manual-generator";
 
 const insertUserSchema = z.object({
   email: z.string().email(),
@@ -2575,6 +2576,28 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+  // User Manual PDF Generation
+  app.get('/api/generate-user-manual', authenticateToken, async (req: any, res: any) => {
+    try {
+      console.log('🔄 Generating user manual PDF...');
+      
+      const generator = new UserManualGenerator();
+      const pdfBuffer = await generator.generateManual();
+      
+      const fileName = `Garage_Management_System_User_Manual_${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      console.log('✅ User manual PDF generated successfully');
+      res.end(pdfBuffer);
+    } catch (error) {
+      console.error('❌ User manual generation error:', error);
+      res.status(500).json({ message: 'Failed to generate user manual' });
+    }
+  });
 
   // No longer need to create or return HTTP server for Vercel functions
 }
