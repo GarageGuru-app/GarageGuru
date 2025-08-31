@@ -23,7 +23,6 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
-import { MesthriChatbot } from '@/components/MesthriChatbot';
 import { 
   Users, 
   Building2, 
@@ -924,8 +923,6 @@ export default function SuperAdminPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Mesthri Chatbot */}
-      <MesthriChatbot />
     </div>
   );
 }

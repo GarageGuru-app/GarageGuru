@@ -116,14 +116,20 @@ export function MesthriChatbot() {
 
   // Initialize personalized greeting
   useEffect(() => {
-    if (user && messages.length === 0) {
-      const garageName = garage?.name || 'your garage';
-      const roleLabel = user.role === 'garage_admin' ? 'Admin' : 
-                       user.role === 'super_admin' ? 'Super Admin' : 'Staff';
+    if (messages.length === 0) {
+      let personalizedGreeting: string;
       
-      const personalizedGreeting = user.role === 'super_admin' 
-        ? `Hi! I'm Mesthri, your garage assistant! 👋\n\nWelcome, ${roleLabel}! I can help you with system-wide management, user access, and garage oversight.\n\nHow can I assist you today?`
-        : `Hi! I'm Mesthri, your garage assistant! 👋\n\nWelcome to ${garageName}! I can help you with your daily operations.\n\nHow can I assist you today?`;
+      if (user) {
+        const garageName = garage?.name || 'your garage';
+        const roleLabel = user.role === 'garage_admin' ? 'Admin' : 
+                         user.role === 'super_admin' ? 'Super Admin' : 'Staff';
+        
+        personalizedGreeting = user.role === 'super_admin' 
+          ? `Hi! I'm Mesthri, your garage assistant! 👋\n\nWelcome, ${roleLabel}! I can help you with system-wide management, user access, and garage oversight.\n\nHow can I assist you today?`
+          : `Hi! I'm Mesthri, your garage assistant! 👋\n\nWelcome to ${garageName}! I can help you with your daily operations.\n\nHow can I assist you today?`;
+      } else {
+        personalizedGreeting = `Hi! I'm Mesthri, your garage assistant! 👋\n\nI can help you learn about GarageGuru's features and capabilities. Please log in to access personalized assistance for your garage operations.\n\nHow can I help you today?`;
+      }
       
       setMessages([{
         id: '1',

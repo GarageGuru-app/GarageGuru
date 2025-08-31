@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { MesthriChatbot } from "@/components/MesthriChatbot";
 
 // Pages
 import Login from "@/pages/login";
@@ -191,6 +192,9 @@ function Router() {
       
       <Route component={NotFound} />
     </Switch>
+    
+    {/* Global Mesthri Chatbot */}
+    <MesthriChatbot />
     </AuthProvider>
   );
 }
