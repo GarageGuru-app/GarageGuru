@@ -2577,7 +2577,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-  // User Manual PDF Generation
+  // User Manual PDF Generation (Bilingual)
   app.get('/api/generate-user-manual', authenticateToken, async (req: any, res: any) => {
     try {
       console.log('🔄 Generating user manual PDF...');
@@ -2596,6 +2596,29 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error) {
       console.error('❌ User manual generation error:', error);
       res.status(500).json({ message: 'Failed to generate user manual' });
+    }
+  });
+
+  // English-Only User Manual PDF Generation
+  app.get('/api/generate-english-manual', async (req: any, res: any) => {
+    try {
+      console.log('🔄 Generating English-only user manual PDF...');
+      
+      const { EnglishManualGenerator } = await import('./english-manual-generator');
+      const generator = new EnglishManualGenerator();
+      const pdfBuffer = await generator.generateManual();
+      
+      const fileName = `GarageGuru_User_Manual_English_${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      console.log('✅ English user manual PDF generated successfully');
+      res.end(pdfBuffer);
+    } catch (error) {
+      console.error('❌ English manual generation error:', error);
+      res.status(500).json({ message: 'Failed to generate English manual' });
     }
   });
 
