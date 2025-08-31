@@ -173,6 +173,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Health check endpoint removed - using React router for all routes
 
 
+
   // Database cleanup endpoint (super admin only)
   app.post("/api/cleanup-database", async (req, res) => {
     try {
