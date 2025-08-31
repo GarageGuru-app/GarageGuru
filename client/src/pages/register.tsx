@@ -87,7 +87,7 @@ export default function AccessRequestPage() {
 
   if (requestSubmitted) {
     return (
-      <div className="gradient-header text-primary-foreground min-h-screen">
+      <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'gradient-header text-primary-foreground'}`}>
         <div className="flex flex-col h-full justify-center px-6">
           {/* Header */}
           <div className="absolute top-4 left-4">
@@ -158,7 +158,7 @@ export default function AccessRequestPage() {
   }
 
   return (
-    <div className="gradient-header text-primary-foreground min-h-screen">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'gradient-header text-primary-foreground'}`}>
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -166,7 +166,7 @@ export default function AccessRequestPage() {
             variant="ghost"
             size="icon"
             onClick={() => navigate("/login")}
-            className="text-primary-foreground hover:bg-white/10"
+            className={theme === 'dark' ? "text-white hover:bg-white/10" : "text-primary-foreground hover:bg-white/10"}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -174,7 +174,7 @@ export default function AccessRequestPage() {
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="text-primary-foreground hover:bg-white/10"
+            className={theme === 'dark' ? "text-white hover:bg-white/10" : "text-primary-foreground hover:bg-white/10"}
           >
             {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </Button>
@@ -185,8 +185,8 @@ export default function AccessRequestPage() {
           <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
             <Settings className="text-primary text-3xl w-12 h-12" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">Request Access</h1>
-          <p className="text-blue-100">Get started with GarageGuru</p>
+          <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>Request Access</h1>
+          <p className={theme === 'dark' ? 'text-gray-300' : 'text-blue-100'}>Get started with GarageGuru</p>
         </div>
 
         {/* Access Request Form */}

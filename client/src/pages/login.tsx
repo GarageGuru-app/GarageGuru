@@ -445,7 +445,7 @@ export default function Login() {
   };
 
   return (
-    <div className="gradient-header text-primary-foreground min-h-screen">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'gradient-header text-primary-foreground'}`}>
       <div className="flex flex-col h-full justify-center px-6">
         {/* Header */}
         <div className="absolute top-4 right-4">
@@ -453,7 +453,7 @@ export default function Login() {
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="text-primary-foreground hover:bg-white/10"
+            className={theme === 'dark' ? "text-white hover:bg-white/10" : "text-primary-foreground hover:bg-white/10"}
           >
             {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </Button>
@@ -464,14 +464,14 @@ export default function Login() {
           <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center" style={{ marginTop: '5px' }}>
             <Settings className="text-primary text-3xl w-12 h-12" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">GarageGuru</h1>
-          <p className="text-blue-100">Professional Garage Management</p>
+          <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>GarageGuru</h1>
+          <p className={theme === 'dark' ? 'text-gray-300' : 'text-blue-100'}>Professional Garage Management</p>
         </div>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="email" className="block text-sm font-medium mb-2">
+            <Label htmlFor="email" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>
               Email
             </Label>
             <Input
@@ -480,13 +480,13 @@ export default function Login() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-white/10 border-white/20 placeholder-white/70 text-white focus:border-white/50"
+              className={theme === 'dark' ? 'bg-gray-800 border-gray-600 placeholder-gray-400 text-white focus:border-blue-500' : 'bg-white/10 border-white/20 placeholder-white/70 text-white focus:border-white/50'}
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="password" className="block text-sm font-medium mb-2">
+            <Label htmlFor="password" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>
               Password
             </Label>
             <div className="relative">
@@ -496,7 +496,7 @@ export default function Login() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-white/10 border-white/20 placeholder-white/70 text-white focus:border-white/50 pr-10"
+                className={theme === 'dark' ? 'bg-gray-800 border-gray-600 placeholder-gray-400 text-white focus:border-blue-500 pr-10' : 'bg-white/10 border-white/20 placeholder-white/70 text-white focus:border-white/50 pr-10'}
                 required
                 data-testid="input-password"
               />
@@ -504,7 +504,7 @@ export default function Login() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-0 top-0 h-full px-3 text-white/70 hover:text-white hover:bg-transparent"
+                className={theme === 'dark' ? 'absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white hover:bg-transparent' : 'absolute right-0 top-0 h-full px-3 text-white/70 hover:text-white hover:bg-transparent'}
                 onClick={() => setShowPassword(!showPassword)}
                 data-testid="button-toggle-password"
               >
@@ -516,7 +516,7 @@ export default function Login() {
           <Button
             type="submit"
             disabled={isLoading || !email || !password}
-            className="w-full bg-white text-primary hover:bg-gray-100"
+            className={theme === 'dark' ? 'w-full bg-blue-600 text-white hover:bg-blue-700' : 'w-full bg-white text-primary hover:bg-gray-100'}
           >
             {isLoading ? (
               <div className="flex items-center justify-center space-x-2">
