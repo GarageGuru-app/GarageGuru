@@ -461,7 +461,7 @@ export default function Login() {
 
         {/* Logo and Title */}
         <div className="text-center mb-8">
-          <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
+          <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center" style={{ marginTop: '5px' }}>
             <Settings className="text-primary text-3xl w-12 h-12" />
           </div>
           <h1 className="text-3xl font-bold mb-2">GarageGuru</h1>
