@@ -275,27 +275,36 @@ export async function runMigrations() {
 }
 
 export async function createSuperAdmin() {
-  const SUPER_ADMIN_ACCOUNTS = [
-    {
-      email: 'ananthautomotivegarage@gmail.com',
-      name: 'Ananth Automotive Admin'
-    },
-    {
-      email: 'gorla.ananthkalyan@gmail.com', 
-      name: 'Ananth Kalyan'
-    }
-  ];
+  // Read super admin accounts from environment variables
+  const superAdminEmails = process.env.SUPER_ADMIN_EMAILS || 'ananthautomotivegarage@gmail.com,gorla.ananthkalyan@gmail.com';
+  const superAdminNames = process.env.SUPER_ADMIN_NAMES || 'Ananth Automotive Admin,Ananth Kalyan';
+  const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || 'Ananth123';
+  
+  // Parse comma-separated values
+  const emails = superAdminEmails.split(',').map(email => email.trim()).filter(email => email);
+  const names = superAdminNames.split(',').map(name => name.trim()).filter(name => name);
+  
+  // Ensure we have matching arrays or use default names
+  const SUPER_ADMIN_ACCOUNTS = emails.map((email, index) => ({
+    email,
+    name: names[index] || `Super Admin ${index + 1}`
+  }));
+  
+  if (SUPER_ADMIN_ACCOUNTS.length === 0) {
+    console.log('⚠️ No super admin emails configured');
+    return;
+  }
   
   try {
     const bcrypt = await import('bcrypt');
-    const defaultPassword = await bcrypt.hash('Ananth123', 10);
+    const defaultPassword = await bcrypt.hash(superAdminPassword, 10);
     
     for (const admin of SUPER_ADMIN_ACCOUNTS) {
       // Check if super admin exists
       const existingAdmin = await pool.query('SELECT id FROM users WHERE email = $1', [admin.email]);
       
       if (existingAdmin.rows.length === 0) {
-        // Create super admin with default password
+        // Create super admin with configured password
         await pool.query(`
           INSERT INTO users (email, password, role, name, garage_id, first_login, must_change_password)
           VALUES ($1, $2, 'super_admin', $3, NULL, true, false)
@@ -303,7 +312,7 @@ export async function createSuperAdmin() {
         
         console.log(`✅ Super admin created: ${admin.email}`);
         console.log(`👤 Name: ${admin.name}`);
-        console.log('🔑 Password: Ananth123');
+        console.log(`🔑 Password: ${superAdminPassword}`);
       } else {
         // Reset super admin password and update name
         await pool.query(`
@@ -313,7 +322,7 @@ export async function createSuperAdmin() {
         
         console.log(`✅ Super admin updated: ${admin.email}`);
         console.log(`👤 Name: ${admin.name}`);
-        console.log('🔑 Password reset to: Ananth123');
+        console.log(`🔑 Password reset to: ${superAdminPassword}`);
       }
     }
   } catch (error) {

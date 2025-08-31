@@ -266,7 +266,14 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // Root endpoint removed - React router handles all non-API routes
   
-  // Super admin email for access control
+  // API endpoint to get authorized super admin emails for frontend
+  app.get('/api/config/super-admin-emails', (req, res) => {
+    const superAdminEmails = process.env.SUPER_ADMIN_EMAILS || 'ananthautomotivegarage@gmail.com,gorla.ananthkalyan@gmail.com';
+    const emails = superAdminEmails.split(',').map(email => email.trim()).filter(email => email);
+    res.json({ superAdminEmails: emails });
+  });
+  
+  // Super admin email for access control (backward compatibility)
   const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'ananthautomotivegarage@gmail.com';
 
   // Get garages for staff access request (filtered)

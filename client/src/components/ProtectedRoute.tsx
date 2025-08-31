@@ -1,21 +1,42 @@
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   roles?: string[];
 }
 
-// Super Admin emails that can access /super-admin
-const SUPER_ADMIN_EMAILS = [
+// Super Admin emails fetched from API
+let SUPER_ADMIN_EMAILS: string[] = [
   'gorla.ananthkalyan@gmail.com',
   'ananthautomotivegarage@gmail.com'
 ];
 
+// Fetch super admin emails from API
+async function fetchSuperAdminEmails() {
+  try {
+    const response = await fetch('/api/config/super-admin-emails');
+    if (response.ok) {
+      const data = await response.json();
+      SUPER_ADMIN_EMAILS = data.superAdminEmails || SUPER_ADMIN_EMAILS;
+    }
+  } catch (error) {
+    console.log('Using fallback super admin emails');
+  }
+}
+
 export default function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
   const { user, garage, isLoading, routeUserBasedOnRole } = useAuth();
   const [location, navigate] = useLocation();
+  const [emailsLoaded, setEmailsLoaded] = useState(false);
+
+  // Fetch super admin emails on component mount
+  useEffect(() => {
+    if (!emailsLoaded) {
+      fetchSuperAdminEmails().then(() => setEmailsLoaded(true));
+    }
+  }, [emailsLoaded]);
 
   useEffect(() => {
     if (!isLoading && !user) {
