@@ -507,22 +507,30 @@ export default function SuperAdminPage() {
                 size="sm"
                 onClick={async () => {
                   try {
-                    const token = localStorage.getItem('token');
-                    console.log('🔍 Token found:', !!token);
+                    // Try multiple ways to get the token
+                    let token = localStorage.getItem('token');
+                    if (!token) {
+                      // Check sessionStorage as backup
+                      token = sessionStorage.getItem('token');
+                    }
+                    if (!token) {
+                      // Try getting from auth context
+                      const authToken = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+                      if (authToken) token = authToken;
+                    }
                     
                     if (!token) {
-                      toast({ title: 'Error', description: 'Please login first', variant: 'destructive' });
+                      toast({ title: 'Error', description: 'Authentication error. Please refresh and try again.', variant: 'destructive' });
                       return;
                     }
 
-                    console.log('📡 Making request to generate user manual...');
                     const response = await fetch('/api/generate-user-manual', {
+                      method: 'GET',
                       headers: {
                         'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
                       },
                     });
-                    
-                    console.log('📊 Response status:', response.status);
 
                     if (!response.ok) {
                       throw new Error('Failed to download user manual');
