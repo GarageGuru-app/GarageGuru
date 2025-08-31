@@ -19,7 +19,7 @@ const MESTHRI_KNOWLEDGE: ChatbotKnowledge[] = [
   // Login and Authentication
   {
     keywords: ['login', 'sign in', 'password', 'forgot password', 'authentication'],
-    response: "Hi! I'm Mesthri, your garage assistant. To login:\n\n🔑 Super Admin: ananthautomotivegarage@gmail.com / Ananth123\n👨‍💼 Garage Admin: admin@ananthauto.com / Admin123\n\nIf you're having trouble logging in, check your email format and password case sensitivity.",
+    response: "Hi! I'm Mesthri, your garage assistant! 👋\n\nFor login help:\n\n🔐 **Login Process:**\n1. Enter your email address\n2. Enter your password\n3. Click 'Login'\n\n🆘 **Having trouble?**\n• Check email format is correct\n• Ensure password case sensitivity\n• Clear browser cache if needed\n\n📞 **Need account access?** Contact your system administrator or support team for login credentials.",
     category: 'authentication'
   },
   
