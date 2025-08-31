@@ -22,6 +22,8 @@ export default function Invoice() {
   
   const [serviceCharge, setServiceCharge] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isRefreshingDB, setIsRefreshingDB] = useState(false);
+  const [isSharingWhatsApp, setIsSharingWhatsApp] = useState(false);
   const [completionNotes, setCompletionNotes] = useState("");
   const [workSummary, setWorkSummary] = useState("");
 
@@ -168,6 +170,9 @@ export default function Invoice() {
 
   const handleGeneratePDF = async (sendWhatsApp: boolean = false) => {
     setIsGenerating(true);
+    if (sendWhatsApp) {
+      setIsSharingWhatsApp(true);
+    }
     
     try {
       console.log('Creating invoice with data:', {
@@ -183,6 +188,15 @@ export default function Invoice() {
         totalAmount,
         customerId: jobCard.customer_id
       });
+
+      // Show database refresh loading if sending WhatsApp
+      if (sendWhatsApp) {
+        setIsRefreshingDB(true);
+        toast({
+          title: "Processing...",
+          description: "Creating invoice and updating database",
+        });
+      }
 
       // Generate PDF
       const pdfBlob = await generateInvoicePDF({
@@ -214,7 +228,23 @@ export default function Invoice() {
       // Generate proper filename and update PDF
       const finalFilename = createInvoiceFilename(createdInvoice.id);
       
-      // Re-generate PDF with proper filename
+      // Wait for database to fully commit changes (especially important for WhatsApp sharing)
+      if (sendWhatsApp) {
+        toast({
+          title: "Processing...",
+          description: "Finalizing invoice with latest data",
+        });
+        
+        // Force refresh the data from database to ensure we have the latest values
+        await queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards", jobCardId] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "invoices"] });
+        
+        // Small delay to ensure database consistency
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsRefreshingDB(false);
+      }
+      
+      // Re-generate PDF with proper filename and fresh data
       const finalPdfBlob = await generateInvoicePDF({
         jobCard,
         garage,
@@ -233,11 +263,19 @@ export default function Invoice() {
       });
       
       if (sendWhatsApp) {
+        // Additional delay before sharing to ensure all data is synced
+        toast({
+          title: "Preparing to share...",
+          description: "Generating final invoice PDF with correct amounts",
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         // Send WhatsApp message with download URL
         sendWhatsAppMessage(jobCard.phone || '', finalDownloadUrl);
         toast({
           title: "Success",
-          description: "Invoice generated and WhatsApp opened",
+          description: "Invoice generated and WhatsApp opened with correct amounts",
         });
       } else {
         // Just download PDF with proper filename and extension
@@ -265,11 +303,43 @@ export default function Invoice() {
       });
     } finally {
       setIsGenerating(false);
+      setIsSharingWhatsApp(false);
+      setIsRefreshingDB(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Loading Overlay for Database Refresh */}
+      {isRefreshingDB && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mx-4 max-w-sm w-full text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <div>
+              <h3 className="font-semibold">Updating Database</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Ensuring invoice has the latest service charges and parts data
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Loading Overlay for WhatsApp Sharing */}
+      {isSharingWhatsApp && !isRefreshingDB && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mx-4 max-w-sm w-full text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <div>
+              <h3 className="font-semibold">Preparing WhatsApp</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Generating final invoice with correct amounts
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="screen-header">
         <div className="flex items-center space-x-3">
@@ -402,21 +472,38 @@ export default function Invoice() {
         <div className="space-y-3">
           <Button
             onClick={() => handleGeneratePDF(true)}
-            disabled={isGenerating}
+            disabled={isGenerating || isSharingWhatsApp || isRefreshingDB}
             className="w-full"
           >
             <Share className="w-4 h-4 mr-2" />
-            {isGenerating ? "Generating..." : "Generate PDF & Send WhatsApp"}
+            {isRefreshingDB 
+              ? "Updating database..." 
+              : isSharingWhatsApp 
+              ? "Preparing WhatsApp..." 
+              : isGenerating 
+              ? "Generating..." 
+              : "Generate PDF & Send WhatsApp"
+            }
           </Button>
           
           <Button
             onClick={() => handlePreviewPDF()}
-            disabled={isGenerating}
+            disabled={isGenerating || isSharingWhatsApp || isRefreshingDB}
             variant="outline"
             className="w-full"
           >
             <FileText className="w-4 h-4 mr-2" />
             Preview PDF
+          </Button>
+          
+          <Button
+            onClick={() => handleGeneratePDF(false)}
+            disabled={isGenerating || isSharingWhatsApp || isRefreshingDB}
+            variant="outline"
+            className="w-full"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            {isGenerating ? "Generating..." : "Download PDF"}
           </Button>
         </div>
       </div>
