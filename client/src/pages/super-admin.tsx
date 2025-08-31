@@ -508,16 +508,21 @@ export default function SuperAdminPage() {
                 onClick={async () => {
                   try {
                     const token = localStorage.getItem('token');
+                    console.log('🔍 Token found:', !!token);
+                    
                     if (!token) {
                       toast({ title: 'Error', description: 'Please login first', variant: 'destructive' });
                       return;
                     }
 
+                    console.log('📡 Making request to generate user manual...');
                     const response = await fetch('/api/generate-user-manual', {
                       headers: {
                         'Authorization': `Bearer ${token}`,
                       },
                     });
+                    
+                    console.log('📊 Response status:', response.status);
 
                     if (!response.ok) {
                       throw new Error('Failed to download user manual');
