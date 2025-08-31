@@ -275,35 +275,46 @@ export async function runMigrations() {
 }
 
 export async function createSuperAdmin() {
-  const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'ananthautomotivegarage@gmail.com';
+  const SUPER_ADMIN_ACCOUNTS = [
+    {
+      email: 'ananthautomotivegarage@gmail.com',
+      name: 'Ananth Automotive Admin'
+    },
+    {
+      email: 'gorla.ananthkalyan@gmail.com', 
+      name: 'Ananth Kalyan'
+    }
+  ];
   
   try {
-    // Check if super admin exists
-    const existingAdmin = await pool.query('SELECT id FROM users WHERE email = $1', [SUPER_ADMIN_EMAIL]);
+    const bcrypt = await import('bcrypt');
+    const defaultPassword = await bcrypt.hash('Ananth123', 10);
     
-    if (existingAdmin.rows.length === 0) {
-      // Create super admin with default password (user can change later)
-      const bcrypt = await import('bcrypt');
-      const defaultPassword = await bcrypt.hash('Ananth123', 10);
+    for (const admin of SUPER_ADMIN_ACCOUNTS) {
+      // Check if super admin exists
+      const existingAdmin = await pool.query('SELECT id FROM users WHERE email = $1', [admin.email]);
       
-      await pool.query(`
-        INSERT INTO users (email, password, role, name, garage_id, first_login, must_change_password)
-        VALUES ($1, $2, 'super_admin', 'Super Admin', NULL, true, false)
-      `, [SUPER_ADMIN_EMAIL, defaultPassword]);
-      
-      console.log(`✅ Super admin created: ${SUPER_ADMIN_EMAIL}`);
-      console.log('🔑 Default password: Ananth123 (please change after first login)');
-    } else {
-      // Reset super admin password in case it's corrupted
-      const bcrypt = await import('bcrypt');
-      const defaultPassword = await bcrypt.hash('Ananth123', 10);
-      
-      await pool.query(`
-        UPDATE users SET password = $2, first_login = true, must_change_password = false 
-        WHERE email = $1
-      `, [SUPER_ADMIN_EMAIL, defaultPassword]);
-      
-      console.log('✅ Super admin password reset to: Ananth123');
+      if (existingAdmin.rows.length === 0) {
+        // Create super admin with default password
+        await pool.query(`
+          INSERT INTO users (email, password, role, name, garage_id, first_login, must_change_password)
+          VALUES ($1, $2, 'super_admin', $3, NULL, true, false)
+        `, [admin.email, defaultPassword, admin.name]);
+        
+        console.log(`✅ Super admin created: ${admin.email}`);
+        console.log(`👤 Name: ${admin.name}`);
+        console.log('🔑 Password: Ananth123');
+      } else {
+        // Reset super admin password and update name
+        await pool.query(`
+          UPDATE users SET password = $2, name = $3, first_login = true, must_change_password = false 
+          WHERE email = $1
+        `, [admin.email, defaultPassword, admin.name]);
+        
+        console.log(`✅ Super admin updated: ${admin.email}`);
+        console.log(`👤 Name: ${admin.name}`);
+        console.log('🔑 Password reset to: Ananth123');
+      }
     }
   } catch (error) {
     console.error('❌ Super admin creation failed:', error);
