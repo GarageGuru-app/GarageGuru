@@ -1,5 +1,11 @@
-export function sendWhatsAppMessage(phoneNumber: string, pdfUrl: string): void {
-  const message = `మీ బండి రిపేర్ పూర్తయ్యింది దయచేసి. వివరాల కొరకు కింద ఉన్న PDFని చూడండి ధన్యవాదాలు.\n\n${pdfUrl}`;
+export function sendWhatsAppMessage(phoneNumber: string, pdfUrl: string, garageName: string = 'GarageName'): void {
+  const message = `మీ వాహనం సర్వీస్ విజయవంతంగా పూర్తయింది.
+వివరాల కోసం దయచేసి క్రింది ఇన్వాయిస్‌ను చూడండి:
+
+${pdfUrl}
+
+మా గ్యారేజ్‌పై మీరు చూపిన విశ్వాసానికి ధన్యవాదాలు.
+– ${garageName}.`;
   
   // Clean phone number (remove any non-digits except +)
   const cleanPhone = phoneNumber.replace(/[^\d+]/g, '');

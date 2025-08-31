@@ -272,7 +272,7 @@ export default function Invoice() {
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Send WhatsApp message with download URL
-        sendWhatsAppMessage(jobCard.phone || '', finalDownloadUrl);
+        sendWhatsAppMessage(jobCard.phone || '', finalDownloadUrl, garage?.name || 'GarageName');
         toast({
           title: "Success",
           description: "Invoice generated and WhatsApp opened with correct amounts",
