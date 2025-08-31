@@ -172,6 +172,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   
   // Health check endpoint removed - using React router for all routes
 
+
   // Database cleanup endpoint (super admin only)
   app.post("/api/cleanup-database", async (req, res) => {
     try {
@@ -2619,6 +2620,65 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error) {
       console.error('❌ English manual generation error:', error);
       res.status(500).json({ message: 'Failed to generate English manual' });
+    }
+  });
+
+  // Database reset route (dev only)
+  app.post("/api/admin/reset-database", authenticateToken, async (req, res) => {
+    try {
+      const user = req.user;
+      
+      // Only allow super admin to reset database
+      if (user.role !== 'super_admin') {
+        return res.status(403).json({ message: "Only super admin can reset database" });
+      }
+      
+      console.log('🔄 Starting database reset...');
+      
+      // Keep track of super admin emails
+      const superAdminEmails = ['ananthautomotivegarage@gmail.com', 'gorla.ananthkalyan@gmail.com'];
+      
+      // Delete all data except super admins
+      console.log('🗑️ Deleting job card spare parts...');
+      await storage.query('DELETE FROM job_card_spare_parts');
+      
+      console.log('🗑️ Deleting invoices...');
+      await storage.query('DELETE FROM invoices');
+      
+      console.log('🗑️ Deleting job cards...');
+      await storage.query('DELETE FROM job_cards');
+      
+      console.log('🗑️ Deleting spare parts...');
+      await storage.query('DELETE FROM spare_parts');
+      
+      console.log('🗑️ Deleting customers...');
+      await storage.query('DELETE FROM customers');
+      
+      console.log('🗑️ Deleting access requests...');
+      await storage.query('DELETE FROM access_requests');
+      
+      console.log('🗑️ Deleting regular users and garage admins...');
+      await storage.query('DELETE FROM users WHERE email NOT IN ($1, $2)', [superAdminEmails[0], superAdminEmails[1]]);
+      
+      console.log('🗑️ Deleting all garages...');
+      await storage.query('DELETE FROM garages');
+      
+      console.log('🗑️ Deleting audit logs...');
+      await storage.query('DELETE FROM audit_logs');
+      
+      console.log('🗑️ Deleting notifications...');
+      await storage.query('DELETE FROM notifications');
+      
+      console.log('✅ Database reset complete!');
+      
+      res.json({ 
+        message: "Database reset successfully", 
+        preservedAccounts: superAdminEmails 
+      });
+      
+    } catch (error) {
+      console.error("Error resetting database:", error);
+      res.status(500).json({ message: "Failed to reset database" });
     }
   });
 
