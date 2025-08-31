@@ -9,6 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { LogoUploader } from "@/components/LogoUploader";
 import { ArrowLeft, Settings, Edit, Lock, Moon, Sun, LogOut, Save, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +33,7 @@ export default function Profile() {
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [editForm, setEditForm] = useState({
     name: garage?.name || "",
     ownerName: garage?.ownerName || "",
@@ -150,11 +162,10 @@ export default function Profile() {
     });
   };
 
-  const handleLogout = () => {
-    if (confirm("Are you sure you want to logout?")) {
-      logout();
-      navigate("/login");
-    }
+  const handleLogoutConfirm = () => {
+    logout();
+    navigate("/login");
+    setShowLogoutDialog(false);
   };
 
   const formatJoinDate = (dateString: string) => {
@@ -462,16 +473,39 @@ export default function Profile() {
               </button>
             </div>
 
-            <button 
-              onClick={handleLogout}
-              className="w-full flex items-center justify-between py-3 text-destructive"
-            >
-              <div className="flex items-center space-x-3">
-                <LogOut className="w-5 h-5" />
-                <span>Logout</span>
-              </div>
-              <ArrowLeft className="w-4 h-4 rotate-180" />
-            </button>
+            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+              <AlertDialogTrigger asChild>
+                <button 
+                  className="w-full flex items-center justify-between py-3 text-destructive"
+                  data-testid="button-logout-profile"
+                >
+                  <div className="flex items-center space-x-3">
+                    <LogOut className="w-5 h-5" />
+                    <span>Logout</span>
+                  </div>
+                  <ArrowLeft className="w-4 h-4 rotate-180" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to logout? You will need to sign in again to access your account.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel data-testid="button-cancel-logout-profile">
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleLogoutConfirm}
+                    data-testid="button-confirm-logout-profile"
+                  >
+                    Logout
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </CardContent>
         </Card>
       </div>

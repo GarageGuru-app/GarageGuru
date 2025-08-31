@@ -8,6 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { NotificationPanel } from '@/components/NotificationPanel';
 import {
   Home,
@@ -51,6 +62,7 @@ export default function DesktopLayout({ children, showFab = true }: DesktopLayou
   const [location, navigate] = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   // Fetch pending jobs for badge
   const { data: pendingJobs } = useQuery({
@@ -132,6 +144,12 @@ export default function DesktopLayout({ children, showFab = true }: DesktopLayou
     navigate('/job-card');
   };
 
+  const handleLogoutConfirm = () => {
+    logout();
+    navigate('/login');
+    setShowLogoutDialog(false);
+  };
+
   if (!user) {
     return <div className="desktop-container">{children}</div>;
   }
@@ -193,16 +211,38 @@ export default function DesktopLayout({ children, showFab = true }: DesktopLayou
         </nav>
 
         <div className="sidebar-footer">
-          <Button
-            variant="ghost"
-            size={sidebarCollapsed ? 'sm' : 'default'}
-            onClick={logout}
-            className="w-full justify-start"
-            data-testid="button-logout"
-          >
-            <LogOut className="w-4 h-4" />
-            {!sidebarCollapsed && <span className="ml-2">Logout</span>}
-          </Button>
+          <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size={sidebarCollapsed ? 'sm' : 'default'}
+                className="w-full justify-start"
+                data-testid="button-logout"
+              >
+                <LogOut className="w-4 h-4" />
+                {!sidebarCollapsed && <span className="ml-2">Logout</span>}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to logout? You will need to sign in again to access your account.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel data-testid="button-cancel-logout">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleLogoutConfirm}
+                  data-testid="button-confirm-logout"
+                >
+                  Logout
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
