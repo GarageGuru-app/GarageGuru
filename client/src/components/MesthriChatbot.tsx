@@ -219,7 +219,7 @@ export function MesthriChatbot() {
 
   if (!isOpen) {
     return (
-      <div className="fixed left-6 z-50" style={{ bottom: '70px' }}>
+      <div className="fixed left-6 z-50" style={{ bottom: '75px' }}>
         <Button
           onClick={() => setIsOpen(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 shadow-lg"
@@ -232,7 +232,7 @@ export function MesthriChatbot() {
   }
 
   return (
-    <div className="fixed left-6 z-50 w-96 h-[500px] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 flex flex-col" style={{ bottom: '70px' }}>
+    <div className="fixed left-6 z-50 w-96 h-[500px] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 flex flex-col" style={{ bottom: '75px' }}>
       {/* Header */}
       <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
         <div className="flex items-center gap-2">
