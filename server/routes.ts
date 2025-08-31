@@ -2568,7 +2568,15 @@ export async function registerRoutes(app: Express): Promise<void> {
       // Create URL for the uploaded file
       const logoUrl = `/uploads/logos/${req.file.filename}`;
       
-      console.log('✅ Logo uploaded successfully:', logoUrl);
+      // Update garage record with new logo URL
+      try {
+        await storage.updateGarage(garageId, { logo: logoUrl });
+        console.log('✅ Logo uploaded and garage updated:', logoUrl);
+      } catch (dbError) {
+        console.error('❌ Failed to update garage with logo URL:', dbError);
+        // Still return success since file was uploaded, but log the issue
+      }
+      
       res.json({ logoUrl });
     } catch (error) {
       console.error('❌ Logo upload error:', error);
