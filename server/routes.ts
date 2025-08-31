@@ -2577,8 +2577,12 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-  // User Manual PDF Generation
+  // User Manual PDF Generation (Super Admin Only)
   app.get('/api/generate-user-manual', authenticateToken, async (req: any, res: any) => {
+    // Check if user is super admin
+    if (req.user.role !== 'super_admin') {
+      return res.status(403).json({ message: "Super admin access required to download user manual" });
+    }
     try {
       console.log('🔄 Generating user manual PDF...');
       

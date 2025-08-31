@@ -27,7 +27,9 @@ import {
   RefreshCw,
   LogOut,
   UserX,
-  UserCheck
+  UserCheck,
+  BookOpen,
+  Download
 } from 'lucide-react';
 
 // Super Admin emails that can access this page
@@ -500,6 +502,23 @@ export default function SuperAdminPage() {
               <p className="text-sm sm:text-base text-muted-foreground">Manage garages, users, and system settings</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = '/api/generate-user-manual';
+                  link.download = `Garage_Management_System_User_Manual_${new Date().toISOString().split('T')[0]}.pdf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  toast({ title: 'Success', description: 'User manual download started!' });
+                }}
+                data-testid="button-download-manual"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="hidden sm:inline ml-2">User Manual</span>
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
