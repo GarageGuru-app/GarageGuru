@@ -505,14 +505,39 @@ export default function SuperAdminPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = '/api/generate-user-manual';
-                  link.download = `Garage_Management_System_User_Manual_${new Date().toISOString().split('T')[0]}.pdf`;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  toast({ title: 'Success', description: 'User manual download started!' });
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                      toast({ title: 'Error', description: 'Please login first', variant: 'destructive' });
+                      return;
+                    }
+
+                    const response = await fetch('/api/generate-user-manual', {
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                      },
+                    });
+
+                    if (!response.ok) {
+                      throw new Error('Failed to download user manual');
+                    }
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `Garage_Management_System_User_Manual_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(link);
+                    
+                    toast({ title: 'Success', description: 'User manual downloaded successfully!' });
+                  } catch (error) {
+                    console.error('Download error:', error);
+                    toast({ title: 'Error', description: 'Failed to download user manual', variant: 'destructive' });
+                  }
                 }}
                 data-testid="button-download-manual"
               >
