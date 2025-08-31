@@ -244,7 +244,20 @@ export default function EditJobCard() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    updateJobCardMutation.mutate(formData);
+    
+    // Clean up complaint by removing empty checklist items
+    const cleanedFormData = { ...formData };
+    if (cleanedFormData.complaint) {
+      const lines = cleanedFormData.complaint.split('\n');
+      const cleanedLines = lines.filter(line => {
+        const trimmed = line.trim();
+        // Keep non-empty lines and lines that aren't just empty checkboxes
+        return trimmed && trimmed !== '☐' && trimmed !== '☐ ' && trimmed !== '☑' && trimmed !== '☑ ';
+      });
+      cleanedFormData.complaint = cleanedLines.join('\n');
+    }
+    
+    updateJobCardMutation.mutate(cleanedFormData);
   };
 
   if (isLoading) {
@@ -348,24 +361,37 @@ export default function EditJobCard() {
                 <Textarea
                   value={formData.complaint}
                   onChange={(e) => handleInputChange("complaint", e.target.value)}
+                  onBlur={(e) => {
+                    // Auto-convert to checklist format when user finishes typing
+                    const value = e.target?.value || '';
+                    if (value.trim() && !value.includes('☐') && !value.includes('☑')) {
+                      const lines = value.split('\n').filter(line => line.trim() !== '');
+                      if (lines.length > 0) {
+                        const checklistItems = lines.map(line => `☐ ${line.trim()}`);
+                        handleInputChange("complaint", checklistItems.join('\n'));
+                      }
+                    }
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       const textareaValue = e.currentTarget?.value || '';
-                      const lines = textareaValue.split('\n').filter(line => line.trim() !== '');
-                      const lastLine = textareaValue.split('\n').pop()?.trim();
+                      const lines = textareaValue.split('\n');
+                      const lastLine = lines[lines.length - 1]?.trim();
                       
                       if (lastLine && lastLine !== '') {
-                        // Convert current content to checklist format
-                        const checklistItems = lines.map(line => 
-                          line.trim().startsWith('☐ ') || line.trim().startsWith('☑ ') ? line : `☐ ${line.trim()}`
-                        );
+                        // Convert all lines to checklist format if not already
+                        const checklistItems = lines
+                          .filter(line => line.trim() !== '') // Remove empty lines
+                          .map(line => {
+                            const trimmed = line.trim();
+                            if (trimmed.startsWith('☐ ') || trimmed.startsWith('☑ ')) {
+                              return line; // Keep existing checklist format
+                            }
+                            return `☐ ${trimmed}`; // Convert to checklist
+                          });
                         
-                        // Add the new line as a checklist item if it's not empty
-                        if (lastLine && !checklistItems.some(item => item.includes(lastLine))) {
-                          checklistItems.push(`☐ ${lastLine}`);
-                        }
-                        
+                        // Only add a new empty checklist item
                         const newValue = checklistItems.join('\n') + '\n☐ ';
                         handleInputChange("complaint", newValue);
                         
