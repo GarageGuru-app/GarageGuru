@@ -171,6 +171,106 @@ export async function registerRoutes(app: Express): Promise<void> {
   
   // Health check endpoint removed - using React router for all routes
 
+  // Database cleanup endpoint (super admin only)
+  app.post("/api/cleanup-database", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader?.split(' ')[1];
+      
+      if (!token) {
+        return res.status(401).json({ message: "No token provided" });
+      }
+
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [decoded.id]);
+      
+      if (userResult.rows.length === 0 || userResult.rows[0].role !== 'super_admin') {
+        return res.status(403).json({ message: "Super admin access required" });
+      }
+
+      console.log('🧹 Starting database cleanup (preserving super admin accounts)');
+      
+      // First, let's handle the problematic notifications constraint directly
+      try {
+        // Check if notifications table exists and clear it
+        const notificationCheck = await pool.query("SELECT COUNT(*) FROM notifications");
+        console.log(`Found ${notificationCheck.rows[0].count} notifications to clear`);
+        
+        if (parseInt(notificationCheck.rows[0].count) > 0) {
+          await pool.query('DELETE FROM notifications');
+          console.log('✅ Notifications cleared');
+        } else {
+          console.log('✅ No notifications to clear');
+        }
+      } catch (e) {
+        console.log('⚠️ Notifications table may not exist, trying to drop constraint manually');
+        // Try to drop the constraint if it exists
+        try {
+          await pool.query('ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_garage_id_fkey');
+          await pool.query('DELETE FROM notifications');
+          console.log('✅ Dropped constraint and cleared notifications');
+        } catch (constraintError) {
+          console.log('⚠️ Could not handle notifications constraint, proceeding anyway');
+        }
+      }
+      
+      // Delete main data tables
+      await pool.query('DELETE FROM invoices');
+      console.log('✅ Invoices cleared');
+      
+      await pool.query('DELETE FROM job_cards');
+      console.log('✅ Job cards cleared');
+      
+      await pool.query('DELETE FROM spare_parts');
+      console.log('✅ Spare parts cleared');
+      
+      await pool.query('DELETE FROM customers');
+      console.log('✅ Customers cleared');
+      
+      await pool.query('DELETE FROM access_requests');
+      console.log('✅ Access requests cleared');
+      
+      await pool.query('DELETE FROM audit_logs');
+      console.log('✅ Audit logs cleared');
+      
+      await pool.query('DELETE FROM otp_records');
+      console.log('✅ OTP records cleared');
+      
+      // Delete non-super-admin users first
+      await pool.query('DELETE FROM users WHERE role != $1', ['super_admin']);
+      console.log('✅ Non-admin users cleared');
+      
+      // Force delete any remaining foreign key dependencies and then garages
+      try {
+        // Use CASCADE to force delete garages and any remaining dependencies
+        await pool.query('TRUNCATE TABLE garages CASCADE');
+        console.log('✅ Garages cleared with CASCADE');
+      } catch (e) {
+        console.log('⚠️ Attempting alternative garage cleanup method');
+        // If CASCADE fails, try disabling constraints temporarily
+        await pool.query('SET session_replication_role = replica');
+        await pool.query('DELETE FROM garages');
+        await pool.query('SET session_replication_role = DEFAULT');
+        console.log('✅ Garages cleared with constraints disabled');
+      }
+      
+      console.log('✅ Database cleanup completed - Only super admin accounts remain');
+      
+      res.json({ 
+        success: true, 
+        message: "Database cleaned successfully - Super admin accounts preserved" 
+      });
+      
+    } catch (error) {
+      console.error('❌ Database cleanup failed:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Database cleanup failed",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Database ping route
   app.get('/api/db/ping', async (req, res) => {
     try {
