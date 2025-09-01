@@ -57,7 +57,7 @@ export class AlternativeEmailService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: `GarageGuru <noreply@${this.config.domain}>`,
+          from: `ServiceGuru <noreply@${this.config.domain}>`,
           to: [superAdminEmail],
           subject: `🔑 New Access Request - ${requestData.name}`,
           html: this.generateAccessRequestEmail(requestData),
@@ -81,7 +81,7 @@ export class AlternativeEmailService {
   private async sendWithMailgun(superAdminEmail: string, requestData: AccessRequestData): Promise<boolean> {
     try {
       const formData = new FormData();
-      formData.append('from', `GarageGuru <noreply@${this.config.domain}>`);
+      formData.append('from', `ServiceGuru <noreply@${this.config.domain}>`);
       formData.append('to', superAdminEmail);
       formData.append('subject', `🔑 New Access Request - ${requestData.name}`);
       formData.append('html', this.generateAccessRequestEmail(requestData));
@@ -150,7 +150,7 @@ export class AlternativeEmailService {
       });
 
       await transporter.sendMail({
-        from: `"GarageGuru System" <${this.config.username}>`,
+        from: `"ServiceGuru System" <${this.config.username}>`,
         to: superAdminEmail,
         subject: `🔑 New Access Request - ${requestData.name}`,
         html: this.generateAccessRequestEmail(requestData),
@@ -176,7 +176,7 @@ export class AlternativeEmailService {
         },
         body: JSON.stringify({
           sender: {
-            name: 'GarageGuru System',
+            name: 'ServiceGuru System',
             email: `noreply@${this.config.domain}`,
           },
           to: [{ email: superAdminEmail }],
@@ -202,7 +202,7 @@ export class AlternativeEmailService {
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
-          🔑 New Access Request - GarageGuru
+          🔑 New Access Request - ServiceGuru
         </h2>
         
         <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -221,7 +221,7 @@ export class AlternativeEmailService {
         </div>
 
         <div style="margin: 30px 0; padding: 20px; background: #1e40af; color: white; border-radius: 8px; text-align: center;">
-          <h3 style="margin: 0;">GarageGuru Management System</h3>
+          <h3 style="margin: 0;">ServiceGuru Management System</h3>
           <p style="margin: 5px 0;">Access Control Notification</p>
         </div>
       </div>

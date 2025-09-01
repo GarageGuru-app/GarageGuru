@@ -33,7 +33,7 @@ app.get('*', (req, res) => {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>GarageGuru</title>
+    <title>ServiceGuru</title>
     <script type="module" crossorigin src="/assets/index-Z7HpSreL.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-e0UFbN1B.css">
   </head>

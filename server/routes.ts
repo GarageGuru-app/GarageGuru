@@ -1716,7 +1716,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
     const emailHTML = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">GarageGuru Password Reset</h2>
+        <h2 style="color: #333;">ServiceGuru Password Reset</h2>
         <p>Your password reset verification code is:</p>
         <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
           ${otp}
@@ -1731,7 +1731,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       </div>
     `;
 
-    const emailText = `Your GarageGuru password reset code is: ${otp}. This code expires in 10 minutes. If you didn't request this reset, please contact support.`;
+    const emailText = `Your ServiceGuru password reset code is: ${otp}. This code expires in 10 minutes. If you didn't request this reset, please contact support.`;
 
     // Send OTP to both super admin emails using Gmail service
     const emailPromises = SUPER_ADMIN_EMAILS.map(email => 
@@ -1756,9 +1756,9 @@ export async function registerRoutes(app: Express): Promise<void> {
 
     const emailHTML = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">GarageGuru Password Reset</h2>
+        <h2 style="color: #333;">ServiceGuru Password Reset</h2>
         <p>Hello ${userName},</p>
-        <p>You requested a password reset for your GarageGuru account. Your verification code is:</p>
+        <p>You requested a password reset for your ServiceGuru account. Your verification code is:</p>
         <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
           ${otp}
         </div>
@@ -1769,7 +1769,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           <li>Never share this code with anyone</li>
         </ul>
         <p>If you didn't request this reset, please ignore this email or contact your administrator.</p>
-        <p>Best regards,<br>GarageGuru Team</p>
+        <p>Best regards,<br>ServiceGuru Team</p>
       </div>
     `;
 
@@ -2618,7 +2618,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const generator = new EnglishManualGenerator();
       const pdfBuffer = await generator.generateManual();
       
-      const fileName = `GarageGuru_User_Manual_English_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `ServiceGuru_User_Manual_English_${new Date().toISOString().split('T')[0]}.pdf`;
       
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
