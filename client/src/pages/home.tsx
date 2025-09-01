@@ -135,6 +135,11 @@ export default function Home() {
                 {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </Button>
               <Link href="/login">
+                <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900">
+                  Login
+                </Button>
+              </Link>
+              <Link href="/login">
                 <Button className="bg-blue-600 hover:bg-blue-700">Get Started</Button>
               </Link>
             </div>
@@ -166,6 +171,11 @@ export default function Home() {
                 <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
                 <a href="#benefits" className="hover:text-blue-600 transition-colors">Benefits</a>
                 <a href="#testimonials" className="hover:text-blue-600 transition-colors">Reviews</a>
+                <Link href="/login">
+                  <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 w-full">
+                    Login
+                  </Button>
+                </Link>
                 <Link href="/login">
                   <Button className="bg-blue-600 hover:bg-blue-700 w-full">Get Started</Button>
                 </Link>
