@@ -164,7 +164,7 @@ export default function Dashboard() {
             )}
           </div>
           <div>
-            <h2 className="font-semibold">{garage?.name || "GarageGuru"}</h2>
+            <h2 className="font-semibold">{garage?.name || "ServiceGuru"}</h2>
             <p className="text-sm text-blue-100">{user?.role?.replace('_', ' ')}</p>
           </div>
         </div>

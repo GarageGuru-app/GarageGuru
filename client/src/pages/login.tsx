@@ -462,9 +462,9 @@ export default function Login() {
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center" style={{ marginTop: '5px' }}>
-            <Settings className="text-primary text-3xl w-12 h-12" />
+            <img src="/serviceguru-logo.svg" alt="ServiceGuru Logo" className="w-20 h-20" />
           </div>
-          <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>GarageGuru</h1>
+          <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>ServiceGuru</h1>
           <p className={theme === 'dark' ? 'text-gray-300' : 'text-blue-100'}>Professional Garage Management</p>
         </div>
 

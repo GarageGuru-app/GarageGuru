@@ -76,7 +76,7 @@ import { GmailEmailService } from "./gmailEmailService";
 import { pool } from "./db";
 import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || "GarageGuru2025ProductionJWTSecret!";
+const JWT_SECRET = process.env.JWT_SECRET || "ServiceGuru2025ProductionJWTSecret!";
 
 // Generate random temporary password
 function generateRandomPassword(): string {

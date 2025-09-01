@@ -186,7 +186,7 @@ export default function AccessRequestPage() {
             <Settings className="text-primary text-3xl w-12 h-12" />
           </div>
           <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>Request Access</h1>
-          <p className={theme === 'dark' ? 'text-gray-300' : 'text-blue-100'}>Get started with GarageGuru</p>
+          <p className={theme === 'dark' ? 'text-gray-300' : 'text-blue-100'}>Get started with ServiceGuru</p>
         </div>
 
         {/* Access Request Form */}
@@ -194,7 +194,7 @@ export default function AccessRequestPage() {
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Send className="w-5 h-5" />
-              Request Access to GarageGuru
+              Request Access to ServiceGuru
             </CardTitle>
             <CardDescription className="text-blue-100">
               Submit your request to get access to the garage management system. A super admin will review and approve your request.

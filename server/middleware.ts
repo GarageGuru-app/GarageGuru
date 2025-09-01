@@ -45,7 +45,7 @@ export const authMiddleware = async (c: AuthContext, next: () => Promise<void>) 
       return c.json({ error: 'Access token required' }, 401);
     }
 
-    const JWT_SECRET = process.env.JWT_SECRET || 'GarageGuru2025ProductionJWTSecret!';
+    const JWT_SECRET = process.env.JWT_SECRET || 'ServiceGuru2025ProductionJWTSecret!';
     const decoded = jwt.verify(token, JWT_SECRET) as any;
 
     // Fetch user from database to get latest info

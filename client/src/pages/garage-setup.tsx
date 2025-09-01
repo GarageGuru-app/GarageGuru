@@ -56,7 +56,7 @@ export default function GarageSetup() {
     onSuccess: async (garage) => {
       toast({
         title: "Success",
-        description: "Garage created successfully! Welcome to GarageGuru.",
+        description: "Garage created successfully! Welcome to ServiceGuru.",
         variant: "default",
       });
       

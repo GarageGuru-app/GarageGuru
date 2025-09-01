@@ -274,7 +274,7 @@ export default function Profile() {
                 <Settings className="text-primary w-10 h-10" />
               )}
             </div>
-            <h3 className="text-xl font-bold">{garage?.name || "GarageGuru"}</h3>
+            <h3 className="text-xl font-bold">{garage?.name || "ServiceGuru"}</h3>
             <p className="text-muted-foreground">{user?.role?.replace('_', ' ')}</p>
           </CardContent>
         </Card>

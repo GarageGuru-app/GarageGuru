@@ -37,7 +37,7 @@ export class EnglishManualGenerator {
       .fontSize(24)
       .font('Helvetica-Bold')
       .fillColor('#1e40af')
-      .text('GarageGuru', this.margin, this.currentY, { align: 'center' });
+      .text('ServiceGuru', this.margin, this.currentY, { align: 'center' });
     
     this.currentY += 30;
     
@@ -175,7 +175,7 @@ export class EnglishManualGenerator {
     // Section 1: System Overview and Login
     this.addSection({
       title: "1. System Overview and Login",
-      content: "GarageGuru is a comprehensive automotive garage management system designed to streamline operations for garage owners. The system provides complete management of customers, spare parts inventory, job cards, and invoices with role-based access control.",
+      content: "ServiceGuru is a comprehensive automotive garage management system designed to streamline operations for garage owners. The system provides complete management of customers, spare parts inventory, job cards, and invoices with role-based access control.",
       steps: [
         "Access the system at http://localhost:5000",
         "Enter your email and password on the login screen",
@@ -306,7 +306,7 @@ export class EnglishManualGenerator {
     // Section 10: Troubleshooting
     this.addSection({
       title: "10. Troubleshooting and FAQ",
-      content: "Common issues and their solutions to help you get the most out of GarageGuru. This section covers login problems, performance issues, and feature-specific troubleshooting.",
+      content: "Common issues and their solutions to help you get the most out of ServiceGuru. This section covers login problems, performance issues, and feature-specific troubleshooting.",
       steps: [
         "Login Issues: Check email format and password case sensitivity",
         "Slow Performance: Clear browser cache and refresh the page",
@@ -321,7 +321,7 @@ export class EnglishManualGenerator {
     // Section 11: Support Information
     this.addSection({
       title: "11. Contact and Support",
-      content: "For technical support, feature requests, or any questions about GarageGuru, please contact our support team. We provide comprehensive assistance to ensure your garage operations run smoothly.",
+      content: "For technical support, feature requests, or any questions about ServiceGuru, please contact our support team. We provide comprehensive assistance to ensure your garage operations run smoothly.",
       steps: [
         "Email Support: ananthautomotivegarage@gmail.com",
         "Phone Support: +91 9876543210",
@@ -340,7 +340,7 @@ export class EnglishManualGenerator {
       .fontSize(10)
       .font('Helvetica')
       .fillColor('#6b7280')
-      .text('GarageGuru - Automotive Management System', this.margin, this.currentY, { align: 'center' });
+      .text('ServiceGuru - Automotive Management System', this.margin, this.currentY, { align: 'center' });
     
     this.currentY += 15;
     

@@ -60,13 +60,13 @@ export class GmailEmailService {
 
     try {
       const mailOptions = {
-        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        from: `"ServiceGuru System" <${process.env.GMAIL_USER}>`,
         to: email,
         subject: purpose.includes('notification') 
-          ? 'GarageGuru Super Admin Password Changed - Security Alert'
+          ? 'ServiceGuru Super Admin Password Changed - Security Alert'
           : purpose.includes('user password') 
-          ? `GarageGuru Password Reset Code`
-          : `GarageGuru Super Admin ${purpose.charAt(0).toUpperCase() + purpose.slice(1)} Code`,
+          ? `ServiceGuru Password Reset Code`
+          : `ServiceGuru Super Admin ${purpose.charAt(0).toUpperCase() + purpose.slice(1)} Code`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             ${purpose.includes('notification') ? `
@@ -75,7 +75,7 @@ export class GmailEmailService {
               <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
               <p>If you did not make this change, please contact support immediately.</p>
             ` : `
-              <h2 style="color: #333;">GarageGuru ${purpose.charAt(0).toUpperCase() + purpose.slice(1)}</h2>
+              <h2 style="color: #333;">ServiceGuru ${purpose.charAt(0).toUpperCase() + purpose.slice(1)}</h2>
               <p>Your ${purpose} verification code is:</p>
               <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 20px; background: #f8f9fa; text-align: center; margin: 20px 0; border-radius: 8px;">
                 ${otp}
@@ -92,7 +92,7 @@ export class GmailEmailService {
         `,
         text: purpose.includes('notification') 
           ? `Security Alert: A super admin password has been changed at ${new Date().toLocaleString()}. If you did not make this change, please contact support immediately.`
-          : `Your GarageGuru ${purpose} code is: ${otp}. This code expires in 10 minutes. If you didn't request this ${purpose}, please contact support.`
+          : `Your ServiceGuru ${purpose} code is: ${otp}. This code expires in 10 minutes. If you didn't request this ${purpose}, please contact support.`
       };
 
       console.log(`📧 Sending OTP email via Gmail to: ${email}`);
@@ -118,9 +118,9 @@ export class GmailEmailService {
 
     try {
       const mailOptions = {
-        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        from: `"ServiceGuru System" <${process.env.GMAIL_USER}>`,
         to: superAdminEmail,
-        subject: `GarageGuru Admin - New Access Request from ${requestData.name}`,
+        subject: `ServiceGuru Admin - New Access Request from ${requestData.name}`,
         html: this.generateAccessRequestEmail(requestData),
         text: this.generateAccessRequestText(requestData)
       };
@@ -155,7 +155,7 @@ export class GmailEmailService {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>GarageGuru Admin - Access Request</title>
+        <title>ServiceGuru Admin - Access Request</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
         <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
@@ -171,7 +171,7 @@ export class GmailEmailService {
                 <rect x="11" y="16" width="2" height="2" fill="white"/>
               </svg>
             </div>
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">GarageGuru</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">ServiceGuru</h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Automotive Management System</p>
           </div>
 
@@ -264,7 +264,7 @@ export class GmailEmailService {
                   <td style="text-align: center; padding: 10px; width: 33.33%;">
                     <div style="color: #f59e0b; font-size: 20px; margin-bottom: 5px;">⚡</div>
                     <div style="font-size: 12px; color: #6b7280;">System</div>
-                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">GarageGuru Platform</div>
+                    <div style="font-size: 13px; color: #1f2937; font-weight: bold;">ServiceGuru Platform</div>
                   </td>
                 </tr>
               </table>
@@ -272,7 +272,7 @@ export class GmailEmailService {
 
             <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                This is an automated notification from GarageGuru Management System.<br>
+                This is an automated notification from ServiceGuru Management System.<br>
                 Powered by Ananth Automotive Garage - Excellence in Automotive Service
               </p>
             </div>
@@ -307,7 +307,7 @@ To Process This Request:
 📧 Email notifications will be sent automatically to the user.
 
 ---
-GarageGuru Management System
+ServiceGuru Management System
 Access Control Notification
     `;
   }
@@ -331,9 +331,9 @@ Access Control Notification
       console.log(`📧 Sending approval notification via Gmail to: ${userEmail}`);
       
       const mailOptions = {
-        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        from: `"ServiceGuru System" <${process.env.GMAIL_USER}>`,
         to: userEmail,
-        subject: '🎉 Access Approved - GarageGuru Account Created',
+        subject: '🎉 Access Approved - ServiceGuru Account Created',
         text: this.generateApprovalEmailText(approvalData),
         html: this.generateApprovalEmailHTML(approvalData)
       };
@@ -364,9 +364,9 @@ Access Control Notification
       console.log(`📧 Sending denial notification via Gmail to: ${userEmail}`);
       
       const mailOptions = {
-        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        from: `"ServiceGuru System" <${process.env.GMAIL_USER}>`,
         to: userEmail,
-        subject: '❌ Access Request Update - GarageGuru',
+        subject: '❌ Access Request Update - ServiceGuru',
         text: this.generateDenialEmailText(denialData),
         html: this.generateDenialEmailHTML(denialData)
       };
@@ -392,7 +392,7 @@ Access Control Notification
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>GarageGuru - Access Approved</title>
+        <title>ServiceGuru - Access Approved</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
         <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
@@ -402,7 +402,7 @@ Access Control Notification
             <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
               <span style="font-size: 40px;">🎉</span>
             </div>
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Welcome to GarageGuru!</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Welcome to ServiceGuru!</h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Your Access Has Been Approved</p>
           </div>
 
@@ -411,7 +411,7 @@ Access Control Notification
             <h2 style="color: #10b981; margin: 0 0 20px 0; font-size: 24px;">🎊 Congratulations ${data.name}!</h2>
             
             <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-              Your access request has been <strong style="color: #10b981;">approved</strong>! You can now log in to the GarageGuru system with your new account.
+              Your access request has been <strong style="color: #10b981;">approved</strong>! You can now log in to the ServiceGuru system with your new account.
             </p>
             
             <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
@@ -458,7 +458,7 @@ Access Control Notification
             <div style="text-align: center; margin: 30px 0;">
               <a href="${process.env.FRONTEND_URL || 'https://your-domain.replit.app'}/login" 
                  style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);">
-                🚀 Login to GarageGuru
+                🚀 Login to ServiceGuru
               </a>
             </div>
             
@@ -470,8 +470,8 @@ Access Control Notification
           <!-- Footer -->
           <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="color: #6b7280; font-size: 12px; margin: 0;">
-              This email was sent from GarageGuru Management System<br>
-              © 2025 GarageGuru. All rights reserved.
+              This email was sent from ServiceGuru Management System<br>
+              © 2025 ServiceGuru. All rights reserved.
             </p>
           </div>
           
@@ -492,7 +492,7 @@ Access Control Notification
 
 Congratulations ${data.name}!
 
-Your access request has been APPROVED! You can now log in to the GarageGuru system.
+Your access request has been APPROVED! You can now log in to the ServiceGuru system.
 
 🔑 LOGIN CREDENTIALS:
 📧 Email: ${data.email}
@@ -511,8 +511,8 @@ ${process.env.FRONTEND_URL || 'https://your-domain.replit.app'}/login
 If you have any questions, please contact the system administrator.
 
 ---
-GarageGuru Management System
-© 2025 GarageGuru. All rights reserved.
+ServiceGuru Management System
+© 2025 ServiceGuru. All rights reserved.
     `;
   }
 
@@ -526,7 +526,7 @@ GarageGuru Management System
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>GarageGuru - Access Request Update</title>
+        <title>ServiceGuru - Access Request Update</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
         <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
@@ -536,7 +536,7 @@ GarageGuru Management System
             <div style="background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
               <span style="font-size: 40px;">📋</span>
             </div>
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">GarageGuru</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">ServiceGuru</h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0 0 0; font-size: 16px;">Access Request Update</p>
           </div>
 
@@ -549,7 +549,7 @@ GarageGuru Management System
             </p>
             
             <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-              Thank you for your interest in the GarageGuru Management System. After careful review, we are unable to approve your request for <strong>${data.requestType}</strong> access at this time.
+              Thank you for your interest in the ServiceGuru Management System. After careful review, we are unable to approve your request for <strong>${data.requestType}</strong> access at this time.
             </p>
             
             <div style="background: #fef2f2; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
@@ -569,8 +569,8 @@ GarageGuru Management System
           <!-- Footer -->
           <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="color: #6b7280; font-size: 12px; margin: 0;">
-              This email was sent from GarageGuru Management System<br>
-              © 2025 GarageGuru. All rights reserved.
+              This email was sent from ServiceGuru Management System<br>
+              © 2025 ServiceGuru. All rights reserved.
             </p>
           </div>
           
@@ -590,7 +590,7 @@ GarageGuru Management System
 
     try {
       const mailOptions = {
-        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        from: `"ServiceGuru System" <${process.env.GMAIL_USER}>`,
         to: to,
         subject: subject,
         html: html,
@@ -616,7 +616,7 @@ GARAGEGURU - ACCESS REQUEST UPDATE
 
 Dear ${data.name},
 
-Thank you for your interest in the GarageGuru Management System. 
+Thank you for your interest in the ServiceGuru Management System. 
 
 After careful review, we are unable to approve your request for ${data.requestType.toUpperCase()} access at this time.
 
@@ -628,8 +628,8 @@ After careful review, we are unable to approve your request for ${data.requestTy
 If you believe this decision was made in error or have questions, please contact the system administrator.
 
 ---
-GarageGuru Management System
-© 2025 GarageGuru. All rights reserved.
+ServiceGuru Management System
+© 2025 ServiceGuru. All rights reserved.
     `;
   }
 
@@ -654,14 +654,14 @@ GarageGuru Management System
 
     try {
       const mailOptions = {
-        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        from: `"ServiceGuru System" <${process.env.GMAIL_USER}>`,
         to: email,
-        subject: 'GarageGuru - Your Account Access Approved',
+        subject: 'ServiceGuru - Your Account Access Approved',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2 style="color: #007bff;">Account Access Approved!</h2>
             <p>Hello ${name},</p>
-            <p>Great news! Your access request to GarageGuru has been <strong>approved</strong>.</p>
+            <p>Great news! Your access request to ServiceGuru has been <strong>approved</strong>.</p>
             
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3 style="margin-top: 0; color: #333;">Your Login Credentials:</h3>
@@ -681,7 +681,7 @@ GarageGuru Management System
             <p style="margin-top: 30px;">
               <a href="${process.env.FRONTEND_URL || 'https://garageguru.app'}/login" 
                  style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                Login to GarageGuru
+                Login to ServiceGuru
               </a>
             </p>
 
@@ -713,26 +713,26 @@ GarageGuru Management System
       const roleDisplay = role === 'garage_admin' ? 'Garage Administrator' : 'Mechanic Staff';
       
       const mailOptions = {
-        from: `"GarageGuru System" <${process.env.GMAIL_USER}>`,
+        from: `"ServiceGuru System" <${process.env.GMAIL_USER}>`,
         to: email,
-        subject: 'GarageGuru - Your Access Request Approved',
+        subject: 'ServiceGuru - Your Access Request Approved',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2 style="color: #28a745;">Access Request Approved!</h2>
             <p>Hello ${name},</p>
-            <p>Great news! Your access request to GarageGuru has been <strong>approved</strong>.</p>
+            <p>Great news! Your access request to ServiceGuru has been <strong>approved</strong>.</p>
             
             <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; margin: 20px 0;">
               <h3 style="margin-top: 0; color: #155724;">Your Account Details:</h3>
               <p style="margin-bottom: 0; color: #155724;"><strong>Role:</strong> ${roleDisplay}</p>
             </div>
 
-            <p>You can now access GarageGuru using your existing login credentials.</p>
+            <p>You can now access ServiceGuru using your existing login credentials.</p>
 
             <p style="margin-top: 30px;">
               <a href="${process.env.FRONTEND_URL || 'https://garageguru.app'}/login" 
                  style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                Login to GarageGuru
+                Login to ServiceGuru
               </a>
             </p>
 

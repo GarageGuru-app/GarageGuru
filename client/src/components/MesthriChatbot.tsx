@@ -72,7 +72,7 @@ const MESTHRI_KNOWLEDGE: ChatbotKnowledge[] = [
   // Mobile and Features
   {
     keywords: ['mobile', 'phone', 'responsive', 'app', 'install', 'offline'],
-    response: "GarageGuru works great on mobile devices! 📱\n\n✨ Mobile features:\n• Fully responsive design\n• Touch-friendly interface\n• Install as mobile app (Add to Home Screen)\n• Camera integration for barcode scanning\n• Works offline for basic operations\n\nAccess from any mobile browser - Chrome, Safari, etc.",
+    response: "ServiceGuru works great on mobile devices! 📱\n\n✨ Mobile features:\n• Fully responsive design\n• Touch-friendly interface\n• Install as mobile app (Add to Home Screen)\n• Camera integration for barcode scanning\n• Works offline for basic operations\n\nAccess from any mobile browser - Chrome, Safari, etc.",
     category: 'mobile'
   },
   
@@ -93,7 +93,7 @@ const MESTHRI_KNOWLEDGE: ChatbotKnowledge[] = [
   // General Help
   {
     keywords: ['hi', 'hello', 'hey', 'help', 'what can you do', 'features', 'about'],
-    response: "Hello! I'm Mesthri, your friendly garage management assistant! 👋\n\n🔧 I can help you with:\n• Customer management\n• Job card creation\n• Spare parts inventory\n• Invoice generation\n• Analytics and reports\n• Mobile features\n• Troubleshooting\n\nJust ask me anything about using GarageGuru, and I'll guide you step by step!",
+    response: "Hello! I'm Mesthri, your friendly garage management assistant! 👋\n\n🔧 I can help you with:\n• Customer management\n• Job card creation\n• Spare parts inventory\n• Invoice generation\n• Analytics and reports\n• Mobile features\n• Troubleshooting\n\nJust ask me anything about using ServiceGuru, and I'll guide you step by step!",
     category: 'general'
   }
 ];
@@ -128,7 +128,7 @@ export function MesthriChatbot() {
           ? `Hi! I'm Mesthri, your garage assistant! 👋\n\nWelcome, ${roleLabel}! I can help you with system-wide management, user access, and garage oversight.\n\nHow can I assist you today?`
           : `Hi! I'm Mesthri, your garage assistant! 👋\n\nWelcome to ${garageName}! I can help you with your daily operations.\n\nHow can I assist you today?`;
       } else {
-        personalizedGreeting = `Hi! I'm Mesthri, your garage assistant! 👋\n\nI can help you learn about GarageGuru's features and capabilities. Please log in to access personalized assistance for your garage operations.\n\nHow can I help you today?`;
+        personalizedGreeting = `Hi! I'm Mesthri, your garage assistant! 👋\n\nI can help you learn about ServiceGuru's features and capabilities. Please log in to access personalized assistance for your garage operations.\n\nHow can I help you today?`;
       }
       
       setMessages([{
@@ -296,7 +296,7 @@ export function MesthriChatbot() {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask Mesthri about GarageGuru..."
+            placeholder="Ask Mesthri about ServiceGuru..."
             className="flex-1 resize-none border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             rows={2}
             data-testid="chatbot-input"
