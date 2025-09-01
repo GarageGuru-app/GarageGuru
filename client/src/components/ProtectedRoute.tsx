@@ -1,6 +1,7 @@
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
+import { FullPageLoader } from "@/components/ui/loading-spinner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -93,11 +94,7 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
   }, [user, garage, isLoading, roles, navigate, location, routeUserBasedOnRole]);
 
   if (isLoading) {
-    return (
-      <div className="screen-content flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <FullPageLoader text="Authenticating..." />;
   }
 
   if (!user) {

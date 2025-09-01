@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings, Moon, Sun, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { InlineLoader } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -520,7 +521,7 @@ export default function Login() {
           >
             {isLoading ? (
               <div className="flex items-center justify-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <InlineLoader size="sm" />
                 <span>Signing In...</span>
               </div>
             ) : (
@@ -622,7 +623,14 @@ export default function Login() {
                   className="flex-1"
                   data-testid="button-send-reset"
                 >
-                  {isLoadingForgot ? 'Sending...' : 'Send Reset Code'}
+                  {isLoadingForgot ? (
+                    <div className="flex items-center space-x-2">
+                      <InlineLoader size="sm" />
+                      <span>Sending...</span>
+                    </div>
+                  ) : (
+                    'Send Reset Code'
+                  )}
                 </Button>
               </div>
             </div>
@@ -661,7 +669,14 @@ export default function Login() {
                   className="flex-1"
                   data-testid="button-verify-code"
                 >
-                  {isLoadingForgot ? 'Verifying...' : 'Verify Code'}
+                  {isLoadingForgot ? (
+                    <div className="flex items-center space-x-2">
+                      <InlineLoader size="sm" />
+                      <span>Verifying...</span>
+                    </div>
+                  ) : (
+                    'Verify Code'
+                  )}
                 </Button>
               </div>
             </div>
@@ -715,7 +730,14 @@ export default function Login() {
                   className="flex-1"
                   data-testid="button-reset-password"
                 >
-                  {isLoadingForgot ? 'Resetting...' : 'Reset Password'}
+                  {isLoadingForgot ? (
+                    <div className="flex items-center space-x-2">
+                      <InlineLoader size="sm" />
+                      <span>Resetting...</span>
+                    </div>
+                  ) : (
+                    'Reset Password'
+                  )}
                 </Button>
               </div>
             </div>
