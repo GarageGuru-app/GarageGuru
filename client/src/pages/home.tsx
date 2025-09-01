@@ -146,6 +146,11 @@ export default function Home() {
 
             {/* Mobile menu button */}
             <div className="md:hidden flex items-center space-x-2">
+              <Link href="/login">
+                <Button variant="outline" size="sm" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900">
+                  Login
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon"
@@ -171,11 +176,6 @@ export default function Home() {
                 <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
                 <a href="#benefits" className="hover:text-blue-600 transition-colors">Benefits</a>
                 <a href="#testimonials" className="hover:text-blue-600 transition-colors">Reviews</a>
-                <Link href="/login">
-                  <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 w-full">
-                    Login
-                  </Button>
-                </Link>
                 <Link href="/login">
                   <Button className="bg-blue-600 hover:bg-blue-700 w-full">Get Started</Button>
                 </Link>
