@@ -273,7 +273,7 @@ export class GmailEmailService {
             <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; font-size: 12px; color: #9ca3af;">
                 This is an automated notification from ServiceGuru Management System.<br>
-                Powered by Ananth Automotive Garage - Excellence in Automotive Service
+                Built by Quintellix Systems - Excellence in Software Development
               </p>
             </div>
           </div>
@@ -471,6 +471,7 @@ Access Control Notification
           <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="color: #6b7280; font-size: 12px; margin: 0;">
               This email was sent from ServiceGuru Management System<br>
+              Built by Quintellix Systems<br>
               © 2025 ServiceGuru. All rights reserved.
             </p>
           </div>
@@ -512,6 +513,7 @@ If you have any questions, please contact the system administrator.
 
 ---
 ServiceGuru Management System
+Built by Quintellix Systems
 © 2025 ServiceGuru. All rights reserved.
     `;
   }
@@ -570,6 +572,7 @@ ServiceGuru Management System
           <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="color: #6b7280; font-size: 12px; margin: 0;">
               This email was sent from ServiceGuru Management System<br>
+              Built by Quintellix Systems<br>
               © 2025 ServiceGuru. All rights reserved.
             </p>
           </div>
@@ -629,6 +632,7 @@ If you believe this decision was made in error or have questions, please contact
 
 ---
 ServiceGuru Management System
+Built by Quintellix Systems
 © 2025 ServiceGuru. All rights reserved.
     `;
   }

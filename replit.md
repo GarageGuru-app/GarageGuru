@@ -1,5 +1,7 @@
 # ServiceGuru - Garage Management System
 
+*Built by Quintellix Systems*
+
 ## Overview
 This project is a multi-tenant garage management system designed to streamline operations for garage owners. It enables comprehensive management of customers, spare parts inventory, job cards, and invoices, with distinct access levels for super admins, garage admins, and mechanics. The system aims to provide a robust, all-in-one solution for automotive service businesses, enhancing efficiency and customer satisfaction through integrated tools for service tracking, billing, and inventory control.
 

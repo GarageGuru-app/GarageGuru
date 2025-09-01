@@ -854,6 +854,13 @@ export default function Login() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Footer Attribution */}
+      <div className="fixed bottom-4 left-0 right-0 text-center">
+        <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-white/60'}`}>
+          Built by <span className="font-medium">Quintellix Systems</span>
+        </p>
+      </div>
     </div>
   );
 }
