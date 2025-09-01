@@ -33,11 +33,13 @@ import CompletedServiceDetails from "@/pages/completed-service-details";
 import Unauthorized from "@/pages/unauthorized";
 import NotFound from "@/pages/not-found";
 import { UserManual } from "@/pages/UserManual";
+import Home from "@/pages/home";
 
 function Router() {
   return (
     <AuthProvider>
       <Switch>
+        <Route path="/" component={Home} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/change-password" component={ChangePassword} />
@@ -45,14 +47,6 @@ function Router() {
         <Route path="/garage-setup">
           <ProtectedRoute roles={["garage_admin"]}>
             <GarageSetup />
-          </ProtectedRoute>
-        </Route>
-        
-        <Route path="/">
-          <ProtectedRoute>
-            <Layout>
-              <Dashboard />
-            </Layout>
           </ProtectedRoute>
         </Route>
       
