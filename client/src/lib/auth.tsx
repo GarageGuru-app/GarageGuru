@@ -13,6 +13,7 @@ interface AuthContextType {
   routeUserBasedOnRole: (userData: User, garageData: Garage | null) => string;
   updateToken: (newToken: string) => void;
   refreshUser: () => Promise<void>;
+  updateGarage: (updates: Partial<Garage>) => void;
 }
 
 // Super Admin emails that can access /super-admin
@@ -94,6 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setGarage(null);
                 throw new Error('Your account has been suspended. Please contact an administrator.');
               }
+              console.log('🔥 [AUTH] Setting user and garage data, garage logo:', data.garage?.logo);
               setUser(data.user);
               setGarage(data.garage);
             } else {
@@ -212,6 +214,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateGarage = (updates: Partial<Garage>) => {
+    if (garage) {
+      console.log('🔥 [AUTH] Updating garage in context:', updates);
+      setGarage({ ...garage, ...updates });
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -225,6 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         routeUserBasedOnRole,
         updateToken,
         refreshUser,
+        updateGarage,
       }}
     >
       {children}

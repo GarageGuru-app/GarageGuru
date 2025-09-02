@@ -16,18 +16,30 @@ interface LogoUploaderProps {
 export function LogoUploader({ currentLogoUrl, onLogoUpdated }: LogoUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const { garage } = useAuth();
+  const { garage, updateGarage } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const updateGarageLogoMutation = useMutation({
     mutationFn: async (logoUrl: string) => {
       if (!garage?.id) throw new Error("No garage found");
+      console.log('🖼️ [LOGO] Updating garage logo in database:', logoUrl);
       const response = await apiRequest("PUT", `/api/garages/${garage.id}`, { logo: logoUrl });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, logoUrl) => {
+      console.log('🖼️ [LOGO] Logo update successful, updating context immediately and invalidating cache');
+      
+      // Immediately update the garage context for instant UI feedback
+      updateGarage({ logo: logoUrl });
+      
+      // Invalidate all relevant cache entries
       queryClient.invalidateQueries({ queryKey: ["/api/user/profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/garages"] });
+      
+      // Force a refresh of user profile to ensure data consistency
+      queryClient.refetchQueries({ queryKey: ["/api/user/profile"] });
+      
       toast({
         title: "Success",
         description: "Logo updated successfully!",
@@ -101,6 +113,7 @@ export function LogoUploader({ currentLogoUrl, onLogoUpdated }: LogoUploaderProp
       
       // Upload to server
       const logoUrl = await uploadToServer(file);
+      console.log('🖼️ [LOGO] File uploaded successfully, updating garage record:', logoUrl);
       
       // Update garage logo
       await updateGarageLogoMutation.mutateAsync(logoUrl);
@@ -145,6 +158,7 @@ export function LogoUploader({ currentLogoUrl, onLogoUpdated }: LogoUploaderProp
     if (!garage?.id) return;
     
     try {
+      console.log('🖼️ [LOGO] Removing garage logo');
       await updateGarageLogoMutation.mutateAsync("");
       onLogoUpdated?.("");
       toast({

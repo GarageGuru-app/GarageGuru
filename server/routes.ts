@@ -961,6 +961,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       let garage = null;
       if (req.user.garage_id) {
         garage = await storage.getGarage(req.user.garage_id);
+        console.log('🏢 [PROFILE] Garage data retrieved:', garage?.id, 'Logo URL:', garage?.logo);
       }
       
       res.json({ 
