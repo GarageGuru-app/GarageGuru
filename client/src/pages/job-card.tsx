@@ -256,17 +256,25 @@ export default function JobCard() {
             <CardContent>
               <Textarea
                 value={formData.complaint}
-                onChange={(e) => handleInputChange("complaint", e.target.value)}
-                onBlur={(e) => {
-                  // Auto-convert to checklist format when user finishes typing
-                  const value = e.target?.value || '';
-                  if (value.trim() && !value.includes('☐') && !value.includes('☑')) {
-                    const lines = value.split('\n').filter(line => line.trim() !== '');
-                    if (lines.length > 0) {
-                      const checklistItems = lines.map(line => `☐ ${line.trim()}`);
-                      handleInputChange("complaint", checklistItems.join('\n'));
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  
+                  // Auto-convert to checkbox when user types after some characters
+                  if (newValue.length > 3 && newValue.endsWith(' ') && !newValue.includes('☐') && !newValue.includes('☑')) {
+                    // Convert the current line to a checkbox format
+                    const lines = newValue.split('\n');
+                    const lastLineIndex = lines.length - 1;
+                    const lastLine = lines[lastLineIndex];
+                    
+                    if (lastLine && lastLine.trim().length > 2) {
+                      lines[lastLineIndex] = `☐ ${lastLine.trim()} `;
+                      handleInputChange("complaint", lines.join('\n'));
+                      return;
                     }
                   }
+                  
+                  // Default behavior - just update the value
+                  handleInputChange("complaint", newValue);
                 }}
                 onClick={(e) => {
                   // Handle checkbox toggling when clicking on checkboxes
@@ -325,12 +333,12 @@ export default function JobCard() {
                     }
                   }
                 }}
-                placeholder="Describe the issue in detail...&#10;Press Enter to create checklist items"
+                placeholder="Describe the issue in detail...&#10;Type and press SPACE to create checklist items"
                 rows={4}
                 required
               />
               <div className="text-xs text-muted-foreground mt-1">
-                Press Enter to create checklist items • Click ☐/☑ to toggle completion
+                Type and press SPACE to create checklist items • Click ☐/☑ to toggle completion
               </div>
             </CardContent>
           </Card>
