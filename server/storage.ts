@@ -600,6 +600,27 @@ export class DatabaseStorage implements IStorage {
     return result.rows[0];
   }
 
+  async deleteJobCard(id: string, garageId: string): Promise<boolean> {
+    // Return spare parts to inventory before deleting
+    const jobCardResult = await pool.query('SELECT spare_parts FROM job_cards WHERE id = $1 AND garage_id = $2', [id, garageId]);
+    
+    if (jobCardResult.rows.length > 0) {
+      const spareParts = jobCardResult.rows[0].spare_parts || [];
+      
+      // Return all spare parts to inventory
+      for (const part of spareParts) {
+        await pool.query(
+          'UPDATE spare_parts SET quantity = quantity + $1 WHERE id = $2',
+          [part.quantity, part.id]
+        );
+      }
+    }
+    
+    // Delete the job card
+    const result = await pool.query('DELETE FROM job_cards WHERE id = $1 AND garage_id = $2', [id, garageId]);
+    return result.rowCount > 0;
+  }
+
   async updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard> {
     // Get the current job card to compare spare parts
     const currentResult = await pool.query('SELECT * FROM job_cards WHERE id = $1', [id]);

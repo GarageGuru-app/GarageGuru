@@ -1355,6 +1355,24 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Delete job card
+  app.delete('/api/garages/:garageId/job-cards/:id', authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { id, garageId } = req.params;
+      
+      const success = await storage.deleteJobCard(id, garageId);
+      
+      if (success) {
+        res.json({ message: 'Job card deleted successfully' });
+      } else {
+        res.status(404).json({ message: 'Job card not found' });
+      }
+    } catch (error) {
+      console.error('Delete job card error:', error);
+      res.status(500).json({ message: 'Failed to delete job card' });
+    }
+  });
+
   // Invoice routes
   app.get("/api/garages/:garageId/invoices", authenticateToken, requireGarageAccess, async (req, res) => {
     try {

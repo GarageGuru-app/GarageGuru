@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Search, Bike, Phone, Calendar, Eye, Edit, AlertCircle, CheckCircle, Share, Save, Loader2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ArrowLeft, Search, Bike, Phone, Calendar, Eye, Edit, AlertCircle, CheckCircle, Share, Save, Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,6 +25,8 @@ export default function PendingServices() {
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
   const [checklistJob, setChecklistJob] = useState<any>(null);
   const [checklistItems, setChecklistItems] = useState<string>("");
+  const [jobToDelete, setJobToDelete] = useState<any>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const { data: pendingJobs = [], isLoading } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards", "pending"],
@@ -80,6 +83,32 @@ export default function PendingServices() {
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update tasks",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteJobCardMutation = useMutation({
+    mutationFn: async (jobId: string) => {
+      if (!garage?.id) throw new Error("No garage selected");
+      
+      const response = await apiRequest("DELETE", `/api/garages/${garage.id}/job-cards/${jobId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Job card deleted successfully. Spare parts have been returned to inventory.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards", "pending"] });
+      setIsDeleteConfirmOpen(false);
+      setJobToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete job card",
         variant: "destructive",
       });
     },
@@ -292,6 +321,18 @@ export default function PendingServices() {
                     >
                       <Edit className="w-3 h-3 mr-1" />
                       Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setJobToDelete(job);
+                        setIsDeleteConfirmOpen(true);
+                      }}
+                      className="text-xs px-2 py-1 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Delete
                     </Button>
                     <Button
                       variant="outline"
@@ -560,6 +601,32 @@ export default function PendingServices() {
         </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Job Card</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this job card for {jobToDelete?.customer_name}? 
+              This action cannot be undone. All spare parts used in this job will be returned to inventory.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (jobToDelete) {
+                  deleteJobCardMutation.mutate(jobToDelete.id);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteJobCardMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
