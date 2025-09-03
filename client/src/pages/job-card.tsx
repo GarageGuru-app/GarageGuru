@@ -35,6 +35,10 @@ export default function JobCard() {
     bikeNumber: "",
     complaint: "",
     serviceCharge: "",
+    waterWashCharge: "",
+    dieselCharge: "",
+    petrolCharge: "",
+    foundryCharge: "",
     date: new Date().toISOString().split('T')[0],
   });
 
@@ -215,6 +219,10 @@ export default function JobCard() {
       complaint: cleanedComplaint,
       spareParts: selectedParts,
       serviceCharge: serviceCharge.toString(),
+      waterWashCharge: formData.waterWashCharge || "0",
+      dieselCharge: formData.dieselCharge || "0",
+      petrolCharge: formData.petrolCharge || "0",
+      foundryCharge: formData.foundryCharge || "0",
       totalAmount: totalAmount.toString(),
     };
 
@@ -367,12 +375,64 @@ export default function JobCard() {
             </CardContent>
           </Card>
 
-          {/* Service Charge */}
+          {/* Charges */}
           <Card>
             <CardHeader>
-              <CardTitle>Service Charge</CardTitle>
+              <CardTitle>Service & Operational Charges</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* Operational Charges */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">Operational Charges (Optional)</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <Label htmlFor="waterWashCharge">Water Wash (₹)</Label>
+                    <Input
+                      id="waterWashCharge"
+                      type="number"
+                      min="0"
+                      value={formData.waterWashCharge || ""}
+                      onChange={(e) => handleInputChange("waterWashCharge", e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="dieselCharge">Diesel (₹)</Label>
+                    <Input
+                      id="dieselCharge"
+                      type="number"
+                      min="0"
+                      value={formData.dieselCharge || ""}
+                      onChange={(e) => handleInputChange("dieselCharge", e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="petrolCharge">Petrol (₹)</Label>
+                    <Input
+                      id="petrolCharge"
+                      type="number"
+                      min="0"
+                      value={formData.petrolCharge || ""}
+                      onChange={(e) => handleInputChange("petrolCharge", e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="foundryCharge">Foundry (₹)</Label>
+                    <Input
+                      id="foundryCharge"
+                      type="number"
+                      min="0"
+                      value={formData.foundryCharge || ""}
+                      onChange={(e) => handleInputChange("foundryCharge", e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Service Charge */}
               <div className="space-y-2">
                 <Label htmlFor="serviceCharge">Service Charge (₹)</Label>
                 <Input

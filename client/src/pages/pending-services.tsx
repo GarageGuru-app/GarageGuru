@@ -298,35 +298,55 @@ export default function PendingServices() {
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-2 justify-between">
-                    {/* Left side buttons */}
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedJob(job);
-                          setIsDetailsOpen(true);
-                        }}
-                        className="text-xs px-2 py-1"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        View
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          navigate(`/edit-job-card/${job.id}`);
-                        }}
-                        className="text-xs px-2 py-1"
-                      >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
-
-                    {/* Center button - Invoice */}
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end sm:space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedJob(job);
+                        setIsDetailsOpen(true);
+                      }}
+                      className="text-xs px-2 py-1"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        navigate(`/edit-job-card/${job.id}`);
+                      }}
+                      className="text-xs px-2 py-1"
+                    >
+                      <Edit className="w-3 h-3 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setJobToDelete(job);
+                        setIsDeleteConfirmOpen(true);
+                      }}
+                      className="text-xs px-2 py-1 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Delete
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setChecklistJob(job);
+                        setChecklistItems(job.complaint || "");
+                        setIsChecklistOpen(true);
+                      }}
+                      className="text-xs px-2 py-1"
+                    >
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Complete
+                    </Button>
                     {(() => {
                       const hasChecklist = job.complaint && (job.complaint.includes('☐') || job.complaint.includes('☑'));
                       const hasIncompleteItems = hasChecklist && job.complaint.includes('☐');
@@ -353,56 +373,24 @@ export default function PendingServices() {
                             }
                           }}
                           disabled={hasIncompleteItems || invoiceExists}
-                          className={`text-xs px-3 py-1 ${(hasIncompleteItems || invoiceExists) ? "opacity-50 cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
+                          className={`text-xs px-2 py-1 ${(hasIncompleteItems || invoiceExists) ? "opacity-50 cursor-not-allowed" : ""}`}
                         >
                           {invoiceExists ? (
                             <>
                               <CheckCircle className="w-3 h-3 mr-1" />
-                              Generated
+                              Invoice Created
                             </>
                           ) : hasIncompleteItems ? (
                             <>
                               <AlertCircle className="w-3 h-3 mr-1" />
-                              Incomplete
+                              Tasks Pending
                             </>
                           ) : (
-                            <>
-                              <Share className="w-3 h-3 mr-1" />
-                              Invoice
-                            </>
+                            "Generate Invoice"
                           )}
                         </Button>
                       );
                     })()}
-
-                    {/* Right side buttons */}
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setChecklistJob(job);
-                          setChecklistItems(job.complaint || "");
-                          setIsChecklistOpen(true);
-                        }}
-                        className="text-xs px-2 py-1"
-                      >
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Complete
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setJobToDelete(job);
-                          setIsDeleteConfirmOpen(true);
-                        }}
-                        className="text-xs px-2 py-1 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Delete
-                      </Button>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
