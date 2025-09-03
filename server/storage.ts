@@ -622,7 +622,7 @@ export class DatabaseStorage implements IStorage {
     
     // Delete the job card
     const result = await pool.query('DELETE FROM job_cards WHERE id = $1 AND garage_id = $2', [id, garageId]);
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard> {
@@ -733,6 +733,44 @@ export class DatabaseStorage implements IStorage {
       [id, invoice.garage_id, invoice.job_card_id, invoice.customer_id, invoice.invoice_number, invoice.download_token, invoice.whatsapp_sent || false, invoice.total_amount || 0, invoice.parts_total || 0, invoice.service_charge || 0, new Date()]
     );
     
+    // CRITICAL: Reduce inventory quantities when invoice is created
+    if (invoice.job_card_id) {
+      try {
+        console.log(`🔧 [INVENTORY] Reducing spare parts inventory for job card ${invoice.job_card_id}`);
+        
+        // Get job card spare parts to reduce inventory
+        const jobCardResult = await pool.query('SELECT spare_parts FROM job_cards WHERE id = $1', [invoice.job_card_id]);
+        if (jobCardResult.rows.length > 0) {
+          const spareParts = jobCardResult.rows[0].spare_parts || [];
+          
+          // Reduce inventory for each spare part used
+          for (const part of spareParts) {
+            console.log(`📦 [INVENTORY] Reducing ${part.name} (ID: ${part.id}) by quantity ${part.quantity}`);
+            
+            // Check current stock
+            const stockResult = await pool.query('SELECT quantity, name FROM spare_parts WHERE id = $1', [part.id]);
+            if (stockResult.rows.length > 0) {
+              const currentStock = parseInt(stockResult.rows[0].quantity);
+              const partName = stockResult.rows[0].name;
+              
+              if (currentStock >= part.quantity) {
+                // Reduce the quantity
+                await pool.query(
+                  'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2',
+                  [part.quantity, part.id]
+                );
+                console.log(`✅ [INVENTORY] Reduced ${partName} stock by ${part.quantity}. New stock: ${currentStock - part.quantity}`);
+              } else {
+                console.warn(`⚠️ [INVENTORY] Insufficient stock for ${partName}. Available: ${currentStock}, Required: ${part.quantity}`);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ [INVENTORY] Error reducing inventory:', error);
+      }
+    }
+    
     // Update customer visit count and last visit date when invoice is created
     if (invoice.customer_id && invoice.garage_id) {
       try {
@@ -799,26 +837,38 @@ export class DatabaseStorage implements IStorage {
     totalServiceCharges: number;
     totalProfit: number;
   }> {
-    const result = await pool.query(
-      `SELECT 
-        COUNT(*) as total_invoices, 
-        COALESCE(SUM(parts_total), 0) as total_parts_total, 
-        COALESCE(SUM(service_charge), 0) as total_service_charges,
-        COALESCE(SUM(i.service_charge), 0) - 
-        COALESCE(SUM(COALESCE(j.water_wash_charge, 0) + COALESCE(j.diesel_charge, 0) + COALESCE(j.petrol_charge, 0) + COALESCE(j.foundry_charge, 0)), 0) as total_profit
-       FROM invoices i
-       LEFT JOIN job_cards j ON i.job_card_id = j.id
-       WHERE i.garage_id = $1`,
-      [garageId]
-    );
-    
-    const row = result.rows[0];
-    return {
-      totalInvoices: parseInt(row.total_invoices),
-      totalPartsTotal: parseFloat(row.total_parts_total),
-      totalServiceCharges: parseFloat(row.total_service_charges), 
-      totalProfit: parseFloat(row.total_profit)
-    };
+    try {
+      console.log(`📊 [ANALYTICS] Getting sales stats for garage: ${garageId}`);
+      
+      const result = await pool.query(
+        `SELECT 
+          COUNT(*) as total_invoices, 
+          COALESCE(SUM(parts_total), 0) as total_parts_total, 
+          COALESCE(SUM(service_charge), 0) as total_service_charges,
+          COALESCE(SUM(i.service_charge), 0) - 
+          COALESCE(SUM(COALESCE(j.water_wash_charge, 0) + COALESCE(j.diesel_charge, 0) + COALESCE(j.petrol_charge, 0) + COALESCE(j.foundry_charge, 0)), 0) as total_profit
+         FROM invoices i
+         LEFT JOIN job_cards j ON i.job_card_id = j.id
+         WHERE i.garage_id = $1`,
+        [garageId]
+      );
+      
+      const row = result.rows[0];
+      console.log(`📊 [ANALYTICS] Raw query result:`, row);
+      
+      const stats = {
+        totalInvoices: parseInt(row.total_invoices),
+        totalPartsTotal: parseFloat(row.total_parts_total),
+        totalServiceCharges: parseFloat(row.total_service_charges), 
+        totalProfit: parseFloat(row.total_profit)
+      };
+      
+      console.log(`📊 [ANALYTICS] Processed stats:`, stats);
+      return stats;
+    } catch (error) {
+      console.error(`❌ [ANALYTICS] Error in getSalesStats:`, error);
+      throw error;
+    }
   }
 
   async getTodaySalesStats(garageId: string): Promise<{

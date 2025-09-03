@@ -121,7 +121,13 @@ export default function Invoice() {
     ? spareParts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0)
     : 0;
   
-  const totalAmount = partsTotal + serviceCharge;
+  // Get operational charges from job card
+  const waterWashCharge = Number((jobCard as any).water_wash_charge || 0);
+  const dieselCharge = Number((jobCard as any).diesel_charge || 0);
+  const petrolCharge = Number((jobCard as any).petrol_charge || 0);
+  const foundryCharge = Number((jobCard as any).foundry_charge || 0);
+  
+  const totalAmount = partsTotal + serviceCharge + waterWashCharge + dieselCharge + petrolCharge + foundryCharge;
   
   // Create short, simple invoice filename
   const createInvoiceFilename = (invoiceId: string) => {
@@ -144,6 +150,10 @@ export default function Invoice() {
         garage,
         serviceCharge,
         invoiceNumber,
+        waterWashCharge,
+        dieselCharge,
+        petrolCharge,
+        foundryCharge,
       });
       
       // Open PDF in new tab for preview with proper MIME type
@@ -204,6 +214,10 @@ export default function Invoice() {
         garage,
         serviceCharge,
         invoiceNumber,
+        waterWashCharge,
+        dieselCharge,
+        petrolCharge,
+        foundryCharge,
       });
       
       // Generate download token for PDF access
@@ -250,6 +264,10 @@ export default function Invoice() {
         garage,
         serviceCharge,
         invoiceNumber: finalFilename,
+        waterWashCharge,
+        dieselCharge,
+        petrolCharge,
+        foundryCharge,
       });
       
       // Update the download token with final filename
@@ -429,6 +447,34 @@ export default function Invoice() {
                     placeholder="0"
                   />
                 </div>
+                {(waterWashCharge > 0 || dieselCharge > 0 || petrolCharge > 0 || foundryCharge > 0) && (
+                  <>
+                    {waterWashCharge > 0 && (
+                      <div className="flex justify-between text-sm mt-1">
+                        <span className="text-muted-foreground">Water Wash:</span>
+                        <span>₹{waterWashCharge.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {dieselCharge > 0 && (
+                      <div className="flex justify-between text-sm mt-1">
+                        <span className="text-muted-foreground">Diesel:</span>
+                        <span>₹{dieselCharge.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {petrolCharge > 0 && (
+                      <div className="flex justify-between text-sm mt-1">
+                        <span className="text-muted-foreground">Petrol:</span>
+                        <span>₹{petrolCharge.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {foundryCharge > 0 && (
+                      <div className="flex justify-between text-sm mt-1">
+                        <span className="text-muted-foreground">Foundry:</span>
+                        <span>₹{foundryCharge.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
                 <div className="flex justify-between font-semibold text-lg mt-2 pt-2 border-t border-border">
                   <span>Total Amount:</span>
                   <span className="text-primary">₹{totalAmount.toFixed(2)}</span>

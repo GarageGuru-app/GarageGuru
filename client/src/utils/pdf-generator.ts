@@ -6,10 +6,14 @@ interface InvoiceData {
   garage: Garage;
   serviceCharge: number;
   invoiceNumber: string;
+  waterWashCharge?: number;
+  dieselCharge?: number;
+  petrolCharge?: number;
+  foundryCharge?: number;
 }
 
 export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
-  const { jobCard, garage, serviceCharge, invoiceNumber } = data;
+  const { jobCard, garage, serviceCharge, invoiceNumber, waterWashCharge = 0, dieselCharge = 0, petrolCharge = 0, foundryCharge = 0 } = data;
   
   console.log('PDF Generator - Received jobCard data:', jobCard);
   
@@ -110,13 +114,44 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   pdf.text('Service Charge:', 20, yPos);
   const serviceText = `Rs.${serviceCharge.toFixed(2)}`;
   pdf.text(serviceText, pageWidth - 80, yPos, { align: 'right' });
-  yPos += 25;
+  yPos += 20;
+  
+  // Operational charges (only show if they have values)
+  if (waterWashCharge > 0) {
+    pdf.text('Water Wash:', 20, yPos);
+    const waterWashText = `Rs.${waterWashCharge.toFixed(2)}`;
+    pdf.text(waterWashText, pageWidth - 80, yPos, { align: 'right' });
+    yPos += 20;
+  }
+  
+  if (dieselCharge > 0) {
+    pdf.text('Diesel:', 20, yPos);
+    const dieselText = `Rs.${dieselCharge.toFixed(2)}`;
+    pdf.text(dieselText, pageWidth - 80, yPos, { align: 'right' });
+    yPos += 20;
+  }
+  
+  if (petrolCharge > 0) {
+    pdf.text('Petrol:', 20, yPos);
+    const petrolText = `Rs.${petrolCharge.toFixed(2)}`;
+    pdf.text(petrolText, pageWidth - 80, yPos, { align: 'right' });
+    yPos += 20;
+  }
+  
+  if (foundryCharge > 0) {
+    pdf.text('Foundry:', 20, yPos);
+    const foundryText = `Rs.${foundryCharge.toFixed(2)}`;
+    pdf.text(foundryText, pageWidth - 80, yPos, { align: 'right' });
+    yPos += 20;
+  }
+  
+  yPos += 5;
   
   // Total Amount (bold, emphasized) with more space (moved 10 digits left)
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(14);
   pdf.text('Total Amount:', 20, yPos);
-  const totalText = `Rs.${(partsTotal + serviceCharge).toFixed(2)}`;
+  const totalText = `Rs.${(partsTotal + serviceCharge + waterWashCharge + dieselCharge + petrolCharge + foundryCharge).toFixed(2)}`;
   pdf.text(totalText, pageWidth - 80, yPos, { align: 'right' });
   
   yPos += 50;
