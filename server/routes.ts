@@ -1344,10 +1344,10 @@ export async function registerRoutes(app: Express): Promise<void> {
           quantity: part.quantity,
           price: Number(part.price || part.sellingPrice || 0)
         })),
-        waterWashCharge: (updateData as any).waterWashCharge,
-        dieselCharge: (updateData as any).dieselCharge,
-        petrolCharge: (updateData as any).petrolCharge,
-        foundryCharge: (updateData as any).foundryCharge
+        water_wash_charge: (updateData as any).waterWashCharge,
+        diesel_charge: (updateData as any).dieselCharge,
+        petrol_charge: (updateData as any).petrolCharge,
+        foundry_charge: (updateData as any).foundryCharge
       } as any);
       res.json(jobCard);
     } catch (error) {
