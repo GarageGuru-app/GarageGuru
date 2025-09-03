@@ -10,6 +10,7 @@ import { ArrowLeft, Search, User, Phone, FileText, Bike } from "lucide-react";
 import { callCustomer } from "@/utils/whatsapp";
 import { useToast } from "@/hooks/use-toast";
 import AddCustomerDialog from "@/components/AddCustomerDialog";
+import EditCustomerDialog from "@/components/EditCustomerDialog";
 
 export default function Customers() {
   const [, navigate] = useLocation();
@@ -172,6 +173,8 @@ export default function Customers() {
                     </div>
                     
                     <div className="flex items-center space-x-2">
+                      <EditCustomerDialog customer={customer} />
+                      
                       <Button
                         variant="ghost"
                         size="icon"

@@ -1058,6 +1058,38 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  app.put("/api/garages/:garageId/customers/:customerId", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId, customerId } = req.params;
+      
+      const customerData = insertCustomerSchema.parse({ ...req.body, garageId });
+      
+      // Map frontend camelCase fields to database snake_case fields  
+      const mappedData = {
+        ...customerData,
+        garage_id: garageId,
+        bike_number: customerData.bikeNumber
+      };
+      
+      const customer = await storage.updateCustomer(customerId, mappedData);
+      if (!customer) {
+        return res.status(404).json({ message: 'Customer not found' });
+      }
+      res.json(customer);
+    } catch (error: any) {
+      // Check if it's a duplicate bike number error
+      if (error.message && error.message.includes('already exists')) {
+        res.status(409).json({ 
+          message: error.message,
+          type: 'duplicate_bike_number'
+        });
+      } else {
+        console.error('Error updating customer:', error);
+        res.status(500).json({ message: 'Failed to update customer' });
+      }
+    }
+  });
+
 
 
   app.get("/api/garages/:garageId/customers/search", authenticateToken, requireGarageAccess, async (req, res) => {
