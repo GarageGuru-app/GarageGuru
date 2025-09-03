@@ -293,7 +293,24 @@ export default function Profile() {
                     id="phone"
                     type="tel"
                     value={editForm.phone}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      // Auto-format phone number with +91 prefix for India
+                      let formattedValue = value;
+                      // Remove any existing country codes and non-numeric characters except +
+                      formattedValue = formattedValue.replace(/[^\d+]/g, '');
+                      
+                      // If user is typing a number without +91, add it automatically
+                      if (formattedValue && !formattedValue.startsWith('+91') && !formattedValue.startsWith('+')) {
+                        formattedValue = '+91' + formattedValue;
+                      }
+                      // If user typed 91 but missing the +, add it
+                      else if (formattedValue.startsWith('91') && !formattedValue.startsWith('+91')) {
+                        formattedValue = '+' + formattedValue;
+                      }
+                      
+                      setEditForm(prev => ({ ...prev, phone: formattedValue }));
+                    }}
                     required
                   />
                 </div>

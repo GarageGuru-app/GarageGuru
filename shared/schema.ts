@@ -96,6 +96,11 @@ export const invoices = pgTable("invoices", {
 export const insertGarageSchema = createInsertSchema(garages).omit({
   id: true,
   createdAt: true,
+}).extend({
+  phone: z.string().min(1, "Phone number is required").refine(
+    (val) => /^\+91\d{10}$|^\d{10}$/.test(val),
+    "Phone number must be a valid 10-digit number or include +91 prefix"
+  ),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -109,6 +114,11 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
   totalJobs: true,
   totalSpent: true,
   lastVisit: true,
+}).extend({
+  phone: z.string().min(1, "Phone number is required").refine(
+    (val) => /^\+91\d{10}$|^\d{10}$/.test(val),
+    "Phone number must be a valid 10-digit number or include +91 prefix"
+  ),
 });
 
 export const insertSparePartSchema = createInsertSchema(spareParts).omit({
@@ -125,7 +135,8 @@ export const insertSparePartSchema = createInsertSchema(spareParts).omit({
     z.string().refine((val) => parseFloat(val) >= 0, "Cost price must be 0 or greater"),
     z.number().min(0, "Cost price must be 0 or greater").transform(String)
   ]).optional().default("0"),
-  quantity: z.number().int().min(0, "Quantity must be 0 or greater")
+  quantity: z.number().int().min(0, "Quantity must be 0 or greater"),
+  barcode: z.string().optional().nullable()
 });
 
 export const insertJobCardSchema = createInsertSchema(jobCards).omit({
@@ -137,7 +148,10 @@ export const insertJobCardSchema = createInsertSchema(jobCards).omit({
   completedBy: true,
 }).extend({
   customerName: z.string().min(1, "Customer name is required"),
-  phone: z.string().min(1, "Phone number is required"),
+  phone: z.string().min(1, "Phone number is required").refine(
+    (val) => /^\+91\d{10}$|^\d{10}$/.test(val),
+    "Phone number must be a valid 10-digit number or include +91 prefix"
+  ),
   bikeNumber: z.string().min(1, "Bike number is required"),
   spareParts: z.array(z.object({
     id: z.string(),

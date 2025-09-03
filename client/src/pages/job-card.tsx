@@ -75,15 +75,39 @@ export default function JobCard() {
   });
 
   const handleInputChange = (field: string, value: string) => {
+    // Auto-format phone number with +91 prefix for India
+    if (field === 'phone') {
+      let formattedValue = value;
+      // Remove any existing country codes and non-numeric characters except +
+      formattedValue = formattedValue.replace(/[^\d+]/g, '');
+      
+      // If user is typing a number without +91, add it automatically
+      if (formattedValue && !formattedValue.startsWith('+91') && !formattedValue.startsWith('+')) {
+        formattedValue = '+91' + formattedValue;
+      }
+      // If user typed 91 but missing the +, add it
+      else if (formattedValue.startsWith('91') && !formattedValue.startsWith('+91')) {
+        formattedValue = '+' + formattedValue;
+      }
+      
+      value = formattedValue;
+    }
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleCustomerSelect = (customer: any) => {
     setSelectedCustomer(customer);
+    
+    // Format phone number with +91 when selecting existing customer
+    let formattedPhone = customer.phone || '';
+    if (formattedPhone && !formattedPhone.startsWith('+91') && !formattedPhone.startsWith('+')) {
+      formattedPhone = '+91' + formattedPhone.replace(/[^\d]/g, '');
+    }
+    
     setFormData(prev => ({
       ...prev,
       customerName: customer.name,
-      phone: customer.phone,
+      phone: formattedPhone,
       bikeNumber: customer.bikeNumber || customer.bike_number
     }));
   };
