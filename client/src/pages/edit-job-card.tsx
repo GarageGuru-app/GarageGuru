@@ -12,7 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode, Calculator } from "lucide-react";
+import { ServiceBreakdownDialog } from "@/components/ServiceBreakdownDialog";
 import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import * as z from "zod";
@@ -40,6 +41,16 @@ export default function EditJobCard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isServiceBreakdownOpen, setIsServiceBreakdownOpen] = useState(false);
+  const [serviceBreakdown, setServiceBreakdown] = useState({
+    baseServiceCharge: 0,
+    waterWashCharge: 0,
+    dieselCharge: 0,
+    petrolCharge: 0,
+    includeWaterWash: false,
+    includeDiesel: false,
+    includePetrol: false,
+  });
   
   // Get job card ID from URL
   const jobCardId = window.location.pathname.split('/').pop();
@@ -228,6 +239,33 @@ export default function EditJobCard() {
     const updatedParts = [...currentParts];
     updatedParts[index].quantity = quantity;
     form.setValue("spareParts", updatedParts);
+  };
+
+  const handleServiceBreakdownSave = (breakdown: any) => {
+    const totalServiceCharge = breakdown.totalServiceCharge;
+    
+    // Update the form's service charge field
+    form.setValue("serviceCharge", totalServiceCharge.toString());
+    
+    // Store the breakdown for reference
+    setServiceBreakdown({
+      baseServiceCharge: breakdown.baseServiceCharge,
+      waterWashCharge: breakdown.waterWashCharge,
+      dieselCharge: breakdown.dieselCharge,
+      petrolCharge: breakdown.petrolCharge,
+      includeWaterWash: breakdown.includeWaterWash,
+      includeDiesel: breakdown.includeDiesel,
+      includePetrol: breakdown.includePetrol,
+    });
+  };
+
+  const getServiceBreakdownForDialog = () => {
+    const currentServiceCharge = Number(form.getValues("serviceCharge") || "0");
+    return {
+      ...serviceBreakdown,
+      totalServiceCharge: currentServiceCharge,
+      baseServiceCharge: serviceBreakdown.baseServiceCharge || currentServiceCharge,
+    };
   };
 
   const onSubmit = (data: FormData) => {
@@ -450,13 +488,27 @@ export default function EditJobCard() {
                     <FormItem>
                       <FormLabel>Service Charge (₹)</FormLabel>
                       <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          step="1"
-                          min="0"
-                          placeholder="0"
-                        />
+                        <div className="flex space-x-2">
+                          <Input
+                            {...field}
+                            type="number"
+                            step="1"
+                            min="0"
+                            placeholder="0"
+                            className="flex-1"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsServiceBreakdownOpen(true)}
+                            className="flex items-center space-x-1"
+                            data-testid="button-service-breakdown"
+                          >
+                            <Calculator className="w-4 h-4" />
+                            <span>Breakdown</span>
+                          </Button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -628,6 +680,15 @@ export default function EditJobCard() {
           </form>
         </Form>
       </div>
+
+      {/* Service Breakdown Dialog */}
+      <ServiceBreakdownDialog
+        isOpen={isServiceBreakdownOpen}
+        onClose={() => setIsServiceBreakdownOpen(false)}
+        onSave={handleServiceBreakdownSave}
+        initialServiceCharge={Number(form.getValues("serviceCharge") || "0")}
+        initialBreakdown={getServiceBreakdownForDialog()}
+      />
     </div>
   );
 }

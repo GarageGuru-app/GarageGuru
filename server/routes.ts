@@ -1337,6 +1337,10 @@ export async function registerRoutes(app: Express): Promise<void> {
         ...updateData,
         service_charge: updateData.serviceCharge,
         total_amount: updateData.totalAmount,
+        water_wash_charge: (updateData as any).waterWashCharge || 0,
+        diesel_charge: (updateData as any).dieselCharge || 0,
+        petrol_charge: (updateData as any).petrolCharge || 0,
+        base_service_charge: (updateData as any).baseServiceCharge || 0,
         spare_parts: updateData.spareParts?.map((part: any) => ({
           id: part.id,
           partNumber: part.partNumber,

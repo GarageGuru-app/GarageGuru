@@ -602,8 +602,8 @@ export class DatabaseStorage implements IStorage {
 
   async updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard> {
     const result = await pool.query(
-      'UPDATE job_cards SET complaint = COALESCE($2, complaint), spare_parts = COALESCE($3, spare_parts), service_charge = COALESCE($4, service_charge), total_amount = COALESCE($5, total_amount), status = COALESCE($6, status), completed_at = COALESCE($7, completed_at), completed_by = COALESCE($8, completed_by), completion_notes = COALESCE($9, completion_notes), work_summary = COALESCE($10, work_summary) WHERE id = $1 RETURNING *',
-      [id, jobCard.complaint, jobCard.spare_parts ? JSON.stringify(jobCard.spare_parts) : null, jobCard.service_charge, jobCard.total_amount, jobCard.status, jobCard.completed_at, jobCard.completed_by, jobCard.completion_notes, jobCard.work_summary]
+      'UPDATE job_cards SET complaint = COALESCE($2, complaint), spare_parts = COALESCE($3, spare_parts), service_charge = COALESCE($4, service_charge), total_amount = COALESCE($5, total_amount), water_wash_charge = COALESCE($6, water_wash_charge), diesel_charge = COALESCE($7, diesel_charge), petrol_charge = COALESCE($8, petrol_charge), base_service_charge = COALESCE($9, base_service_charge), status = COALESCE($10, status), completed_at = COALESCE($11, completed_at), completed_by = COALESCE($12, completed_by), completion_notes = COALESCE($13, completion_notes), work_summary = COALESCE($14, work_summary) WHERE id = $1 RETURNING *',
+      [id, jobCard.complaint, jobCard.spare_parts ? JSON.stringify(jobCard.spare_parts) : null, jobCard.service_charge, jobCard.total_amount, (jobCard as any).water_wash_charge, (jobCard as any).diesel_charge, (jobCard as any).petrol_charge, (jobCard as any).base_service_charge, jobCard.status, jobCard.completed_at, jobCard.completed_by, jobCard.completion_notes, jobCard.work_summary]
     );
     return result.rows[0];
   }

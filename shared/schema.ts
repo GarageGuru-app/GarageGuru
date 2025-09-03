@@ -69,6 +69,10 @@ export const jobCards = pgTable("job_cards", {
   status: text("status").notNull().default("pending"), // 'pending', 'completed'
   spareParts: jsonb("spare_parts").$type<Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>>().default([]),
   serviceCharge: decimal("service_charge", { precision: 10, scale: 2 }).default("0"),
+  waterWashCharge: decimal("water_wash_charge", { precision: 10, scale: 2 }).default("0"),
+  dieselCharge: decimal("diesel_charge", { precision: 10, scale: 2 }).default("0"),
+  petrolCharge: decimal("petrol_charge", { precision: 10, scale: 2 }).default("0"),
+  baseServiceCharge: decimal("base_service_charge", { precision: 10, scale: 2 }).default("0"),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).default("0"),
   createdAt: timestamp("created_at").defaultNow(),
   completedAt: timestamp("completed_at"),
