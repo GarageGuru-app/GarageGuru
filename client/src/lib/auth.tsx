@@ -13,6 +13,7 @@ interface AuthContextType {
   routeUserBasedOnRole: (userData: User, garageData: Garage | null) => string;
   updateToken: (newToken: string) => void;
   refreshUser: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
   updateGarage: (updates: Partial<Garage>) => void;
 }
 
@@ -214,6 +215,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshAuth = async () => {
+    await refreshUser();
+  };
+
   const updateGarage = (updates: Partial<Garage>) => {
     if (garage) {
       console.log('🔥 [AUTH] Updating garage in context:', updates);
@@ -234,6 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         routeUserBasedOnRole,
         updateToken,
         refreshUser,
+        refreshAuth,
         updateGarage,
       }}
     >

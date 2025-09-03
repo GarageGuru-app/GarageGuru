@@ -23,13 +23,15 @@ import {
 import { LogoUploader } from "@/components/LogoUploader";
 import { ArrowLeft, Settings, Edit, Lock, Moon, Sun, LogOut, Save, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { FullPageLoader } from "@/components/ui/loading-spinner";
 
 export default function Profile() {
   const [, navigate] = useLocation();
-  const { user, garage, logout } = useAuth();
+  const { user, garage, logout, refreshAuth } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
@@ -62,10 +64,23 @@ export default function Profile() {
       const response = await apiRequest("PUT", `/api/garages/${garage.id}`, data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({ title: "Success", description: "Profile updated successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/user/profile"] });
       setIsEditDialogOpen(false);
+      
+      // Show global loading and refresh auth context
+      setIsRefreshing(true);
+      try {
+        await refreshAuth();
+        await queryClient.invalidateQueries({ queryKey: ["/api/user/profile"] });
+        // Small delay to show the loading animation
+        setTimeout(() => {
+          setIsRefreshing(false);
+        }, 800);
+      } catch (error) {
+        setIsRefreshing(false);
+        console.error('Failed to refresh auth:', error);
+      }
     },
     onError: (error) => {
       toast({
@@ -82,10 +97,23 @@ export default function Profile() {
       const response = await apiRequest("PUT", `/api/users/${user.id}`, data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({ title: "Success", description: "User profile updated successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/user/profile"] });
       setIsUserEditDialogOpen(false);
+      
+      // Show global loading and refresh auth context
+      setIsRefreshing(true);
+      try {
+        await refreshAuth();
+        await queryClient.invalidateQueries({ queryKey: ["/api/user/profile"] });
+        // Small delay to show the loading animation
+        setTimeout(() => {
+          setIsRefreshing(false);
+        }, 800);
+      } catch (error) {
+        setIsRefreshing(false);
+        console.error('Failed to refresh auth:', error);
+      }
     },
     onError: (error) => {
       toast({
@@ -209,6 +237,9 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Global Loading Overlay */}
+      {isRefreshing && <FullPageLoader />}
+      
       {/* Header */}
       <div className="screen-header">
         <div className="flex items-center space-x-3">
