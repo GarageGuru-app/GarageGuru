@@ -601,9 +601,75 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard> {
+    // Get the current job card to compare spare parts
+    const currentResult = await pool.query('SELECT * FROM job_cards WHERE id = $1', [id]);
+    const currentJobCard = currentResult.rows[0];
+    
+    // If spare_parts are being updated, handle inventory
+    if (jobCard.spare_parts) {
+      const currentParts = currentJobCard.spare_parts || [];
+      const newParts = jobCard.spare_parts;
+      
+      // Return old quantities to inventory
+      for (const currentPart of currentParts) {
+        await pool.query(
+          'UPDATE spare_parts SET quantity = quantity + $1 WHERE id = $2',
+          [currentPart.quantity, currentPart.id]
+        );
+      }
+      
+      // Check new parts inventory and deduct quantities
+      for (const newPart of newParts) {
+        const partResult = await pool.query('SELECT quantity FROM spare_parts WHERE id = $1', [newPart.id]);
+        if (partResult.rows.length === 0) {
+          throw new Error(`Spare part with ID ${newPart.id} not found`);
+        }
+        
+        const availableQuantity = parseInt(partResult.rows[0].quantity);
+        if (availableQuantity < newPart.quantity) {
+          throw new Error(`Insufficient stock for ${newPart.name}. Available: ${availableQuantity}, Required: ${newPart.quantity}`);
+        }
+        
+        // Deduct the quantity
+        await pool.query(
+          'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2',
+          [newPart.quantity, newPart.id]
+        );
+      }
+    }
+
     const result = await pool.query(
-      'UPDATE job_cards SET complaint = COALESCE($2, complaint), spare_parts = COALESCE($3, spare_parts), service_charge = COALESCE($4, service_charge), total_amount = COALESCE($5, total_amount), water_wash_charge = COALESCE($6, water_wash_charge), diesel_charge = COALESCE($7, diesel_charge), petrol_charge = COALESCE($8, petrol_charge), base_service_charge = COALESCE($9, base_service_charge), status = COALESCE($10, status), completed_at = COALESCE($11, completed_at), completed_by = COALESCE($12, completed_by), completion_notes = COALESCE($13, completion_notes), work_summary = COALESCE($14, work_summary) WHERE id = $1 RETURNING *',
-      [id, jobCard.complaint, jobCard.spare_parts ? JSON.stringify(jobCard.spare_parts) : null, jobCard.service_charge, jobCard.total_amount, (jobCard as any).water_wash_charge, (jobCard as any).diesel_charge, (jobCard as any).petrol_charge, (jobCard as any).base_service_charge, jobCard.status, jobCard.completed_at, jobCard.completed_by, jobCard.completion_notes, jobCard.work_summary]
+      `UPDATE job_cards SET 
+        complaint = COALESCE($2, complaint), 
+        spare_parts = COALESCE($3, spare_parts), 
+        service_charge = COALESCE($4, service_charge), 
+        total_amount = COALESCE($5, total_amount), 
+        water_wash_charge = COALESCE($6, water_wash_charge), 
+        diesel_charge = COALESCE($7, diesel_charge), 
+        petrol_charge = COALESCE($8, petrol_charge), 
+        foundry_charge = COALESCE($9, foundry_charge),
+        status = COALESCE($10, status), 
+        completed_at = COALESCE($11, completed_at), 
+        completed_by = COALESCE($12, completed_by), 
+        completion_notes = COALESCE($13, completion_notes), 
+        work_summary = COALESCE($14, work_summary) 
+       WHERE id = $1 RETURNING *`,
+      [
+        id, 
+        jobCard.complaint, 
+        jobCard.spare_parts ? JSON.stringify(jobCard.spare_parts) : null, 
+        jobCard.service_charge, 
+        jobCard.total_amount, 
+        (jobCard as any).waterWashCharge || (jobCard as any).water_wash_charge, 
+        (jobCard as any).dieselCharge || (jobCard as any).diesel_charge, 
+        (jobCard as any).petrolCharge || (jobCard as any).petrol_charge, 
+        (jobCard as any).foundryCharge || (jobCard as any).foundry_charge,
+        jobCard.status, 
+        jobCard.completed_at, 
+        jobCard.completed_by, 
+        jobCard.completion_notes, 
+        jobCard.work_summary
+      ]
     );
     return result.rows[0];
   }
@@ -713,13 +779,8 @@ export class DatabaseStorage implements IStorage {
         COUNT(*) as total_invoices, 
         COALESCE(SUM(parts_total), 0) as total_parts_total, 
         COALESCE(SUM(service_charge), 0) as total_service_charges,
-        COALESCE(SUM(
-          CASE 
-            WHEN j.base_service_charge IS NOT NULL AND j.base_service_charge > 0 
-            THEN j.base_service_charge 
-            ELSE i.service_charge 
-          END
-        ), 0) as total_profit
+        COALESCE(SUM(i.service_charge), 0) - 
+        COALESCE(SUM(COALESCE(j.water_wash_charge, 0) + COALESCE(j.diesel_charge, 0) + COALESCE(j.petrol_charge, 0) + COALESCE(j.foundry_charge, 0)), 0) as total_profit
        FROM invoices i
        LEFT JOIN job_cards j ON i.job_card_id = j.id
        WHERE i.garage_id = $1`,
@@ -751,13 +812,8 @@ export class DatabaseStorage implements IStorage {
         COUNT(*) as today_invoices,
         COALESCE(SUM(i.parts_total), 0) as today_parts,
         COALESCE(SUM(i.service_charge), 0) as today_service,
-        COALESCE(SUM(
-          CASE 
-            WHEN j.base_service_charge IS NOT NULL AND j.base_service_charge > 0 
-            THEN j.base_service_charge 
-            ELSE i.service_charge 
-          END
-        ), 0) as today_profit
+        COALESCE(SUM(i.service_charge), 0) - 
+        COALESCE(SUM(COALESCE(j.water_wash_charge, 0) + COALESCE(j.diesel_charge, 0) + COALESCE(j.petrol_charge, 0) + COALESCE(j.foundry_charge, 0)), 0) as today_profit
        FROM invoices i
        LEFT JOIN job_cards j ON i.job_card_id = j.id
        WHERE i.garage_id = $1 AND i.created_at >= $2 AND i.created_at < $3`,
@@ -792,13 +848,8 @@ export class DatabaseStorage implements IStorage {
         COALESCE(SUM(i.total_amount), 0) as total_sales,
         COALESCE(SUM(i.service_charge), 0) as service_charges,
         COALESCE(SUM(i.parts_total), 0) as parts_revenue,
-        COALESCE(SUM(
-          CASE 
-            WHEN j.base_service_charge IS NOT NULL AND j.base_service_charge > 0 
-            THEN j.base_service_charge 
-            ELSE i.service_charge 
-          END
-        ), 0) as profit,
+        COALESCE(SUM(i.service_charge), 0) - 
+        COALESCE(SUM(COALESCE(j.water_wash_charge, 0) + COALESCE(j.diesel_charge, 0) + COALESCE(j.petrol_charge, 0) + COALESCE(j.foundry_charge, 0)), 0) as profit,
         COUNT(*) as count,
         COUNT(*) as invoice_count
        FROM invoices i

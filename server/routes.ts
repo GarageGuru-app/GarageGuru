@@ -1344,11 +1344,10 @@ export async function registerRoutes(app: Express): Promise<void> {
           quantity: part.quantity,
           price: Number(part.price || part.sellingPrice || 0)
         })),
-        // Add service breakdown fields as any type to avoid TypeScript errors
-        ...(updateData as any).waterWashCharge !== undefined && { water_wash_charge: (updateData as any).waterWashCharge },
-        ...(updateData as any).dieselCharge !== undefined && { diesel_charge: (updateData as any).dieselCharge },
-        ...(updateData as any).petrolCharge !== undefined && { petrol_charge: (updateData as any).petrolCharge },
-        ...(updateData as any).baseServiceCharge !== undefined && { base_service_charge: (updateData as any).baseServiceCharge }
+        waterWashCharge: (updateData as any).waterWashCharge,
+        dieselCharge: (updateData as any).dieselCharge,
+        petrolCharge: (updateData as any).petrolCharge,
+        foundryCharge: (updateData as any).foundryCharge
       } as any);
       res.json(jobCard);
     } catch (error) {

@@ -72,6 +72,7 @@ export const jobCards = pgTable("job_cards", {
   waterWashCharge: decimal("water_wash_charge", { precision: 10, scale: 2 }).default("0"),
   dieselCharge: decimal("diesel_charge", { precision: 10, scale: 2 }).default("0"),
   petrolCharge: decimal("petrol_charge", { precision: 10, scale: 2 }).default("0"),
+  foundryCharge: decimal("foundry_charge", { precision: 10, scale: 2 }).default("0"),
   baseServiceCharge: decimal("base_service_charge", { precision: 10, scale: 2 }).default("0"),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).default("0"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -165,6 +166,22 @@ export const insertJobCardSchema = createInsertSchema(jobCards).omit({
     price: z.number()
   })).optional().default([]),
   serviceCharge: z.union([
+    z.string(),
+    z.number().transform(String)
+  ]).optional(),
+  waterWashCharge: z.union([
+    z.string(),
+    z.number().transform(String)
+  ]).optional(),
+  dieselCharge: z.union([
+    z.string(),
+    z.number().transform(String)
+  ]).optional(),
+  petrolCharge: z.union([
+    z.string(),
+    z.number().transform(String)
+  ]).optional(),
+  foundryCharge: z.union([
     z.string(),
     z.number().transform(String)
   ]).optional(),

@@ -13,7 +13,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
 import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode, Calculator } from "lucide-react";
-import { ServiceBreakdownDialog } from "@/components/ServiceBreakdownDialog";
 import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import * as z from "zod";
@@ -41,16 +40,6 @@ export default function EditJobCard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isServiceBreakdownOpen, setIsServiceBreakdownOpen] = useState(false);
-  const [serviceBreakdown, setServiceBreakdown] = useState({
-    baseServiceCharge: 0,
-    waterWashCharge: 0,
-    dieselCharge: 0,
-    petrolCharge: 0,
-    includeWaterWash: false,
-    includeDiesel: false,
-    includePetrol: false,
-  });
   
   // Get job card ID from URL
   const jobCardId = window.location.pathname.split('/').pop();
@@ -64,6 +53,10 @@ export default function EditJobCard() {
       complaint: "",
       spareParts: [],
       serviceCharge: "0",
+      waterWashCharge: "0",
+      dieselCharge: "0", 
+      petrolCharge: "0",
+      foundryCharge: "0",
       totalAmount: "0"
     },
   });
@@ -109,6 +102,10 @@ export default function EditJobCard() {
         ...data,
         serviceCharge: serviceCharge,
         totalAmount: totalAmount,
+        waterWashCharge: Number(data.waterWashCharge || "0"),
+        dieselCharge: Number(data.dieselCharge || "0"),
+        petrolCharge: Number(data.petrolCharge || "0"),
+        foundryCharge: Number(data.foundryCharge || "0"),
       });
       
       return response.json();
@@ -148,6 +145,10 @@ export default function EditJobCard() {
         complaint: jobCard.complaint || "",
         spareParts: spareParts,
         serviceCharge: jobCard.service_charge?.toString() || "0",
+        waterWashCharge: jobCard.water_wash_charge?.toString() || "0",
+        dieselCharge: jobCard.diesel_charge?.toString() || "0",
+        petrolCharge: jobCard.petrol_charge?.toString() || "0",
+        foundryCharge: jobCard.foundry_charge?.toString() || "0",
         totalAmount: jobCard.total_amount?.toString() || "0"
       });
       
@@ -173,20 +174,28 @@ export default function EditJobCard() {
 
   const watchedSpareParts = form.watch("spareParts");
   const watchedServiceCharge = form.watch("serviceCharge");
+  const watchedWaterWashCharge = form.watch("waterWashCharge");
+  const watchedDieselCharge = form.watch("dieselCharge");
+  const watchedPetrolCharge = form.watch("petrolCharge");
+  const watchedFoundryCharge = form.watch("foundryCharge");
 
   // Calculate totals - debounced to prevent excessive updates
   useEffect(() => {
     if (isFormInitialized.current) {
       const partsTotal = watchedSpareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
       const serviceCharge = Number(watchedServiceCharge || "0");
-      const newTotal = (partsTotal + serviceCharge).toString();
+      const waterWashCharge = Number(watchedWaterWashCharge || "0");
+      const dieselCharge = Number(watchedDieselCharge || "0");
+      const petrolCharge = Number(watchedPetrolCharge || "0");
+      const foundryCharge = Number(watchedFoundryCharge || "0");
+      const newTotal = (partsTotal + serviceCharge + waterWashCharge + dieselCharge + petrolCharge + foundryCharge).toString();
       
       // Only update if the value actually changed
       if (form.getValues("totalAmount") !== newTotal) {
         form.setValue("totalAmount", newTotal, { shouldValidate: false });
       }
     }
-  }, [watchedSpareParts, watchedServiceCharge]);
+  }, [watchedSpareParts, watchedServiceCharge, watchedWaterWashCharge, watchedDieselCharge, watchedPetrolCharge, watchedFoundryCharge]);
 
   const addSparePart = (part: any) => {
     const currentParts = form.getValues("spareParts") || [];
@@ -488,32 +497,100 @@ export default function EditJobCard() {
                     <FormItem>
                       <FormLabel>Service Charge (₹)</FormLabel>
                       <FormControl>
-                        <div className="flex space-x-2">
-                          <Input
-                            {...field}
-                            type="number"
-                            step="1"
-                            min="0"
-                            placeholder="0"
-                            className="flex-1"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsServiceBreakdownOpen(true)}
-                            className="flex items-center space-x-1"
-                            data-testid="button-service-breakdown"
-                          >
-                            <Calculator className="w-4 h-4" />
-                            <span>Breakdown</span>
-                          </Button>
-                        </div>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="1"
+                          min="0"
+                          placeholder="0"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {/* Operational Charges */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-muted-foreground">Operational Charges (Optional)</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="waterWashCharge"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Water Wash (₹)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              type="number" 
+                              placeholder="0"
+                              min="0"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="dieselCharge"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Diesel (₹)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              type="number" 
+                              placeholder="0"
+                              min="0"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="petrolCharge"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Petrol (₹)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              type="number" 
+                              placeholder="0"
+                              min="0"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="foundryCharge"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Foundry (₹)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              type="number" 
+                              placeholder="0"
+                              min="0"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
