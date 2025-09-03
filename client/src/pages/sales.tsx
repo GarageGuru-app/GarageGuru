@@ -401,8 +401,8 @@ export default function Sales() {
             </div>
             <div className="mt-3 text-center">
               <p className="text-xs text-purple-600 dark:text-purple-400">
-                Today's Service: ₹{Number(todayStats?.todayServiceCharges || 0).toLocaleString()} | 
-                Parts: ₹{Number(todayStats?.todayPartsTotal || 0).toLocaleString()}
+                Today's Service: ₹{Number(todayStats?.todayService || 0).toLocaleString()} | 
+                Parts: ₹{Number(todayStats?.todayParts || 0).toLocaleString()}
               </p>
             </div>
           </div>

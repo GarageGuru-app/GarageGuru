@@ -73,8 +73,15 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   // Service line
   pdf.setFont('helvetica', 'normal');
   const complaint = (jobCard as any).complaint || jobCard.complaint || 'Service Only';
-  pdf.text(complaint, 20, yPos);
-  yPos += 20;
+  
+  // Handle long complaint text by wrapping it
+  const maxWidth = pageWidth - 40;
+  const lines = pdf.splitTextToSize(complaint, maxWidth);
+  lines.forEach((line: string) => {
+    pdf.text(line, 20, yPos);
+    yPos += 15;
+  });
+  yPos += 10; // Extra spacing after complaint
   
   // Parts (if any)
   let partsTotal = 0;
