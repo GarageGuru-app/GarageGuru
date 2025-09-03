@@ -1335,6 +1335,8 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       const jobCard = await storage.updateJobCard(id, {
         ...updateData,
+        service_charge: updateData.serviceCharge,
+        total_amount: updateData.totalAmount,
         spare_parts: updateData.spareParts?.map((part: any) => ({
           id: part.id,
           partNumber: part.partNumber,
