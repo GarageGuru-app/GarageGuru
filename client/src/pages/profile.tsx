@@ -40,6 +40,13 @@ export default function Profile() {
     phone: garage?.phone || "",
     email: garage?.email || "",
   });
+  
+  const [userForm, setUserForm] = useState({
+    name: user?.name || "",
+    username: user?.username || "",
+  });
+  
+  const [isUserEditDialogOpen, setIsUserEditDialogOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -69,11 +76,36 @@ export default function Profile() {
     },
   });
 
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: any) => {
+      if (!user?.id) throw new Error("No user found");
+      const response = await apiRequest("PUT", `/api/users/${user.id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "User profile updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/profile"] });
+      setIsUserEditDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update user profile",
+        variant: "destructive",
+      });
+    },
+  });
+
   const canEdit = user?.role === "garage_admin";
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateGarageMutation.mutate(editForm);
+  };
+
+  const handleUserEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateUserMutation.mutate(userForm);
   };
 
   const changePasswordMutation = useMutation({
@@ -279,32 +311,114 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Profile Details */}
+        {/* User Profile Information */}
         <Card>
-          <CardHeader>
-            <CardTitle>Garage Information</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>User Information</CardTitle>
+            <Dialog open={isUserEditDialogOpen} onOpenChange={setIsUserEditDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Edit className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-sm mx-auto">
+                <DialogHeader>
+                  <DialogTitle>Edit User Profile</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleUserEditSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="userName">Full Name</Label>
+                    <Input
+                      id="userName"
+                      value={userForm.name}
+                      onChange={(e) => setUserForm(prev => ({ ...prev, name: e.target.value }))}
+                      required
+                      data-testid="input-user-name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="username">Username (for login)</Label>
+                    <Input
+                      id="username"
+                      value={userForm.username}
+                      onChange={(e) => setUserForm(prev => ({ ...prev, username: e.target.value }))}
+                      placeholder="Create a username for easier login"
+                      data-testid="input-username"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Optional: Set a username to login faster instead of typing your full email
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsUserEditDialogOpen(false)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={updateUserMutation.isPending}
+                      className="flex-1"
+                      data-testid="button-save-user"
+                    >
+                      {updateUserMutation.isPending ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between py-2">
-              <span className="text-muted-foreground">Owner Name</span>
-              <span className="font-medium">{garage?.ownerName || "N/A"}</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-muted-foreground">Phone</span>
-              <span className="font-medium">{garage?.phone || "N/A"}</span>
+              <span className="text-muted-foreground">Name</span>
+              <span className="font-medium">{user?.name || "N/A"}</span>
             </div>
             <div className="flex items-center justify-between py-2">
               <span className="text-muted-foreground">Email</span>
-              <span className="font-medium">{garage?.email || user?.email}</span>
+              <span className="font-medium">{user?.email}</span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-muted-foreground">Joined</span>
-              <span className="font-medium">
-                {garage?.createdAt ? new Date(garage.createdAt).toLocaleDateString() : "N/A"}
-              </span>
+              <span className="text-muted-foreground">Username</span>
+              <span className="font-medium">{user?.username || "Not set"}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground">Role</span>
+              <span className="font-medium capitalize">{user?.role?.replace('_', ' ')}</span>
             </div>
           </CardContent>
         </Card>
+
+        {/* Garage Details */}
+        {garage && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Garage Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground">Owner Name</span>
+                <span className="font-medium">{garage?.ownerName || "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground">Phone</span>
+                <span className="font-medium">{garage?.phone || "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground">Email</span>
+                <span className="font-medium">{garage?.email || user?.email}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground">Joined</span>
+                <span className="font-medium">
+                  {garage?.createdAt ? new Date(garage.createdAt).toLocaleDateString() : "N/A"}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Logo Management */}
         {canEdit ? (

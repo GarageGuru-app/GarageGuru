@@ -859,10 +859,11 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       if (!email || !password) {
         console.log('Missing email or password:', { email: !!email, password: !!password });
-        return res.status(400).json({ message: 'Email and password required' });
+        return res.status(400).json({ message: 'Email/username and password required' });
       }
       
-      const user = await storage.getUserByEmail(email);
+      // Support login with either email or username
+      const user = await storage.getUserByEmailOrUsername(email);
       console.log('User found:', user ? 'Yes' : 'No');
       
       if (!user) {
@@ -973,6 +974,33 @@ export async function registerRoutes(app: Express): Promise<void> {
         garage
       });
     } catch (error) {
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Update user profile
+  app.put("/api/users/:id", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const { name, username } = req.body;
+      
+      // Verify user can only update their own profile or admin can update others
+      if (req.user.id !== userId && req.user.role !== 'super_admin') {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Check if username is already taken by another user
+      if (username) {
+        const existingUser = await storage.getUserByUsername(username);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ message: 'Username already taken' });
+        }
+      }
+      
+      const updatedUser = await storage.updateUser(userId, { name, username });
+      res.json({ user: { ...updatedUser, password: undefined } });
+    } catch (error) {
+      console.error('Update user error:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });

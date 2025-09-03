@@ -473,16 +473,17 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>
-              Email
+              Email or Username
             </Label>
             <Input
               id="email"
-              type="email"
-              placeholder="Enter your email"
+              type="text"
+              placeholder="Enter your email or username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={theme === 'dark' ? 'bg-gray-800 border-gray-600 placeholder-gray-400 text-white focus:border-blue-500' : 'bg-white/10 border-white/20 placeholder-white/70 text-white focus:border-white/50'}
               required
+              data-testid="input-email"
             />
           </div>
 

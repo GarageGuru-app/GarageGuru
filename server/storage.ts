@@ -127,6 +127,8 @@ export interface IStorage {
   
   // Auth
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmailOrUsername(emailOrUsername: string): Promise<User | undefined>;
   createUser(user: Partial<User>): Promise<User>;
   createGarage(garage: Partial<Garage>): Promise<Garage>;
   updateUser(id: string, user: Partial<User>): Promise<User>;
@@ -227,6 +229,26 @@ export class DatabaseStorage implements IStorage {
       return result.rows[0];
     } catch (error) {
       console.error('getUserByEmail error:', error);
+      return undefined;
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE username = $1 LIMIT 1', [username]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('getUserByUsername error:', error);
+      return undefined;
+    }
+  }
+
+  async getUserByEmailOrUsername(emailOrUsername: string): Promise<User | undefined> {
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE email = $1 OR username = $1 LIMIT 1', [emailOrUsername]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('getUserByEmailOrUsername error:', error);
       return undefined;
     }
   }

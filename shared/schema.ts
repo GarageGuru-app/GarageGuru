@@ -18,6 +18,7 @@ export const garages = pgTable("garages", {
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
+  username: text("username").unique(), // Optional username for login
   password: text("password").notNull(),
   role: text("role").notNull(), // 'garage_admin', 'mechanic_staff', 'super_admin'
   garageId: varchar("garage_id").references(() => garages.id),

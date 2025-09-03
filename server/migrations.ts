@@ -22,12 +22,18 @@ export async function runMigrations() {
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
         email TEXT UNIQUE NOT NULL,
+        username TEXT UNIQUE,
         password TEXT NOT NULL,
         role TEXT NOT NULL,
         garage_id VARCHAR REFERENCES garages(id),
         name TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       )
+    `);
+
+    // Add username column to existing users table if it doesn't exist
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT UNIQUE
     `);
 
     // Create customers table
