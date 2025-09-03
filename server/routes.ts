@@ -58,6 +58,10 @@ const insertJobCardSchema = z.object({
   bikeNumber: z.string().optional(),
   complaint: z.string(),
   serviceCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
+  waterWashCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
+  dieselCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
+  petrolCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
+  foundryCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
   totalAmount: z.union([z.number(), z.string().transform(Number)]).optional(),
   spareParts: z.array(z.any()).optional()
 });
@@ -1336,6 +1340,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       const jobCard = await storage.updateJobCard(id, {
         ...updateData,
         service_charge: updateData.serviceCharge,
+        water_wash_charge: updateData.waterWashCharge,
+        diesel_charge: updateData.dieselCharge,
+        petrol_charge: updateData.petrolCharge,
+        foundry_charge: updateData.foundryCharge,
         total_amount: updateData.totalAmount,
         spare_parts: updateData.spareParts?.map((part: any) => ({
           id: part.id,
@@ -1343,11 +1351,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           name: part.name,
           quantity: part.quantity,
           price: Number(part.price || part.sellingPrice || 0)
-        })),
-        water_wash_charge: (updateData as any).waterWashCharge,
-        diesel_charge: (updateData as any).dieselCharge,
-        petrol_charge: (updateData as any).petrolCharge,
-        foundry_charge: (updateData as any).foundryCharge
+        }))
       } as any);
       res.json(jobCard);
     } catch (error) {
