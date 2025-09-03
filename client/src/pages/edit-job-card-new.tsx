@@ -27,6 +27,10 @@ interface JobCardFormData {
   complaint: string;
   spareParts: SparePart[];
   serviceCharge: string;
+  waterWashCharge: string;
+  dieselCharge: string;
+  petrolCharge: string;
+  foundryCharge: string;
   totalAmount: string;
 }
 
@@ -51,6 +55,10 @@ export default function EditJobCard() {
     complaint: "",
     spareParts: [],
     serviceCharge: "0",
+    waterWashCharge: "0",
+    dieselCharge: "0",
+    petrolCharge: "0",
+    foundryCharge: "0",
     totalAmount: "0"
   });
 
@@ -83,17 +91,29 @@ export default function EditJobCard() {
       
       const totalPartsAmount = data.spareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
       const serviceCharge = Number(data.serviceCharge || "0");
-      const totalAmount = totalPartsAmount + serviceCharge;
+      const waterWashCharge = Number(data.waterWashCharge || "0");
+      const dieselCharge = Number(data.dieselCharge || "0");
+      const petrolCharge = Number(data.petrolCharge || "0");
+      const foundryCharge = Number(data.foundryCharge || "0");
+      const totalAmount = totalPartsAmount + serviceCharge + waterWashCharge + dieselCharge + petrolCharge + foundryCharge;
 
       console.log('Updating job card with data:', {
         ...data,
         serviceCharge: serviceCharge,
+        waterWashCharge: waterWashCharge,
+        dieselCharge: dieselCharge,
+        petrolCharge: petrolCharge,
+        foundryCharge: foundryCharge,
         totalAmount: totalAmount,
       });
 
       const response = await apiRequest("PUT", `/api/garages/${garage.id}/job-cards/${jobCardId}`, {
         ...data,
         serviceCharge: serviceCharge,
+        waterWashCharge: waterWashCharge,
+        dieselCharge: dieselCharge,
+        petrolCharge: petrolCharge,
+        foundryCharge: foundryCharge,
         totalAmount: totalAmount,
       });
       
@@ -132,6 +152,10 @@ export default function EditJobCard() {
         complaint: jobCard.complaint || "",
         spareParts: spareParts,
         serviceCharge: jobCard.service_charge?.toString() || "0",
+        waterWashCharge: jobCard.water_wash_charge?.toString() || "0",
+        dieselCharge: jobCard.diesel_charge?.toString() || "0",
+        petrolCharge: jobCard.petrol_charge?.toString() || "0",
+        foundryCharge: jobCard.foundry_charge?.toString() || "0",
         totalAmount: jobCard.total_amount?.toString() || "0"
       });
     }
@@ -153,12 +177,16 @@ export default function EditJobCard() {
     setIsSearching(false);
   }, [searchQuery, availableParts]);
 
-  // Calculate totals when spare parts or service charge changes - using useMemo to prevent loops
+  // Calculate totals when spare parts or charges change - using useMemo to prevent loops
   const calculatedTotal = useMemo(() => {
     const partsTotal = formData.spareParts?.reduce((sum, part) => sum + (part.price * part.quantity), 0) || 0;
     const serviceCharge = Number(formData.serviceCharge || "0");
-    return (partsTotal + serviceCharge).toString();
-  }, [formData.spareParts, formData.serviceCharge]);
+    const waterWashCharge = Number(formData.waterWashCharge || "0");
+    const dieselCharge = Number(formData.dieselCharge || "0");
+    const petrolCharge = Number(formData.petrolCharge || "0");
+    const foundryCharge = Number(formData.foundryCharge || "0");
+    return (partsTotal + serviceCharge + waterWashCharge + dieselCharge + petrolCharge + foundryCharge).toString();
+  }, [formData.spareParts, formData.serviceCharge, formData.waterWashCharge, formData.dieselCharge, formData.petrolCharge, formData.foundryCharge]);
 
   const handleInputChange = (field: keyof JobCardFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -432,6 +460,104 @@ export default function EditJobCard() {
                   placeholder="Describe the service or complaint..."
                   className="min-h-20 cursor-text"
                 />
+              </div>
+
+              {/* Operational Charges */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">Operational Charges (Optional)</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Water Wash (₹)</label>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="0"
+                      placeholder="0"
+                      value={formData.waterWashCharge === "0" ? "" : formData.waterWashCharge}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        handleInputChange("waterWashCharge", value || "0");
+                      }}
+                      onFocus={(e) => {
+                        if (e.target.value === "0") {
+                          e.target.value = "";
+                          handleInputChange("waterWashCharge", "");
+                        }
+                      }}
+                      style={{ appearance: "textfield" }}
+                      className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Diesel (₹)</label>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="0"
+                      placeholder="0"
+                      value={formData.dieselCharge === "0" ? "" : formData.dieselCharge}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        handleInputChange("dieselCharge", value || "0");
+                      }}
+                      onFocus={(e) => {
+                        if (e.target.value === "0") {
+                          e.target.value = "";
+                          handleInputChange("dieselCharge", "");
+                        }
+                      }}
+                      style={{ appearance: "textfield" }}
+                      className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Petrol (₹)</label>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="0"
+                      placeholder="0"
+                      value={formData.petrolCharge === "0" ? "" : formData.petrolCharge}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        handleInputChange("petrolCharge", value || "0");
+                      }}
+                      onFocus={(e) => {
+                        if (e.target.value === "0") {
+                          e.target.value = "";
+                          handleInputChange("petrolCharge", "");
+                        }
+                      }}
+                      style={{ appearance: "textfield" }}
+                      className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Foundry (₹)</label>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="0"
+                      placeholder="0"
+                      value={formData.foundryCharge === "0" ? "" : formData.foundryCharge}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        handleInputChange("foundryCharge", value || "0");
+                      }}
+                      onFocus={(e) => {
+                        if (e.target.value === "0") {
+                          e.target.value = "";
+                          handleInputChange("foundryCharge", "");
+                        }
+                      }}
+                      style={{ appearance: "textfield" }}
+                      className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
