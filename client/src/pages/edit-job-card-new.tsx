@@ -719,9 +719,37 @@ export default function EditJobCard() {
                   <span className="text-muted-foreground">Service Charge:</span>
                   <span>₹{Number(formData.serviceCharge || "0").toFixed(2)}</span>
                 </div>
+                {(Number(formData.waterWashCharge || "0") > 0 || Number(formData.dieselCharge || "0") > 0 || Number(formData.petrolCharge || "0") > 0 || Number(formData.foundryCharge || "0") > 0) && (
+                  <>
+                    {Number(formData.waterWashCharge || "0") > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Water Wash:</span>
+                        <span>₹{Number(formData.waterWashCharge || "0").toFixed(2)}</span>
+                      </div>
+                    )}
+                    {Number(formData.dieselCharge || "0") > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Diesel:</span>
+                        <span>₹{Number(formData.dieselCharge || "0").toFixed(2)}</span>
+                      </div>
+                    )}
+                    {Number(formData.petrolCharge || "0") > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Petrol:</span>
+                        <span>₹{Number(formData.petrolCharge || "0").toFixed(2)}</span>
+                      </div>
+                    )}
+                    {Number(formData.foundryCharge || "0") > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Foundry:</span>
+                        <span>₹{Number(formData.foundryCharge || "0").toFixed(2)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
                 <div className="flex justify-between text-lg font-semibold border-t pt-2">
                   <span>Total Amount:</span>
-                  <span>₹{calculatedTotal}</span>
+                  <span>₹{Number(calculatedTotal).toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
