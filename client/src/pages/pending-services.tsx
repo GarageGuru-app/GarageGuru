@@ -432,10 +432,19 @@ export default function PendingServices() {
               <Button 
                 onClick={() => {
                   const invoiceExists = hasExistingInvoice(selectedJob.id);
+                  const hasChecklist = selectedJob.complaint && (selectedJob.complaint.includes('☐') || selectedJob.complaint.includes('☑'));
+                  const hasIncompleteItems = hasChecklist && selectedJob.complaint.includes('☐');
+                  
                   if (invoiceExists) {
                     toast({
                       title: "Invoice Already Exists",
                       description: "This service already has an invoice. Cannot create duplicates.",
+                      variant: "destructive",
+                    });
+                  } else if (hasIncompleteItems) {
+                    toast({
+                      title: "Incomplete Tasks",
+                      description: "Please complete all checklist items before generating invoice",
                       variant: "destructive",
                     });
                   } else {
@@ -443,10 +452,12 @@ export default function PendingServices() {
                     navigate(`/invoice/${selectedJob.id}`);
                   }
                 }}
-                disabled={hasExistingInvoice(selectedJob?.id)}
-                className={hasExistingInvoice(selectedJob?.id) ? "opacity-50 cursor-not-allowed w-full" : "w-full"}
+                disabled={hasExistingInvoice(selectedJob?.id) || (selectedJob?.complaint && selectedJob.complaint.includes('☐'))}
+                className={(hasExistingInvoice(selectedJob?.id) || (selectedJob?.complaint && selectedJob.complaint.includes('☐'))) ? "opacity-50 cursor-not-allowed w-full" : "w-full"}
               >
-                {hasExistingInvoice(selectedJob?.id) ? "Invoice Already Created" : "Generate Invoice"}
+                {hasExistingInvoice(selectedJob?.id) ? "Invoice Already Created" : 
+                 (selectedJob?.complaint && selectedJob.complaint.includes('☐')) ? "Tasks Pending" : 
+                 "Generate Invoice"}
               </Button>
             </div>
           )}
