@@ -378,7 +378,7 @@ export default function JobCard() {
                 <Input
                   id="serviceCharge"
                   type="number"
-                  step="0.01"
+                  step="any"
                   min="0"
                   value={formData.serviceCharge}
                   onChange={(e) => handleInputChange("serviceCharge", e.target.value)}
