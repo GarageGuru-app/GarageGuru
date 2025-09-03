@@ -709,7 +709,20 @@ export class DatabaseStorage implements IStorage {
     totalProfit: number;
   }> {
     const result = await pool.query(
-      'SELECT COUNT(*) as total_invoices, COALESCE(SUM(parts_total), 0) as total_parts_total, COALESCE(SUM(service_charge), 0) as total_service_charges, COALESCE(SUM(total_amount), 0) as total_profit FROM invoices WHERE garage_id = $1',
+      `SELECT 
+        COUNT(*) as total_invoices, 
+        COALESCE(SUM(parts_total), 0) as total_parts_total, 
+        COALESCE(SUM(service_charge), 0) as total_service_charges,
+        COALESCE(SUM(
+          CASE 
+            WHEN j.base_service_charge IS NOT NULL AND j.base_service_charge > 0 
+            THEN j.base_service_charge 
+            ELSE i.service_charge 
+          END
+        ), 0) as total_profit
+       FROM invoices i
+       LEFT JOIN job_cards j ON i.job_card_id = j.id
+       WHERE i.garage_id = $1`,
       [garageId]
     );
     
@@ -736,11 +749,18 @@ export class DatabaseStorage implements IStorage {
     const result = await pool.query(
       `SELECT 
         COUNT(*) as today_invoices,
-        COALESCE(SUM(parts_total), 0) as today_parts,
-        COALESCE(SUM(service_charge), 0) as today_service,
-        COALESCE(SUM(total_amount), 0) as today_profit
-       FROM invoices 
-       WHERE garage_id = $1 AND created_at >= $2 AND created_at < $3`,
+        COALESCE(SUM(i.parts_total), 0) as today_parts,
+        COALESCE(SUM(i.service_charge), 0) as today_service,
+        COALESCE(SUM(
+          CASE 
+            WHEN j.base_service_charge IS NOT NULL AND j.base_service_charge > 0 
+            THEN j.base_service_charge 
+            ELSE i.service_charge 
+          END
+        ), 0) as today_profit
+       FROM invoices i
+       LEFT JOIN job_cards j ON i.job_card_id = j.id
+       WHERE i.garage_id = $1 AND i.created_at >= $2 AND i.created_at < $3`,
       [garageId, today.toISOString(), tomorrow.toISOString()]
     );
     
@@ -766,19 +786,26 @@ export class DatabaseStorage implements IStorage {
   }>> {
     const result = await pool.query(
       `SELECT 
-        DATE(created_at) as date,
-        DATE(created_at) as period,
-        COALESCE(SUM(total_amount), 0) as revenue,
-        COALESCE(SUM(total_amount), 0) as total_sales,
-        COALESCE(SUM(service_charge), 0) as service_charges,
-        COALESCE(SUM(parts_total), 0) as parts_revenue,
-        COALESCE(SUM(total_amount), 0) as profit,
+        DATE(i.created_at) as date,
+        DATE(i.created_at) as period,
+        COALESCE(SUM(i.total_amount), 0) as revenue,
+        COALESCE(SUM(i.total_amount), 0) as total_sales,
+        COALESCE(SUM(i.service_charge), 0) as service_charges,
+        COALESCE(SUM(i.parts_total), 0) as parts_revenue,
+        COALESCE(SUM(
+          CASE 
+            WHEN j.base_service_charge IS NOT NULL AND j.base_service_charge > 0 
+            THEN j.base_service_charge 
+            ELSE i.service_charge 
+          END
+        ), 0) as profit,
         COUNT(*) as count,
         COUNT(*) as invoice_count
-       FROM invoices 
-       WHERE garage_id = $1 AND DATE(created_at) BETWEEN $2 AND $3
-       GROUP BY DATE(created_at)
-       ORDER BY DATE(created_at) ASC`,
+       FROM invoices i
+       LEFT JOIN job_cards j ON i.job_card_id = j.id
+       WHERE i.garage_id = $1 AND DATE(i.created_at) BETWEEN $2 AND $3
+       GROUP BY DATE(i.created_at)
+       ORDER BY DATE(i.created_at) ASC`,
       [garageId, startDate, endDate]
     );
 

@@ -1337,18 +1337,19 @@ export async function registerRoutes(app: Express): Promise<void> {
         ...updateData,
         service_charge: updateData.serviceCharge,
         total_amount: updateData.totalAmount,
-        water_wash_charge: (updateData as any).waterWashCharge || 0,
-        diesel_charge: (updateData as any).dieselCharge || 0,
-        petrol_charge: (updateData as any).petrolCharge || 0,
-        base_service_charge: (updateData as any).baseServiceCharge || 0,
         spare_parts: updateData.spareParts?.map((part: any) => ({
           id: part.id,
           partNumber: part.partNumber,
           name: part.name,
           quantity: part.quantity,
           price: Number(part.price || part.sellingPrice || 0)
-        }))
-      });
+        })),
+        // Add service breakdown fields as any type to avoid TypeScript errors
+        ...(updateData as any).waterWashCharge !== undefined && { water_wash_charge: (updateData as any).waterWashCharge },
+        ...(updateData as any).dieselCharge !== undefined && { diesel_charge: (updateData as any).dieselCharge },
+        ...(updateData as any).petrolCharge !== undefined && { petrol_charge: (updateData as any).petrolCharge },
+        ...(updateData as any).baseServiceCharge !== undefined && { base_service_charge: (updateData as any).baseServiceCharge }
+      } as any);
       res.json(jobCard);
     } catch (error) {
       res.status(500).json({ message: 'Failed to update job card' });
