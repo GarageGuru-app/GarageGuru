@@ -470,7 +470,7 @@ export default function Login() {
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mb-16">
           <div>
             <Label htmlFor="email" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>
               Email or Username
@@ -879,7 +879,7 @@ export default function Login() {
       </Dialog>
       
       {/* Footer Attribution */}
-      <div className="fixed bottom-4 left-0 right-0 text-center">
+      <div className="fixed bottom-2 left-0 right-0 text-center">
         <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-white/60'}`}>
           Built by <span className="font-medium">Quintellix Systems</span>
         </p>
