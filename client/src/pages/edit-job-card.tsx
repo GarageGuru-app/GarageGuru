@@ -490,26 +490,6 @@ export default function EditJobCard() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="serviceCharge"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Service Charge (₹)</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          step="1"
-                          min="0"
-                          placeholder="0"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 {/* Operational Charges */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-muted-foreground">Operational Charges (Optional)</h4>
@@ -591,6 +571,26 @@ export default function EditJobCard() {
                     />
                   </div>
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="serviceCharge"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Service Charge (₹)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="1"
+                          min="0"
+                          placeholder="0"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
