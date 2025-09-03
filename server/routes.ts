@@ -1355,7 +1355,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       } as any);
       res.json(jobCard);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to update job card' });
+      console.error('Job card update error:', error);
+      console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ message: 'Failed to update job card', error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 

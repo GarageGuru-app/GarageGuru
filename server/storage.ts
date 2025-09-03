@@ -61,6 +61,10 @@ export interface JobCard {
   status: string;
   spare_parts: any;
   service_charge: number;
+  water_wash_charge: number;
+  diesel_charge: number;
+  petrol_charge: number;
+  foundry_charge: number;
   total_amount: number;
   created_at: Date;
   completed_at: Date | null;
@@ -594,8 +598,8 @@ export class DatabaseStorage implements IStorage {
   async createJobCard(jobCard: Partial<JobCard>): Promise<JobCard> {
     const id = jobCard.id || crypto.randomUUID();
     const result = await pool.query(
-      'INSERT INTO job_cards (id, garage_id, customer_id, customer_name, phone, bike_number, complaint, status, spare_parts, service_charge, total_amount, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-      [id, jobCard.garage_id, jobCard.customer_id, jobCard.customer_name, jobCard.phone, jobCard.bike_number, jobCard.complaint, jobCard.status || 'pending', JSON.stringify(jobCard.spare_parts), jobCard.service_charge || 0, jobCard.total_amount || 0, new Date()]
+      'INSERT INTO job_cards (id, garage_id, customer_id, customer_name, phone, bike_number, complaint, status, spare_parts, service_charge, water_wash_charge, diesel_charge, petrol_charge, foundry_charge, total_amount, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *',
+      [id, jobCard.garage_id, jobCard.customer_id, jobCard.customer_name, jobCard.phone, jobCard.bike_number, jobCard.complaint, jobCard.status || 'pending', JSON.stringify(jobCard.spare_parts), jobCard.service_charge || 0, (jobCard as any).water_wash_charge || 0, (jobCard as any).diesel_charge || 0, (jobCard as any).petrol_charge || 0, (jobCard as any).foundry_charge || 0, jobCard.total_amount || 0, new Date()]
     );
     return result.rows[0];
   }
