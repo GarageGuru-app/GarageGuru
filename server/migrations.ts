@@ -80,6 +80,10 @@ export async function runMigrations() {
         complaint TEXT NOT NULL,
         spare_parts JSONB DEFAULT '[]',
         service_charge DECIMAL DEFAULT 0,
+        water_wash_charge DECIMAL DEFAULT 0,
+        diesel_charge DECIMAL DEFAULT 0,
+        petrol_charge DECIMAL DEFAULT 0,
+        foundry_charge DECIMAL DEFAULT 0,
         total_amount DECIMAL DEFAULT 0,
         status TEXT DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT NOW(),
@@ -89,6 +93,12 @@ export async function runMigrations() {
         work_summary TEXT
       )
     `);
+
+    // Add operational charge columns if they don't exist (for existing databases)
+    await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS water_wash_charge DECIMAL DEFAULT 0`);
+    await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS diesel_charge DECIMAL DEFAULT 0`);
+    await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS petrol_charge DECIMAL DEFAULT 0`);
+    await pool.query(`ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS foundry_charge DECIMAL DEFAULT 0`);
 
     // Handle migration from service_type/description to complaint column
     try {
