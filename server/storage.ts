@@ -615,13 +615,25 @@ export class DatabaseStorage implements IStorage {
     
     query += ' ORDER BY created_at DESC';
     const result = await pool.query(query, params);
-    return result.rows;
+    
+    // Parse spare_parts JSON for each job card
+    return result.rows.map(row => ({
+      ...row,
+      spare_parts: typeof row.spare_parts === 'string' ? JSON.parse(row.spare_parts || '[]') : (row.spare_parts || [])
+    }));
   }
 
   async getJobCard(id: string, garageId: string): Promise<JobCard | undefined> {
     try {
       const result = await pool.query('SELECT * FROM job_cards WHERE id = $1 AND garage_id = $2', [id, garageId]);
-      return result.rows[0];
+      if (!result.rows[0]) return undefined;
+      
+      const jobCard = result.rows[0];
+      // Parse spare_parts JSON
+      return {
+        ...jobCard,
+        spare_parts: typeof jobCard.spare_parts === 'string' ? JSON.parse(jobCard.spare_parts || '[]') : (jobCard.spare_parts || [])
+      };
     } catch (error) {
       console.error('getJobCard error:', error);
       return undefined;
@@ -638,7 +650,13 @@ export class DatabaseStorage implements IStorage {
       'INSERT INTO job_cards (id, garage_id, customer_id, customer_name, phone, bike_number, complaint, status, spare_parts, service_charge, water_wash_charge, diesel_charge, petrol_charge, foundry_charge, total_amount, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *',
       [id, jobCard.garage_id, jobCard.customer_id, jobCard.customer_name, jobCard.phone, jobCard.bike_number, jobCard.complaint, jobCard.status || 'pending', JSON.stringify(jobCard.spare_parts), jobCard.service_charge || 0, (jobCard as any).water_wash_charge || 0, (jobCard as any).diesel_charge || 0, (jobCard as any).petrol_charge || 0, (jobCard as any).foundry_charge || 0, jobCard.total_amount || 0, new Date()]
     );
-    return result.rows[0];
+    
+    // Parse spare_parts JSON in the result
+    const createdJobCard = result.rows[0];
+    return {
+      ...createdJobCard,
+      spare_parts: typeof createdJobCard.spare_parts === 'string' ? JSON.parse(createdJobCard.spare_parts || '[]') : (createdJobCard.spare_parts || [])
+    };
   }
 
   async deleteJobCard(id: string, garageId: string): Promise<boolean> {
@@ -686,7 +704,13 @@ export class DatabaseStorage implements IStorage {
         jobCard.work_summary
       ]
     );
-    return result.rows[0];
+    
+    // Parse spare_parts JSON in the result
+    const updatedJobCard = result.rows[0];
+    return {
+      ...updatedJobCard,
+      spare_parts: typeof updatedJobCard.spare_parts === 'string' ? JSON.parse(updatedJobCard.spare_parts || '[]') : (updatedJobCard.spare_parts || [])
+    };
   }
 
   // Invoices (simplified implementation)
