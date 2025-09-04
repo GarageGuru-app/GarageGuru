@@ -170,8 +170,8 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn({ on401: "returnNull" }), // Don't throw on 401, just return null
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      refetchOnWindowFocus: true, // Always refetch when user focuses the page
+      staleTime: 0, // Always consider data stale to ensure fresh data on each visit
       retry: false,
     },
     mutations: {
