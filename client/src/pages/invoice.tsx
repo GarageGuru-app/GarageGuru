@@ -16,7 +16,7 @@ import { sendWhatsAppMessage } from "@/utils/whatsapp";
 export default function Invoice() {
   const { jobCardId } = useParams();
   const [, navigate] = useLocation();
-  const { garage } = useAuth();
+  const { garage, user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -280,12 +280,20 @@ export default function Invoice() {
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Send WhatsApp message with download URL
-        sendWhatsAppMessage(jobCard.phone || '', finalDownloadUrl, garage?.name || 'GarageName');
-        toast({
-          title: "Success",
-          description: "Invoice generated and WhatsApp opened with correct amounts",
-        });
+        // Check user's WhatsApp auto-open preference before opening WhatsApp
+        if (user?.autoWhatsappShare !== false) {
+          // Send WhatsApp message with download URL
+          sendWhatsAppMessage(jobCard.phone || '', finalDownloadUrl, garage?.name || 'GarageName');
+          toast({
+            title: "Success",
+            description: "Invoice generated and WhatsApp opened with correct amounts",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: "Invoice generated successfully. WhatsApp auto-open is disabled in your profile settings.",
+          });
+        }
       } else {
         // Just download PDF with proper filename and extension
         // Use the finalPdfBlob directly as it's already a proper PDF Blob from jsPDF

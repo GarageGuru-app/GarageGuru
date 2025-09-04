@@ -26,6 +26,7 @@ export const users = pgTable("users", {
   firstLogin: boolean("first_login").default(true),
   mustChangePassword: boolean("must_change_password").default(false),
   status: text("status").notNull().default("active"), // 'active', 'suspended'
+  autoWhatsappShare: boolean("auto_whatsapp_share").default(true), // Auto-open WhatsApp for invoice sharing
   createdAt: timestamp("created_at").defaultNow(),
 });
 
