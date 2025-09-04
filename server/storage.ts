@@ -761,19 +761,8 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    // Update customer visit count and last visit date when invoice is created
-    if (invoice.customer_id && invoice.garage_id) {
-      try {
-        console.log(`📊 [INVOICE] Updating visit count for customer ${invoice.customer_id}`);
-        await pool.query(
-          'UPDATE customers SET total_jobs = total_jobs + 1, last_visit = $1, total_spent = total_spent + $2 WHERE id = $3 AND garage_id = $4',
-          [new Date(), invoice.total_amount || 0, invoice.customer_id, invoice.garage_id]
-        );
-        console.log(`✅ [INVOICE] Customer visit count updated successfully`);
-      } catch (error) {
-        console.error('❌ [INVOICE] Error updating customer visit count:', error);
-      }
-    }
+    // Customer visit counts are automatically synced by the syncCustomerVisitCounts function
+    // This ensures accurate counts based on actual invoices rather than manual increments
     
     // Ensure jobCardId is available in the returned invoice
     const createdInvoice = result.rows[0];
@@ -876,10 +865,8 @@ export class DatabaseStorage implements IStorage {
         COUNT(*) as today_invoices,
         COALESCE(SUM(i.parts_total), 0) as today_parts,
         COALESCE(SUM(i.service_charge), 0) as today_service,
-        COALESCE(SUM(i.service_charge), 0) - 
-        COALESCE(SUM(COALESCE(j.water_wash_charge, 0) + COALESCE(j.diesel_charge, 0) + COALESCE(j.petrol_charge, 0) + COALESCE(j.foundry_charge, 0)), 0) as today_profit
+        COALESCE(SUM(i.service_charge + i.parts_total), 0) as today_profit
        FROM invoices i
-       LEFT JOIN job_cards j ON i.job_card_id = j.id
        WHERE i.garage_id = $1 AND i.created_at >= $2 AND i.created_at < $3`,
       [garageId, today.toISOString(), tomorrow.toISOString()]
     );
@@ -912,8 +899,7 @@ export class DatabaseStorage implements IStorage {
         COALESCE(SUM(i.total_amount), 0) as total_sales,
         COALESCE(SUM(i.service_charge), 0) as service_charges,
         COALESCE(SUM(i.parts_total), 0) as parts_revenue,
-        COALESCE(SUM(i.service_charge), 0) - 
-        COALESCE(SUM(COALESCE(j.water_wash_charge, 0) + COALESCE(j.diesel_charge, 0) + COALESCE(j.petrol_charge, 0) + COALESCE(j.foundry_charge, 0)), 0) as profit,
+        COALESCE(SUM(i.service_charge + i.parts_total), 0) as profit,
         COUNT(*) as count,
         COUNT(*) as invoice_count
        FROM invoices i
