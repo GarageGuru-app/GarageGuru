@@ -1489,6 +1489,19 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
       
+      // Reserve inventory first using atomic operations
+      const spareParts = jobCardData.spareParts || [];
+      for (const part of spareParts) {
+        if (part.id && part.quantity > 0) {
+          const reservationResult = await storage.reserveInventory(part.id, part.quantity, garageId);
+          if (!reservationResult.success) {
+            return res.status(400).json({ 
+              message: `Insufficient stock for ${part.name}. ${reservationResult.message}` 
+            });
+          }
+        }
+      }
+
       const jobCard = await storage.createJobCard({
         ...jobCardData,
         garage_id: garageId,
@@ -1497,20 +1510,10 @@ export async function registerRoutes(app: Express): Promise<void> {
         bike_number: jobCardData.bikeNumber,
         service_charge: jobCardData.serviceCharge,
         total_amount: jobCardData.totalAmount,
-        spare_parts: (jobCardData.spareParts || []) as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>
+        spare_parts: spareParts as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>
       } as any);
       
-      // Update spare parts quantities
-      if (jobCard.spare_parts && Array.isArray(jobCard.spare_parts)) {
-        for (const part of jobCard.spare_parts) {
-          const sparePart = await storage.getSparePart(part.id, garageId);
-          if (sparePart) {
-            await storage.updateSparePart(part.id, {
-              quantity: sparePart.quantity - part.quantity
-            });
-          }
-        }
-      }
+      console.log(`✅ Job card created with atomic inventory reservation for ${spareParts.length} parts`);
       
       res.json(jobCard);
     } catch (error) {
@@ -1521,9 +1524,73 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   app.put("/api/garages/:garageId/job-cards/:id", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id, garageId } = req.params;
       const updateData = insertJobCardSchema.partial().parse(req.body);
       
+      // Get the current job card to compare spare parts changes
+      const currentJobCard = await storage.getJobCard(id, garageId);
+      if (!currentJobCard) {
+        return res.status(404).json({ message: 'Job card not found' });
+      }
+      
+      // Parse current spare parts
+      let currentParts: any[] = [];
+      if (currentJobCard.spare_parts) {
+        currentParts = typeof currentJobCard.spare_parts === 'string' 
+          ? JSON.parse(currentJobCard.spare_parts) 
+          : currentJobCard.spare_parts;
+      }
+      
+      // Get new spare parts
+      const newParts = updateData.spareParts || [];
+      
+      // Calculate inventory changes
+      const currentPartsMap = new Map(currentParts.map(p => [p.id, p.quantity]));
+      const newPartsMap = new Map(newParts.map((p: any) => [p.id, p.quantity]));
+      
+      // Process inventory changes for each part
+      for (const part of newParts) {
+        const currentQty = currentPartsMap.get(part.id) || 0;
+        const newQty = part.quantity;
+        const qtyDiff = newQty - currentQty;
+        
+        if (qtyDiff > 0) {
+          // Need to deduct more inventory (user increased quantity)
+          const reservationResult = await storage.reserveInventory(part.id, qtyDiff, garageId);
+          if (!reservationResult.success) {
+            return res.status(400).json({ 
+              message: `Insufficient stock for ${part.name}. ${reservationResult.message}` 
+            });
+          }
+        } else if (qtyDiff < 0) {
+          // Need to return inventory (user decreased quantity)
+          await storage.releaseInventory(part.id, Math.abs(qtyDiff), garageId);
+        }
+      }
+      
+      // Handle removed parts - restore their full inventory
+      for (const [partId, quantity] of currentPartsMap) {
+        if (!newPartsMap.has(partId)) {
+          // Part was completely removed, restore full quantity
+          await storage.releaseInventory(partId, quantity, garageId);
+        }
+      }
+      
+      // Handle new parts - deduct their inventory  
+      for (const [partId, quantity] of newPartsMap) {
+        if (!currentPartsMap.has(partId)) {
+          // Part is newly added, deduct full quantity
+          const reservationResult = await storage.reserveInventory(partId, quantity, garageId);
+          if (!reservationResult.success) {
+            const part = newParts.find((p: any) => p.id === partId);
+            return res.status(400).json({ 
+              message: `Insufficient stock for ${part?.name || 'part'}. ${reservationResult.message}` 
+            });
+          }
+        }
+      }
+      
+      // Update the job card
       const jobCard = await storage.updateJobCard(id, {
         ...updateData,
         service_charge: updateData.serviceCharge,
@@ -1532,7 +1599,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         petrol_charge: updateData.petrolCharge,
         foundry_charge: updateData.foundryCharge,
         total_amount: updateData.totalAmount,
-        spare_parts: updateData.spareParts?.map((part: any) => ({
+        spare_parts: newParts.map((part: any) => ({
           id: part.id,
           partNumber: part.partNumber,
           name: part.name,
@@ -1540,6 +1607,8 @@ export async function registerRoutes(app: Express): Promise<void> {
           price: Number(part.price || part.sellingPrice || 0)
         }))
       } as any);
+      
+      console.log(`🔧 Job card ${id} updated with inventory management`);
       res.json(jobCard);
     } catch (error) {
       console.error('Job card update error:', error);
@@ -1554,10 +1623,34 @@ export async function registerRoutes(app: Express): Promise<void> {
     try {
       const { id, garageId } = req.params;
       
+      // Get the job card before deletion to restore inventory
+      const jobCard = await storage.getJobCard(id, garageId);
+      if (!jobCard) {
+        return res.status(404).json({ message: 'Job card not found' });
+      }
+      
+      // Parse spare parts and restore inventory
+      let spareParts: any[] = [];
+      if (jobCard.spare_parts) {
+        spareParts = typeof jobCard.spare_parts === 'string' 
+          ? JSON.parse(jobCard.spare_parts) 
+          : jobCard.spare_parts;
+      }
+      
+      // Restore inventory for all parts
+      for (const part of spareParts) {
+        if (part.id && part.quantity > 0) {
+          await storage.releaseInventory(part.id, part.quantity, garageId);
+          console.log(`🔄 Restored ${part.quantity} ${part.name} to inventory (job card deleted)`);
+        }
+      }
+      
+      // Delete the job card
       const success = await storage.deleteJobCard(id, garageId);
       
       if (success) {
-        res.json({ message: 'Job card deleted successfully' });
+        console.log(`🗑️ Job card ${id} deleted and inventory restored`);
+        res.json({ message: 'Job card deleted successfully and inventory restored' });
       } else {
         res.status(404).json({ message: 'Job card not found' });
       }
