@@ -840,15 +840,14 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`📊 [ANALYTICS] Getting sales stats for garage: ${garageId}`);
       
+      // Simplified query to avoid ambiguous column issues
       const result = await pool.query(
         `SELECT 
           COUNT(*) as total_invoices, 
-          COALESCE(SUM(parts_total), 0) as total_parts_total, 
-          COALESCE(SUM(service_charge), 0) as total_service_charges,
-          COALESCE(SUM(i.service_charge), 0) - 
-          COALESCE(SUM(COALESCE(j.water_wash_charge, 0) + COALESCE(j.diesel_charge, 0) + COALESCE(j.petrol_charge, 0) + COALESCE(j.foundry_charge, 0)), 0) as total_profit
+          COALESCE(SUM(i.parts_total), 0) as total_parts_total, 
+          COALESCE(SUM(i.service_charge), 0) as total_service_charges,
+          COALESCE(SUM(i.service_charge), 0) as total_profit
          FROM invoices i
-         LEFT JOIN job_cards j ON i.job_card_id = j.id
          WHERE i.garage_id = $1`,
         [garageId]
       );

@@ -4,16 +4,13 @@ import type { JobCard, Garage } from '@shared/schema';
 interface InvoiceData {
   jobCard: JobCard;
   garage: Garage;
-  serviceCharge: number;
+  serviceCharge: number; // This now includes water wash, diesel, petrol
   invoiceNumber: string;
-  waterWashCharge?: number;
-  dieselCharge?: number;
-  petrolCharge?: number;
   foundryCharge?: number;
 }
 
 export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
-  const { jobCard, garage, serviceCharge, invoiceNumber, waterWashCharge = 0, dieselCharge = 0, petrolCharge = 0, foundryCharge = 0 } = data;
+  const { jobCard, garage, serviceCharge, invoiceNumber, foundryCharge = 0 } = data;
   
   console.log('PDF Generator - Received jobCard data:', jobCard);
   
@@ -114,30 +111,17 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   pdf.text('Service Charge:', 20, yPos);
   const serviceText = `Rs.${serviceCharge.toFixed(2)}`;
   pdf.text(serviceText, pageWidth - 80, yPos, { align: 'right' });
-  yPos += 20;
+  yPos += 15;
   
-  // Operational charges (only show if they have values)
-  if (waterWashCharge > 0) {
-    pdf.text('Water Wash:', 20, yPos);
-    const waterWashText = `Rs.${waterWashCharge.toFixed(2)}`;
-    pdf.text(waterWashText, pageWidth - 80, yPos, { align: 'right' });
-    yPos += 20;
-  }
+  // Add note about what service charge includes (smaller text)
+  pdf.setFontSize(8);
+  pdf.setTextColor(100, 100, 100);
+  pdf.text('(includes water wash, diesel, petrol if any)', 20, yPos);
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFontSize(12);
+  yPos += 15;
   
-  if (dieselCharge > 0) {
-    pdf.text('Diesel:', 20, yPos);
-    const dieselText = `Rs.${dieselCharge.toFixed(2)}`;
-    pdf.text(dieselText, pageWidth - 80, yPos, { align: 'right' });
-    yPos += 20;
-  }
-  
-  if (petrolCharge > 0) {
-    pdf.text('Petrol:', 20, yPos);
-    const petrolText = `Rs.${petrolCharge.toFixed(2)}`;
-    pdf.text(petrolText, pageWidth - 80, yPos, { align: 'right' });
-    yPos += 20;
-  }
-  
+  // Foundry charge (only show if it has value)
   if (foundryCharge > 0) {
     pdf.text('Foundry:', 20, yPos);
     const foundryText = `Rs.${foundryCharge.toFixed(2)}`;
@@ -151,7 +135,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Blob> {
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(14);
   pdf.text('Total Amount:', 20, yPos);
-  const totalText = `Rs.${(partsTotal + serviceCharge + waterWashCharge + dieselCharge + petrolCharge + foundryCharge).toFixed(2)}`;
+  const totalText = `Rs.${(partsTotal + serviceCharge + foundryCharge).toFixed(2)}`;
   pdf.text(totalText, pageWidth - 80, yPos, { align: 'right' });
   
   yPos += 50;

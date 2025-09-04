@@ -127,7 +127,10 @@ export default function Invoice() {
   const petrolCharge = Number((jobCard as any).petrol_charge || 0);
   const foundryCharge = Number((jobCard as any).foundry_charge || 0);
   
-  const totalAmount = partsTotal + serviceCharge + waterWashCharge + dieselCharge + petrolCharge + foundryCharge;
+  // Service charge includes water wash, diesel, and petrol (but NOT foundry)
+  const combinedServiceCharge = serviceCharge + waterWashCharge + dieselCharge + petrolCharge;
+  
+  const totalAmount = partsTotal + combinedServiceCharge + foundryCharge;
   
   // Create short, simple invoice filename
   const createInvoiceFilename = (invoiceId: string) => {
@@ -148,11 +151,8 @@ export default function Invoice() {
       const pdfBlob = await generateInvoicePDF({
         jobCard,
         garage,
-        serviceCharge,
+        serviceCharge: combinedServiceCharge,
         invoiceNumber,
-        waterWashCharge,
-        dieselCharge,
-        petrolCharge,
         foundryCharge,
       });
       
@@ -212,11 +212,8 @@ export default function Invoice() {
       const pdfBlob = await generateInvoicePDF({
         jobCard,
         garage,
-        serviceCharge,
+        serviceCharge: combinedServiceCharge,
         invoiceNumber,
-        waterWashCharge,
-        dieselCharge,
-        petrolCharge,
         foundryCharge,
       });
       
@@ -262,11 +259,8 @@ export default function Invoice() {
       const finalPdfBlob = await generateInvoicePDF({
         jobCard,
         garage,
-        serviceCharge,
+        serviceCharge: combinedServiceCharge,
         invoiceNumber: finalFilename,
-        waterWashCharge,
-        dieselCharge,
-        petrolCharge,
         foundryCharge,
       });
       
@@ -428,52 +422,43 @@ export default function Invoice() {
                   <span className="text-muted-foreground">Parts Total:</span>
                   <span>₹{partsTotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm mt-1">
-                  <span className="text-muted-foreground">Service Charge:</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={serviceCharge === 0 ? "" : serviceCharge}
-                    onChange={(e) => setServiceCharge(Number(e.target.value) || 0)}
-                    onFocus={(e) => {
-                      if (e.target.value === "0") {
-                        e.target.value = "";
-                        setServiceCharge(0);
-                      }
-                    }}
-                    className="w-24 h-8 text-right text-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    style={{ appearance: "textfield" }}
-                    placeholder="0"
-                  />
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Service Charge:</span>
+                    <div className="flex flex-col items-end">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={serviceCharge === 0 ? "" : serviceCharge}
+                        onChange={(e) => setServiceCharge(Number(e.target.value) || 0)}
+                        onFocus={(e) => {
+                          if (e.target.value === "0") {
+                            e.target.value = "";
+                            setServiceCharge(0);
+                          }
+                        }}
+                        className="w-24 h-8 text-right text-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        style={{ appearance: "textfield" }}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  {(waterWashCharge > 0 || dieselCharge > 0 || petrolCharge > 0) && (
+                    <div className="text-xs text-muted-foreground italic ml-1">
+                      *Includes {[waterWashCharge > 0 ? 'water wash' : '', dieselCharge > 0 ? 'diesel' : '', petrolCharge > 0 ? 'petrol' : ''].filter(Boolean).join(', ')} charges
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground font-medium">Total Service:</span>
+                    <span className="font-medium">₹{combinedServiceCharge.toFixed(2)}</span>
+                  </div>
                 </div>
-                {(waterWashCharge > 0 || dieselCharge > 0 || petrolCharge > 0 || foundryCharge > 0) && (
-                  <>
-                    {waterWashCharge > 0 && (
-                      <div className="flex justify-between text-sm mt-1">
-                        <span className="text-muted-foreground">Water Wash:</span>
-                        <span>₹{waterWashCharge.toFixed(2)}</span>
-                      </div>
-                    )}
-                    {dieselCharge > 0 && (
-                      <div className="flex justify-between text-sm mt-1">
-                        <span className="text-muted-foreground">Diesel:</span>
-                        <span>₹{dieselCharge.toFixed(2)}</span>
-                      </div>
-                    )}
-                    {petrolCharge > 0 && (
-                      <div className="flex justify-between text-sm mt-1">
-                        <span className="text-muted-foreground">Petrol:</span>
-                        <span>₹{petrolCharge.toFixed(2)}</span>
-                      </div>
-                    )}
-                    {foundryCharge > 0 && (
-                      <div className="flex justify-between text-sm mt-1">
-                        <span className="text-muted-foreground">Foundry:</span>
-                        <span>₹{foundryCharge.toFixed(2)}</span>
-                      </div>
-                    )}
-                  </>
+                {foundryCharge > 0 && (
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-muted-foreground">Foundry:</span>
+                    <span>₹{foundryCharge.toFixed(2)}</span>
+                  </div>
                 )}
                 <div className="flex justify-between font-semibold text-lg mt-2 pt-2 border-t border-border">
                   <span>Total Amount:</span>
