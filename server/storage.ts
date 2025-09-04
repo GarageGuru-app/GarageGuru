@@ -631,36 +631,8 @@ export class DatabaseStorage implements IStorage {
   async createJobCard(jobCard: Partial<JobCard>): Promise<JobCard> {
     const id = jobCard.id || crypto.randomUUID();
     
-    // Validate spare parts inventory before creating job card
-    if (jobCard.spare_parts && jobCard.spare_parts.length > 0) {
-      for (const part of jobCard.spare_parts) {
-        const partResult = await pool.query('SELECT quantity FROM spare_parts WHERE id = $1', [part.id]);
-        if (partResult.rows.length === 0) {
-          throw new Error(`Spare part with ID ${part.id} not found`);
-        }
-        
-        const availableQuantity = parseInt(partResult.rows[0].quantity);
-        if (availableQuantity < part.quantity) {
-          throw new Error(`Insufficient stock for ${part.name}. Available: ${availableQuantity}, Required: ${part.quantity}`);
-        }
-      }
-      
-      // Deduct quantities from inventory with safety check to prevent negative values
-      for (const part of jobCard.spare_parts) {
-        const updateResult = await pool.query(
-          'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2 AND quantity >= $1 RETURNING quantity',
-          [part.quantity, part.id]
-        );
-        
-        // If no rows were affected, it means insufficient stock at the moment of deduction
-        if (updateResult.rowCount === 0) {
-          // Get current quantity for error message
-          const currentStock = await pool.query('SELECT quantity FROM spare_parts WHERE id = $1', [part.id]);
-          const available = currentStock.rows[0]?.quantity || 0;
-          throw new Error(`Insufficient stock for ${part.name}. Available: ${available}, Required: ${part.quantity}`);
-        }
-      }
-    }
+    // Note: Inventory management is now handled in the routes layer before calling this method
+    // This ensures atomic operations and prevents double deduction
     
     const result = await pool.query(
       'INSERT INTO job_cards (id, garage_id, customer_id, customer_name, phone, bike_number, complaint, status, spare_parts, service_charge, water_wash_charge, diesel_charge, petrol_charge, foundry_charge, total_amount, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *',
@@ -670,71 +642,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteJobCard(id: string, garageId: string): Promise<boolean> {
-    // Return spare parts to inventory before deleting
-    const jobCardResult = await pool.query('SELECT spare_parts FROM job_cards WHERE id = $1 AND garage_id = $2', [id, garageId]);
+    // Note: Inventory restoration is now handled in the routes layer before calling this method
+    // This ensures atomic operations and prevents double restoration
     
-    if (jobCardResult.rows.length > 0) {
-      const spareParts = jobCardResult.rows[0].spare_parts || [];
-      
-      // Return all spare parts to inventory
-      for (const part of spareParts) {
-        await pool.query(
-          'UPDATE spare_parts SET quantity = quantity + $1 WHERE id = $2',
-          [part.quantity, part.id]
-        );
-      }
-    }
-    
-    // Delete the job card
     const result = await pool.query('DELETE FROM job_cards WHERE id = $1 AND garage_id = $2', [id, garageId]);
     return (result.rowCount || 0) > 0;
   }
 
   async updateJobCard(id: string, jobCard: Partial<JobCard>): Promise<JobCard> {
-    // Get the current job card to compare spare parts
-    const currentResult = await pool.query('SELECT * FROM job_cards WHERE id = $1', [id]);
-    const currentJobCard = currentResult.rows[0];
-    
-    // If spare_parts are being updated, handle inventory
-    if (jobCard.spare_parts) {
-      const currentParts = currentJobCard.spare_parts || [];
-      const newParts = jobCard.spare_parts;
-      
-      // Return old quantities to inventory
-      for (const currentPart of currentParts) {
-        await pool.query(
-          'UPDATE spare_parts SET quantity = quantity + $1 WHERE id = $2',
-          [currentPart.quantity, currentPart.id]
-        );
-      }
-      
-      // Check new parts inventory and deduct quantities
-      for (const newPart of newParts) {
-        const partResult = await pool.query('SELECT quantity FROM spare_parts WHERE id = $1', [newPart.id]);
-        if (partResult.rows.length === 0) {
-          throw new Error(`Spare part with ID ${newPart.id} not found`);
-        }
-        
-        const availableQuantity = parseInt(partResult.rows[0].quantity);
-        if (availableQuantity < newPart.quantity) {
-          throw new Error(`Insufficient stock for ${newPart.name}. Available: ${availableQuantity}, Required: ${newPart.quantity}`);
-        }
-        
-        // Deduct the quantity with safety check to prevent negative values
-        const updateResult = await pool.query(
-          'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2 AND quantity >= $1 RETURNING quantity',
-          [newPart.quantity, newPart.id]
-        );
-        
-        // If no rows were affected, it means insufficient stock at the moment of deduction
-        if (updateResult.rowCount === 0) {
-          // Get current quantity for error message
-          const currentStock = await pool.query('SELECT quantity FROM spare_parts WHERE id = $1', [newPart.id]);
-          const available = currentStock.rows[0]?.quantity || 0;
-          throw new Error(`Insufficient stock for ${newPart.name}. Available: ${available}, Required: ${newPart.quantity}`);
-        }
-      }
-    }
+    // Note: Inventory management is now handled in the routes layer before calling this method
+    // This ensures atomic operations and prevents double deduction/restoration
 
     const result = await pool.query(
       `UPDATE job_cards SET 
