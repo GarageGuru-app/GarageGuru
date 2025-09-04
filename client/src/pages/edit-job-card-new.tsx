@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode, Wrench, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { HybridScanner } from "@/components/HybridScanner";
 
@@ -63,7 +63,7 @@ export default function EditJobCard() {
   });
 
   // Fetch job card data
-  const { data: jobCard, isLoading } = useQuery({
+  const { data: jobCard, isLoading, refetch } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards", jobCardId],
     queryFn: async () => {
       if (!garage?.id || !jobCardId) return null;
@@ -71,6 +71,8 @@ export default function EditJobCard() {
       return response.json();
     },
     enabled: !!garage?.id && !!jobCardId,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch for latest job card data
   });
 
   // Fetch spare parts for search
@@ -348,7 +350,7 @@ export default function EditJobCard() {
         </div>
         <div className="screen-content flex items-center justify-center">
           <div className="flex flex-col items-center space-y-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <Wrench className="w-8 h-8 text-primary animate-spin" />
             <span className="text-muted-foreground">Loading job card...</span>
           </div>
         </div>

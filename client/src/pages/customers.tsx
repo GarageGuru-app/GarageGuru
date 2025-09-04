@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Search, User, Phone, FileText, Bike } from "lucide-react";
+import { ArrowLeft, Search, User, Phone, FileText, Bike, Wrench, RefreshCw } from "lucide-react";
 import { callCustomer } from "@/utils/whatsapp";
 import { useToast } from "@/hooks/use-toast";
 import AddCustomerDialog from "@/components/AddCustomerDialog";
@@ -19,7 +19,7 @@ export default function Customers() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: customers = [], isLoading } = useQuery({
+  const { data: customers = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/garages", garage?.id, "customers"],
     queryFn: async () => {
       if (!garage?.id) return [];
@@ -27,6 +27,8 @@ export default function Customers() {
       return response.json();
     },
     enabled: !!garage?.id,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch for fresh customer data
   });
 
   const filteredCustomers = customers.filter((customer: any) =>
@@ -90,7 +92,12 @@ export default function Customers() {
           </div>
         </div>
         <div className="screen-content flex items-center justify-center">
-          <div className="animate-pulse text-muted-foreground">Loading...</div>
+          <div className="flex flex-col items-center space-y-3">
+            <Wrench className="w-8 h-8 text-primary animate-spin" />
+            <span className="text-muted-foreground">
+              Loading customers...
+            </span>
+          </div>
         </div>
       </div>
     );

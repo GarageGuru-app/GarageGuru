@@ -559,7 +559,14 @@ export default function AdminDashboard() {
               });
 
               if (invoicesLoading) {
-                return <div className="text-center py-8 text-muted-foreground">Loading recent invoices...</div>;
+                return (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <div className="flex flex-col items-center space-y-2">
+                      <Wrench className="w-6 h-6 text-primary animate-spin" />
+                      <span>Loading recent invoices...</span>
+                    </div>
+                  </div>
+                );
               }
 
               const recentInvoices = invoices.slice(0, 5);

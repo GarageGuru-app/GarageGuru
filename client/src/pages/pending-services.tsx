@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Search, Bike, Phone, Calendar, Eye, Edit, AlertCircle, CheckCircle, Share, Save, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Search, Bike, Phone, Calendar, Eye, Edit, AlertCircle, CheckCircle, Share, Save, Loader2, Trash2, Wrench, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,7 +28,7 @@ export default function PendingServices() {
   const [jobToDelete, setJobToDelete] = useState<any>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  const { data: pendingJobs = [], isLoading } = useQuery({
+  const { data: pendingJobs = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards", "pending"],
     queryFn: async () => {
       if (!garage?.id) return [];
@@ -36,6 +36,8 @@ export default function PendingServices() {
       return response.json();
     },
     enabled: !!garage?.id,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch for fresh job status
   });
 
   // Fetch all invoices to check for duplicates
@@ -180,7 +182,7 @@ export default function PendingServices() {
         </div>
         <div className="screen-content flex items-center justify-center">
           <div className="flex flex-col items-center space-y-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <Wrench className="w-8 h-8 text-primary animate-spin" />
             <span className="text-muted-foreground">Loading pending services...</span>
           </div>
         </div>
@@ -192,19 +194,32 @@ export default function PendingServices() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="screen-header">
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/dashboard")}
-            className="text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h2 className="text-lg font-semibold">Pending Services</h2>
-        </div>
-        <div className="bg-white/20 px-3 py-1 rounded-full">
-          <span className="text-sm font-medium">{filteredJobs.length} Jobs</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/dashboard")}
+              className="text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h2 className="text-lg font-semibold">Pending Services</h2>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/20 px-3 py-1 rounded-full">
+              <span className="text-sm font-medium">{filteredJobs.length} Jobs</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => refetch()}
+              className="text-white hover:bg-white/10"
+              data-testid="button-refresh-pending"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </div>
 

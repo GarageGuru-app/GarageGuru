@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, Calendar, User, FileText, Eye, Filter } from "lucide-react";
+import { ArrowLeft, Search, Calendar, User, FileText, Eye, Filter, Wrench, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 
 export default function CompletedServices() {
@@ -21,7 +21,7 @@ export default function CompletedServices() {
   const [endDate, setEndDate] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const { data: completedJobCards, isLoading } = useQuery({
+  const { data: completedJobCards, isLoading, refetch } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards", "completed"],
     queryFn: async () => {
       if (!garage?.id) return [];
@@ -30,6 +30,8 @@ export default function CompletedServices() {
       return jobCards.filter((job: any) => job.status === "completed");
     },
     enabled: !!garage?.id,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch for fresh service status
   });
 
   // Fetch invoices to get actual invoice amounts
@@ -106,9 +108,9 @@ export default function CompletedServices() {
           </div>
         </div>
         <div className="screen-content flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Loading completed services...</p>
+          <div className="flex flex-col items-center space-y-3">
+            <Wrench className="w-8 h-8 text-primary animate-spin" />
+            <span className="text-muted-foreground">Loading completed services...</span>
           </div>
         </div>
       </div>
@@ -134,14 +136,25 @@ export default function CompletedServices() {
               <p className="text-sm text-white/80">{filteredJobCards.length} completed jobs</p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowFilters(!showFilters)}
-            className="text-white hover:bg-white/10"
-          >
-            <Filter className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => refetch()}
+              className="text-white hover:bg-white/10"
+              data-testid="button-refresh-completed"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-white hover:bg-white/10"
+            >
+              <Filter className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </div>
 

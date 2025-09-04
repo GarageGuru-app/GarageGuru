@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, FileText, Download, MessageCircle, Calendar, User, Bike } from "lucide-react";
+import { ArrowLeft, Search, FileText, Download, MessageCircle, Calendar, User, Bike, Wrench, RefreshCw } from "lucide-react";
 
 export default function Invoices() {
   const [, navigate] = useLocation();
   const { garage } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: invoices = [], isLoading } = useQuery({
+  const { data: invoices = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/garages", garage?.id, "invoices"],
     queryFn: async () => {
       if (!garage?.id) return [];
@@ -22,6 +22,8 @@ export default function Invoices() {
       return response.json();
     },
     enabled: !!garage?.id,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch for latest invoice data
   });
 
   const filteredInvoices = invoices.filter((invoice: any) =>
@@ -138,7 +140,10 @@ export default function Invoices() {
           </div>
         </div>
         <div className="screen-content flex items-center justify-center">
-          <div className="animate-pulse text-muted-foreground">Loading...</div>
+          <div className="flex flex-col items-center space-y-3">
+            <Wrench className="w-8 h-8 text-primary animate-spin" />
+            <span className="text-muted-foreground">Loading invoices...</span>
+          </div>
         </div>
       </div>
     );
@@ -148,19 +153,32 @@ export default function Invoices() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="screen-header">
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/dashboard")}
-            className="text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h2 className="text-lg font-semibold">Invoices</h2>
-        </div>
-        <div className="bg-white/20 px-3 py-1 rounded-full">
-          <span className="text-sm font-medium">{filteredInvoices.length} Invoices</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/dashboard")}
+              className="text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h2 className="text-lg font-semibold">Invoices</h2>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/20 px-3 py-1 rounded-full">
+              <span className="text-sm font-medium">{filteredInvoices.length} Invoices</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => refetch()}
+              className="text-white hover:bg-white/10"
+              data-testid="button-refresh-invoices"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </div>
 
