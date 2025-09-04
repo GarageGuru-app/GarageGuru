@@ -175,7 +175,7 @@ export default function EditJobCard() {
     );
     setSearchResults(filtered);
     setIsSearching(false);
-  }, [searchQuery, availableParts]);
+  }, [searchQuery]); // Remove availableParts dependency to prevent infinite loops
 
   // Calculate totals when spare parts or charges change - using useMemo to prevent loops
   const calculatedTotal = useMemo(() => {
@@ -290,14 +290,21 @@ export default function EditJobCard() {
     // Find the spare part details to check available stock
     const partId = formData.spareParts[index].id;
     const part = availableParts?.find((p: any) => p.id === partId);
+    const currentQuantityInJob = formData.spareParts[index].quantity;
     
-    if (part && quantity > part.quantity) {
-      toast({
-        title: "Insufficient Stock",
-        description: `Only ${part.quantity} units available for ${part.name}`,
-        variant: "destructive",
-      });
-      return;
+    if (part) {
+      // Calculate effective available stock: current stock + what's already allocated to this job
+      const effectiveStock = part.quantity + currentQuantityInJob;
+      
+      // Only check stock when INCREASING quantity (not when decreasing)
+      if (quantity > currentQuantityInJob && quantity > effectiveStock) {
+        toast({
+          title: "Insufficient Stock",
+          description: `Only ${effectiveStock} units available for ${part.name}`,
+          variant: "destructive",
+        });
+        return;
+      }
     }
     
     const updatedParts = [...formData.spareParts];
