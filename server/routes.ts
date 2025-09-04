@@ -1509,6 +1509,10 @@ export async function registerRoutes(app: Express): Promise<void> {
         customer_name: jobCardData.customerName,
         bike_number: jobCardData.bikeNumber,
         service_charge: jobCardData.serviceCharge,
+        water_wash_charge: jobCardData.waterWashCharge,
+        diesel_charge: jobCardData.dieselCharge,
+        petrol_charge: jobCardData.petrolCharge,
+        foundry_charge: jobCardData.foundryCharge,
         total_amount: jobCardData.totalAmount,
         spare_parts: spareParts as Array<{id: string, partNumber: string, name: string, quantity: number, price: number}>
       } as any);
