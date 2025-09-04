@@ -1550,72 +1550,83 @@ export async function registerRoutes(app: Express): Promise<void> {
           : currentJobCard.spare_parts;
       }
       
-      // Get new spare parts
-      const newParts = updateData.spareParts || [];
-      
-      // Calculate inventory changes
-      const currentPartsMap = new Map(currentParts.map(p => [p.id, p.quantity]));
-      const newPartsMap = new Map(newParts.map((p: any) => [p.id, p.quantity]));
-      
-      // Process inventory changes for each part
-      for (const part of newParts) {
-        const currentQty = currentPartsMap.get(part.id) || 0;
-        const newQty = part.quantity;
-        const qtyDiff = newQty - currentQty;
+      // Only process spare parts inventory changes if spareParts is explicitly provided
+      // This prevents clearing spare parts when only updating other fields like complaint
+      if (updateData.spareParts !== undefined) {
+        // Get new spare parts
+        const newParts = updateData.spareParts || [];
         
-        if (qtyDiff > 0) {
-          // Need to deduct more inventory (user increased quantity)
-          const reservationResult = await storage.reserveInventory(part.id, qtyDiff, garageId);
-          if (!reservationResult.success) {
-            return res.status(400).json({ 
-              message: `Insufficient stock for ${part.name}. ${reservationResult.message}` 
-            });
+        // Calculate inventory changes
+        const currentPartsMap = new Map(currentParts.map(p => [p.id, p.quantity]));
+        const newPartsMap = new Map(newParts.map((p: any) => [p.id, p.quantity]));
+        
+        // Process inventory changes for each part
+        for (const part of newParts) {
+          const currentQty = currentPartsMap.get(part.id) || 0;
+          const newQty = part.quantity;
+          const qtyDiff = newQty - currentQty;
+          
+          if (qtyDiff > 0) {
+            // Need to deduct more inventory (user increased quantity)
+            const reservationResult = await storage.reserveInventory(part.id, qtyDiff, garageId);
+            if (!reservationResult.success) {
+              return res.status(400).json({ 
+                message: `Insufficient stock for ${part.name}. ${reservationResult.message}` 
+              });
+            }
+          } else if (qtyDiff < 0) {
+            // Need to return inventory (user decreased quantity)
+            await storage.releaseInventory(part.id, Math.abs(qtyDiff), garageId);
           }
-        } else if (qtyDiff < 0) {
-          // Need to return inventory (user decreased quantity)
-          await storage.releaseInventory(part.id, Math.abs(qtyDiff), garageId);
         }
-      }
-      
-      // Handle removed parts - restore their full inventory
-      for (const [partId, quantity] of currentPartsMap) {
-        if (!newPartsMap.has(partId)) {
-          // Part was completely removed, restore full quantity
-          await storage.releaseInventory(partId, quantity, garageId);
+        
+        // Handle removed parts - restore their full inventory
+        for (const [partId, quantity] of currentPartsMap) {
+          if (!newPartsMap.has(partId)) {
+            // Part was completely removed, restore full quantity
+            await storage.releaseInventory(partId, quantity, garageId);
+          }
         }
-      }
-      
-      // Handle new parts - deduct their inventory  
-      for (const [partId, quantity] of newPartsMap) {
-        if (!currentPartsMap.has(partId)) {
-          // Part is newly added, deduct full quantity
-          const reservationResult = await storage.reserveInventory(partId, quantity, garageId);
-          if (!reservationResult.success) {
-            const part = newParts.find((p: any) => p.id === partId);
-            return res.status(400).json({ 
-              message: `Insufficient stock for ${part?.name || 'part'}. ${reservationResult.message}` 
-            });
+        
+        // Handle new parts - deduct their inventory  
+        for (const [partId, quantity] of newPartsMap) {
+          if (!currentPartsMap.has(partId)) {
+            // Part is newly added, deduct full quantity
+            const reservationResult = await storage.reserveInventory(partId, quantity, garageId);
+            if (!reservationResult.success) {
+              const part = newParts.find((p: any) => p.id === partId);
+              return res.status(400).json({ 
+                message: `Insufficient stock for ${part?.name || 'part'}. ${reservationResult.message}` 
+              });
+            }
           }
         }
       }
       
       // Update the job card
-      const jobCard = await storage.updateJobCard(id, {
+      const updatePayload: any = {
         ...updateData,
         service_charge: updateData.serviceCharge,
         water_wash_charge: updateData.waterWashCharge,
         diesel_charge: updateData.dieselCharge,
         petrol_charge: updateData.petrolCharge,
         foundry_charge: updateData.foundryCharge,
-        total_amount: updateData.totalAmount,
-        spare_parts: newParts.map((part: any) => ({
+        total_amount: updateData.totalAmount
+      };
+      
+      // Only update spare_parts if it was explicitly provided
+      if (updateData.spareParts !== undefined) {
+        const newParts = updateData.spareParts || [];
+        updatePayload.spare_parts = newParts.map((part: any) => ({
           id: part.id,
           partNumber: part.partNumber,
           name: part.name,
           quantity: part.quantity,
           price: Number(part.price || part.sellingPrice || 0)
-        }))
-      } as any);
+        }));
+      }
+      
+      const jobCard = await storage.updateJobCard(id, updatePayload);
       
       console.log(`🔧 Job card ${id} updated with inventory management`);
       res.json(jobCard);
