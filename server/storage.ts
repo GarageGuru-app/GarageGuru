@@ -687,11 +687,19 @@ export class DatabaseStorage implements IStorage {
           throw new Error(`Insufficient stock for ${newPart.name}. Available: ${availableQuantity}, Required: ${newPart.quantity}`);
         }
         
-        // Deduct the quantity
-        await pool.query(
-          'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2',
+        // Deduct the quantity with safety check to prevent negative values
+        const updateResult = await pool.query(
+          'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2 AND quantity >= $1 RETURNING quantity',
           [newPart.quantity, newPart.id]
         );
+        
+        // If no rows were affected, it means insufficient stock at the moment of deduction
+        if (updateResult.rowCount === 0) {
+          // Get current quantity for error message
+          const currentStock = await pool.query('SELECT quantity FROM spare_parts WHERE id = $1', [newPart.id]);
+          const available = currentStock.rows[0]?.quantity || 0;
+          throw new Error(`Insufficient stock for ${newPart.name}. Available: ${available}, Required: ${newPart.quantity}`);
+        }
       }
     }
 
