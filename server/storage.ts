@@ -1217,6 +1217,78 @@ export class DatabaseStorage implements IStorage {
       console.error('❌ Failed to fix undefined work summaries:', error);
     }
   }
+
+  async fixInventoryForExistingJobCards(): Promise<void> {
+    try {
+      // Check if this migration has already been run
+      const migrationCheck = await pool.query(`
+        SELECT EXISTS(
+          SELECT 1 FROM spare_parts WHERE quantity < 0
+        ) as has_negative
+      `);
+      
+      if (!migrationCheck.rows[0].has_negative) {
+        console.log('✅ Inventory already fixed - skipping migration');
+        return;
+      }
+      
+      console.log('🔄 Checking and fixing inventory for existing job cards...');
+      
+      // Get all job cards with spare parts
+      const jobCardsResult = await pool.query(`
+        SELECT id, spare_parts, created_at 
+        FROM job_cards 
+        WHERE spare_parts IS NOT NULL 
+        AND spare_parts::text != '[]' 
+        AND spare_parts::text != 'null'
+        ORDER BY created_at ASC
+      `);
+      
+      let fixedCount = 0;
+      
+      for (const jobCard of jobCardsResult.rows) {
+        const spareParts = jobCard.spare_parts || [];
+        if (spareParts.length > 0) {
+          console.log(`📋 Processing job card ${jobCard.id} with ${spareParts.length} spare parts`);
+          
+          for (const part of spareParts) {
+            // Check if the part exists in inventory
+            const partResult = await pool.query('SELECT id, name, quantity FROM spare_parts WHERE id = $1', [part.id]);
+            
+            if (partResult.rows.length > 0) {
+              const currentQuantity = parseInt(partResult.rows[0].quantity);
+              
+              // Deduct the quantity that should have been deducted
+              await pool.query(
+                'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2',
+                [part.quantity, part.id]
+              );
+              
+              console.log(`🔧 Deducted ${part.quantity} ${part.name} from inventory (was: ${currentQuantity})`);
+              fixedCount++;
+            }
+          }
+        }
+      }
+      
+      if (fixedCount > 0) {
+        console.log(`✅ Fixed inventory deductions for ${fixedCount} spare part entries from existing job cards`);
+        
+        // Reset any negative inventory to 0 (indicates parts were used but not initially stocked)
+        const negativeResult = await pool.query(
+          'UPDATE spare_parts SET quantity = 0 WHERE quantity < 0'
+        );
+        
+        if (negativeResult.rowCount && negativeResult.rowCount > 0) {
+          console.log(`✅ Reset ${negativeResult.rowCount} negative inventory values to 0`);
+        }
+      } else {
+        console.log('✅ No inventory adjustments needed - all job cards already processed');
+      }
+    } catch (error) {
+      console.error('❌ Failed to fix inventory for existing job cards:', error);
+    }
+  }
 }
 
 // Export storage instance

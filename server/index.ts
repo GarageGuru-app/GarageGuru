@@ -88,6 +88,9 @@ async function initializeApp() {
     // Fix existing work_summary with undefined values
     await storage.fixUndefinedWorkSummaries();
     
+    // Fix inventory for existing job cards (one-time migration)
+    await storage.fixInventoryForExistingJobCards();
+    
     // Sync customer visit counts for all garages on startup
     const garages = await storage.getAllGarages();
     for (const garage of garages) {
