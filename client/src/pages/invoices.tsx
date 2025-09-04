@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +13,15 @@ export default function Invoices() {
   const [, navigate] = useLocation();
   const { garage } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [showInitialLoading, setShowInitialLoading] = useState(true);
+
+  // Show loading animation on every page visit
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowInitialLoading(false);
+    }, 800); // Show wrench animation for 800ms on every visit
+    return () => clearTimeout(timer);
+  }, []);
 
   const { data: invoices = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/garages", garage?.id, "invoices"],
@@ -123,7 +132,7 @@ export default function Invoices() {
     window.open(whatsappUrl, '_blank');
   };
 
-  if (isLoading) {
+  if (isLoading || showInitialLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="screen-header">

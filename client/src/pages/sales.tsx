@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +13,15 @@ import { ArrowLeft, Filter, FileText, Settings, TrendingUp, IndianRupee, Bell, B
 export default function Sales() {
   const [, navigate] = useLocation();
   const { garage, user } = useAuth();
+  const [showInitialLoading, setShowInitialLoading] = useState(true);
+
+  // Show loading animation on every page visit
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowInitialLoading(false);
+    }, 800); // Show wrench animation for 800ms on every visit
+    return () => clearTimeout(timer);
+  }, []);
   
   // Check if user is staff - restrict access to financial data
   const isStaff = user?.role === 'mechanic_staff';
@@ -244,7 +253,7 @@ export default function Sales() {
 
 
 
-  if (statsLoading || invoicesLoading || monthlyLoading) {
+  if (statsLoading || invoicesLoading || monthlyLoading || showInitialLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="screen-header">

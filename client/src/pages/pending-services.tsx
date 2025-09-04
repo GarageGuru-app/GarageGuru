@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Search, Bike, Phone, Calendar, Eye, Edit, AlertCircle, CheckCircle, Share, Save, Loader2, Trash2, Wrench, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -20,6 +20,15 @@ export default function PendingServices() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const [showInitialLoading, setShowInitialLoading] = useState(true);
+
+  // Show loading animation on every page visit
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowInitialLoading(false);
+    }, 800); // Show wrench animation for 800ms on every visit
+    return () => clearTimeout(timer);
+  }, []);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
@@ -164,7 +173,7 @@ export default function PendingServices() {
     });
   };
 
-  if (isLoading) {
+  if (isLoading || showInitialLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="screen-header">

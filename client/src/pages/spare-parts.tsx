@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -63,6 +63,15 @@ export default function SpareParts() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
+  const [showInitialLoading, setShowInitialLoading] = useState(true);
+
+  // Show loading animation on every page visit
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowInitialLoading(false);
+    }, 800); // Show wrench animation for 800ms on every visit
+    return () => clearTimeout(timer);
+  }, []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPart, setEditingPart] = useState<any>(null);
   const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
@@ -560,7 +569,7 @@ export default function SpareParts() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || showInitialLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="screen-header">
