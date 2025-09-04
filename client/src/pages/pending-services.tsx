@@ -113,6 +113,9 @@ export default function PendingServices() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards"] });
       queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards", "pending"] });
+      // CRITICAL: Invalidate spare parts cache to show restored inventory
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "spare-parts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "spare-parts", "low-stock"] });
       setIsDeleteConfirmOpen(false);
       setJobToDelete(null);
     },
