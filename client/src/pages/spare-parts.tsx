@@ -32,6 +32,8 @@ import {
   Trash2,
   TriangleAlert,
   QrCode,
+  Wrench,
+  RefreshCw,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -89,7 +91,7 @@ export default function SpareParts() {
     barcode: "",
   });
 
-  const { data: spareParts = [], isLoading } = useQuery({
+  const { data: spareParts = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/garages", garage?.id, "spare-parts"],
     queryFn: async () => {
       if (!garage?.id) return [];
@@ -100,6 +102,8 @@ export default function SpareParts() {
       return response.json();
     },
     enabled: !!garage?.id,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch to get latest inventory counts
   });
 
   const { data: lowStockParts = [] } = useQuery({
@@ -113,6 +117,8 @@ export default function SpareParts() {
       return response.json();
     },
     enabled: !!garage?.id,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch for accurate low stock alerts
   });
 
   const createPartMutation = useMutation({
@@ -572,7 +578,7 @@ export default function SpareParts() {
         </div>
         <div className="screen-content flex items-center justify-center">
           <div className="flex flex-col items-center space-y-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <Wrench className="w-8 h-8 text-primary animate-spin" />
             <span className="text-muted-foreground">
               Loading spare parts...
             </span>
@@ -586,16 +592,27 @@ export default function SpareParts() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="screen-header">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/dashboard")}
+              className="text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h2 className="text-lg font-semibold">Spare Parts</h2>
+          </div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => refetch()}
             className="text-white hover:bg-white/10"
+            data-testid="button-refresh-parts"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <RefreshCw className="w-5 h-5" />
           </Button>
-          <h2 className="text-lg font-semibold">Spare Parts</h2>
         </div>
       </div>
 
