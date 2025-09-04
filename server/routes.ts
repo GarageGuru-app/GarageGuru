@@ -986,7 +986,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   app.put("/api/users/:id", authenticateToken, async (req, res) => {
     try {
       const userId = req.params.id;
-      const { name, username } = req.body;
+      const { name, username, autoWhatsappShare } = req.body;
       
       // Verify user can only update their own profile or admin can update others
       if (req.user.id !== userId && req.user.role !== 'super_admin') {
@@ -1001,7 +1001,11 @@ export async function registerRoutes(app: Express): Promise<void> {
         }
       }
       
-      const updatedUser = await storage.updateUser(userId, { name, username });
+      const updatedUser = await storage.updateUser(userId, { 
+        name, 
+        username, 
+        auto_whatsapp_share: autoWhatsappShare 
+      });
       res.json({ user: { ...updatedUser, password: undefined } });
     } catch (error) {
       console.error('Update user error:', error);
