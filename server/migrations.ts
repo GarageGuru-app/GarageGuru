@@ -36,11 +36,6 @@ export async function runMigrations() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT UNIQUE
     `);
 
-    // Add auto_whatsapp_share column to existing users table if it doesn't exist
-    await pool.query(`
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS auto_whatsapp_share BOOLEAN DEFAULT TRUE
-    `);
-
     // Create customers table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS customers (
