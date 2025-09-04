@@ -106,16 +106,20 @@ export default function PendingServices() {
       const response = await apiRequest("DELETE", `/api/garages/${garage.id}/job-cards/${jobId}`);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidate all relevant queries to refresh data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards", "pending"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "spare-parts"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "spare-parts", "low-stock"] })
+      ]);
+      
       toast({
-        title: "Success",
-        description: "Job card deleted successfully. Spare parts have been returned to inventory.",
+        title: "Service Deleted",
+        description: "Pending service removed and spare parts returned to inventory.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "job-cards", "pending"] });
-      // CRITICAL: Invalidate spare parts cache to show restored inventory
-      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "spare-parts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/garages", garage?.id, "spare-parts", "low-stock"] });
+      
       setIsDeleteConfirmOpen(false);
       setJobToDelete(null);
     },
@@ -176,7 +180,7 @@ export default function PendingServices() {
     });
   };
 
-  if (isLoading || showInitialLoading) {
+  if (isLoading || showInitialLoading || deleteJobCardMutation.isPending) {
     return (
       <div className="min-h-screen bg-background">
         <div className="screen-header">
@@ -195,7 +199,9 @@ export default function PendingServices() {
         <div className="screen-content flex items-center justify-center">
           <div className="flex flex-col items-center space-y-3">
             <Wrench className="w-8 h-8 text-primary animate-spin" />
-            <span className="text-muted-foreground">Loading pending services...</span>
+            <span className="text-muted-foreground">
+              {deleteJobCardMutation.isPending ? 'Deleting service...' : 'Loading pending services...'}
+            </span>
           </div>
         </div>
       </div>
