@@ -21,6 +21,7 @@ import Invoice from "@/pages/invoice";
 import Invoices from "@/pages/invoices";
 import Customers from "@/pages/customers";
 import SpareParts from "@/pages/spare-parts";
+import Cart from "@/pages/cart";
 import Sales from "@/pages/sales";
 import Profile from "@/pages/profile";
 import SuperAdmin from "@/pages/super-admin";
@@ -110,6 +111,14 @@ function Router() {
         <ProtectedRoute roles={["garage_admin"]}>
           <Layout>
             <SpareParts />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/cart">
+        <ProtectedRoute>
+          <Layout>
+            <Cart />
           </Layout>
         </ProtectedRoute>
       </Route>

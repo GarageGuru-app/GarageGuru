@@ -125,6 +125,26 @@ export interface AccessRequest {
   created_at: Date;
 }
 
+export interface CartItem {
+  id: string;
+  garage_id: string;
+  user_id: string;
+  customer_id?: string;
+  session_id?: string;
+  spare_part_id: string;
+  quantity: number;
+  reserved_price: number;
+  status: string;
+  expires_at: Date;
+  created_at: Date;
+  updated_at: Date;
+  // Joined data from spare_parts table
+  spare_part_name?: string;
+  spare_part_number?: string;
+  current_price?: number;
+  available_quantity?: number;
+}
+
 export interface IStorage {
   // Database health
   ping(): Promise<boolean>;
@@ -214,6 +234,19 @@ export interface IStorage {
   getUnreadNotificationCount(garageId: string): Promise<number>;
   markNotificationAsRead(id: string, garageId: string): Promise<void>;
   markAllNotificationsAsRead(garageId: string): Promise<void>;
+  
+  // Cart Management
+  getCartItems(userId: string, garageId: string): Promise<CartItem[]>;
+  addToCart(cartItem: Partial<CartItem>): Promise<CartItem>;
+  updateCartItem(id: string, quantity: number): Promise<CartItem>;
+  removeFromCart(id: string, userId: string): Promise<void>;
+  clearCart(userId: string, garageId: string): Promise<void>;
+  cleanupExpiredCartItems(): Promise<void>;
+  
+  // Inventory Reservation
+  reserveInventory(partId: string, quantity: number, garageId: string): Promise<{success: boolean, message: string, availableQuantity?: number}>;
+  releaseInventory(partId: string, quantity: number, garageId: string): Promise<{success: boolean, message: string}>;
+  getAvailableQuantity(sparePartId: string, garageId: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1378,6 +1411,145 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('❌ Failed to release inventory:', error);
       return { success: false, message: 'Failed to release inventory' };
+    }
+  }
+
+  async getAvailableQuantity(sparePartId: string, garageId: string): Promise<number> {
+    try {
+      const result = await pool.query(
+        'SELECT quantity FROM spare_parts WHERE id = $1 AND garage_id = $2',
+        [sparePartId, garageId]
+      );
+      
+      if (result.rows.length === 0) {
+        return 0;
+      }
+      
+      return parseInt(result.rows[0].quantity) || 0;
+    } catch (error) {
+      console.error('❌ Failed to get available quantity:', error);
+      return 0;
+    }
+  }
+
+  // Cart Management Methods
+  async getCartItems(userId: string, garageId: string): Promise<CartItem[]> {
+    try {
+      const result = await pool.query(`
+        SELECT 
+          ci.*,
+          sp.name as spare_part_name,
+          sp.part_number as spare_part_number,
+          sp.price as current_price,
+          sp.quantity as available_quantity
+        FROM cart_items ci
+        JOIN spare_parts sp ON ci.spare_part_id = sp.id
+        WHERE ci.user_id = $1 AND ci.garage_id = $2 AND ci.status = 'reserved'
+        ORDER BY ci.created_at ASC
+      `, [userId, garageId]);
+      
+      return result.rows;
+    } catch (error) {
+      console.error('❌ Failed to get cart items:', error);
+      return [];
+    }
+  }
+
+  async addToCart(cartItem: Partial<CartItem>): Promise<CartItem> {
+    try {
+      // Set expiration time (24 hours from now)
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+      
+      const result = await pool.query(`
+        INSERT INTO cart_items (
+          garage_id, user_id, customer_id, spare_part_id, 
+          quantity, reserved_price, expires_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+      `, [
+        cartItem.garage_id,
+        cartItem.user_id,
+        cartItem.customer_id || null,
+        cartItem.spare_part_id,
+        cartItem.quantity || 1,
+        cartItem.reserved_price,
+        expiresAt
+      ]);
+      
+      console.log(`🛒 Added ${cartItem.quantity} item(s) to cart for user ${cartItem.user_id}`);
+      return result.rows[0];
+    } catch (error) {
+      console.error('❌ Failed to add to cart:', error);
+      throw error;
+    }
+  }
+
+  async updateCartItem(id: string, quantity: number): Promise<CartItem> {
+    try {
+      const result = await pool.query(`
+        UPDATE cart_items 
+        SET quantity = $1, updated_at = NOW()
+        WHERE id = $2
+        RETURNING *
+      `, [quantity, id]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('Cart item not found');
+      }
+      
+      console.log(`🛒 Updated cart item ${id} quantity to ${quantity}`);
+      return result.rows[0];
+    } catch (error) {
+      console.error('❌ Failed to update cart item:', error);
+      throw error;
+    }
+  }
+
+  async removeFromCart(id: string, userId: string): Promise<void> {
+    try {
+      const result = await pool.query(`
+        DELETE FROM cart_items 
+        WHERE id = $1 AND user_id = $2
+      `, [id, userId]);
+      
+      if (result.rowCount === 0) {
+        throw new Error('Cart item not found');
+      }
+      
+      console.log(`🛒 Removed cart item ${id} for user ${userId}`);
+    } catch (error) {
+      console.error('❌ Failed to remove cart item:', error);
+      throw error;
+    }
+  }
+
+  async clearCart(userId: string, garageId: string): Promise<void> {
+    try {
+      const result = await pool.query(`
+        DELETE FROM cart_items 
+        WHERE user_id = $1 AND garage_id = $2
+      `, [userId, garageId]);
+      
+      console.log(`🛒 Cleared ${result.rowCount} cart items for user ${userId}`);
+    } catch (error) {
+      console.error('❌ Failed to clear cart:', error);
+      throw error;
+    }
+  }
+
+  async cleanupExpiredCartItems(): Promise<void> {
+    try {
+      const result = await pool.query(`
+        DELETE FROM cart_items 
+        WHERE expires_at < NOW() AND status = 'reserved'
+      `);
+      
+      if (result.rowCount && result.rowCount > 0) {
+        console.log(`🧹 Cleaned up ${result.rowCount} expired cart items`);
+      }
+    } catch (error) {
+      console.error('❌ Failed to cleanup expired cart items:', error);
     }
   }
 }

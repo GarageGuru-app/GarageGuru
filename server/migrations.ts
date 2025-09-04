@@ -282,6 +282,31 @@ export async function runMigrations() {
       console.log('Note: pdf_url to download_token migration may have already completed');
     }
 
+    // Create cart_items table for inventory reservation
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS cart_items (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        garage_id VARCHAR NOT NULL REFERENCES garages(id),
+        user_id VARCHAR NOT NULL REFERENCES users(id),
+        customer_id VARCHAR REFERENCES customers(id),
+        session_id TEXT,
+        spare_part_id VARCHAR NOT NULL REFERENCES spare_parts(id),
+        quantity INTEGER NOT NULL DEFAULT 1,
+        reserved_price DECIMAL(10, 2) NOT NULL,
+        status TEXT NOT NULL DEFAULT 'reserved',
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Add indexes for cart_items table
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_cart_items_garage_id ON cart_items(garage_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_cart_items_user_id ON cart_items(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_cart_items_spare_part_id ON cart_items(spare_part_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_cart_items_status ON cart_items(status)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_cart_items_expires_at ON cart_items(expires_at)`);
+
     // Clean up any negative inventory values (safety measure)
     try {
       const negativeResult = await pool.query('SELECT COUNT(*) as count FROM spare_parts WHERE quantity < 0');

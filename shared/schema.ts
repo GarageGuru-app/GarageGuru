@@ -57,6 +57,22 @@ export const spareParts = pgTable("spare_parts", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Cart items for inventory reservation
+export const cartItems = pgTable("cart_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  garageId: varchar("garage_id").notNull().references(() => garages.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  customerId: varchar("customer_id").references(() => customers.id), // Optional for draft carts
+  sessionId: text("session_id"), // For session-based cart tracking
+  sparePartId: varchar("spare_part_id").notNull().references(() => spareParts.id),
+  quantity: integer("quantity").notNull().default(1),
+  reservedPrice: decimal("reserved_price", { precision: 10, scale: 2 }).notNull(), // Price locked at time of reservation
+  status: text("status").notNull().default("reserved"), // 'reserved', 'completed', 'cancelled'
+  expiresAt: timestamp("expires_at").notNull(), // Auto-cleanup after timeout
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Job cards/complaints
 export const jobCards = pgTable("job_cards", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -211,6 +227,16 @@ export type InsertSparePart = z.infer<typeof insertSparePartSchema>;
 export type InsertJobCard = z.infer<typeof insertJobCardSchema>;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 export type Notification = typeof notifications.$inferSelect;
+
+// Cart types
+export const insertCartItemSchema = createInsertSchema(cartItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CartItem = typeof cartItems.$inferSelect;
+export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
 
 // Notifications table
 export const notifications = pgTable("notifications", {

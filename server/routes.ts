@@ -1285,6 +1285,154 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Cart routes for inventory reservation
+  app.get("/api/garages/:garageId/cart", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const userId = (req as any).user.id;
+      
+      const cartItems = await storage.getCartItems(userId, garageId);
+      res.json(cartItems);
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+      res.status(500).json({ message: 'Failed to fetch cart items' });
+    }
+  });
+
+  app.post("/api/garages/:garageId/cart", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const userId = (req as any).user.id;
+      const { sparePartId, quantity, customerId } = req.body;
+      
+      if (!sparePartId || !quantity || quantity <= 0) {
+        return res.status(400).json({ message: 'Valid spare part ID and quantity are required' });
+      }
+      
+      // Get spare part info for price
+      const sparePart = await storage.getSparePart(sparePartId, garageId);
+      if (!sparePart) {
+        return res.status(404).json({ message: 'Spare part not found' });
+      }
+      
+      // Check available quantity (current stock minus already reserved in cart)
+      const availableQuantity = await storage.getAvailableQuantity(sparePartId, garageId);
+      if (availableQuantity < quantity) {
+        return res.status(400).json({ 
+          message: `Insufficient stock. Available: ${availableQuantity}`,
+          availableQuantity 
+        });
+      }
+      
+      // Reserve inventory immediately
+      const reservationResult = await storage.reserveInventory(sparePartId, quantity, garageId);
+      if (!reservationResult.success) {
+        return res.status(400).json({ message: reservationResult.message });
+      }
+      
+      // Add to cart with reserved price
+      const cartItem = await storage.addToCart({
+        garage_id: garageId,
+        user_id: userId,
+        customer_id: customerId,
+        spare_part_id: sparePartId,
+        quantity,
+        reserved_price: Number(sparePart.price)
+      });
+      
+      res.status(201).json(cartItem);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      res.status(500).json({ message: 'Failed to add item to cart' });
+    }
+  });
+
+  app.put("/api/garages/:garageId/cart/:itemId", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId, itemId } = req.params;
+      const userId = (req as any).user.id;
+      const { quantity } = req.body;
+      
+      if (!quantity || quantity <= 0) {
+        return res.status(400).json({ message: 'Valid quantity is required' });
+      }
+      
+      // Get current cart item
+      const cartItems = await storage.getCartItems(userId, garageId);
+      const currentItem = cartItems.find(item => item.id === itemId);
+      
+      if (!currentItem) {
+        return res.status(404).json({ message: 'Cart item not found' });
+      }
+      
+      // Calculate quantity difference
+      const quantityDiff = quantity - currentItem.quantity;
+      
+      if (quantityDiff > 0) {
+        // Need to reserve more inventory
+        const reservationResult = await storage.reserveInventory(currentItem.spare_part_id, quantityDiff, garageId);
+        if (!reservationResult.success) {
+          return res.status(400).json({ message: reservationResult.message });
+        }
+      } else if (quantityDiff < 0) {
+        // Need to release some inventory
+        await storage.releaseInventory(currentItem.spare_part_id, Math.abs(quantityDiff), garageId);
+      }
+      
+      // Update cart item
+      const updatedItem = await storage.updateCartItem(itemId, quantity);
+      res.json(updatedItem);
+    } catch (error) {
+      console.error('Error updating cart item:', error);
+      res.status(500).json({ message: 'Failed to update cart item' });
+    }
+  });
+
+  app.delete("/api/garages/:garageId/cart/:itemId", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId, itemId } = req.params;
+      const userId = (req as any).user.id;
+      
+      // Get cart item to release inventory
+      const cartItems = await storage.getCartItems(userId, garageId);
+      const cartItem = cartItems.find(item => item.id === itemId);
+      
+      if (cartItem) {
+        // Release reserved inventory
+        await storage.releaseInventory(cartItem.spare_part_id, cartItem.quantity, garageId);
+      }
+      
+      // Remove from cart
+      await storage.removeFromCart(itemId, userId);
+      res.json({ message: 'Item removed from cart' });
+    } catch (error) {
+      console.error('Error removing cart item:', error);
+      res.status(500).json({ message: 'Failed to remove cart item' });
+    }
+  });
+
+  app.delete("/api/garages/:garageId/cart", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId } = req.params;
+      const userId = (req as any).user.id;
+      
+      // Get all cart items to release inventory
+      const cartItems = await storage.getCartItems(userId, garageId);
+      
+      // Release all reserved inventory
+      for (const item of cartItems) {
+        await storage.releaseInventory(item.spare_part_id, item.quantity, garageId);
+      }
+      
+      // Clear cart
+      await storage.clearCart(userId, garageId);
+      res.json({ message: 'Cart cleared' });
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      res.status(500).json({ message: 'Failed to clear cart' });
+    }
+  });
+
   // Job card routes
   app.get("/api/garages/:garageId/job-cards", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
