@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, FileText, Share, Wrench } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ArrowLeft, FileText, Share, Wrench, AlertTriangle, CheckCircle2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 import { generateInvoicePDF, generateDownloadToken, createDownloadURL } from "@/utils/pdf-generator";
@@ -26,6 +27,8 @@ export default function Invoice() {
   const [isSharingWhatsApp, setIsSharingWhatsApp] = useState(false);
   const [completionNotes, setCompletionNotes] = useState("");
   const [workSummary, setWorkSummary] = useState("");
+  const [showPartsConfirmation, setShowPartsConfirmation] = useState(false);
+  const [pendingWhatsAppShare, setPendingWhatsAppShare] = useState(false);
 
   const { data: jobCard, isLoading } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards", jobCardId],
@@ -142,6 +145,28 @@ export default function Invoice() {
   };
   
   const invoiceNumber = `INV-${Date.now()}`;
+
+  // Handle spare parts confirmation dialog
+  const handleInvoiceGeneration = (sendWhatsApp: boolean = false) => {
+    if (spareParts && spareParts.length > 0) {
+      // Show spare parts confirmation if there are parts
+      setPendingWhatsAppShare(sendWhatsApp);
+      setShowPartsConfirmation(true);
+    } else {
+      // No spare parts, proceed directly
+      handleGeneratePDF(sendWhatsApp);
+    }
+  };
+
+  const handlePartsConfirmed = () => {
+    setShowPartsConfirmation(false);
+    handleGeneratePDF(pendingWhatsAppShare);
+  };
+
+  const handleEditJobCard = () => {
+    setShowPartsConfirmation(false);
+    navigate(`/edit-job-card/${jobCardId}`);
+  };
 
   const handlePreviewPDF = async () => {
     setIsGenerating(true);
@@ -501,7 +526,7 @@ export default function Invoice() {
         {/* Action Buttons */}
         <div className="space-y-3">
           <Button
-            onClick={() => handleGeneratePDF(true)}
+            onClick={() => handleInvoiceGeneration(true)}
             disabled={isGenerating || isSharingWhatsApp || isRefreshingDB}
             className="w-full"
           >
@@ -527,7 +552,7 @@ export default function Invoice() {
           </Button>
           
           <Button
-            onClick={() => handleGeneratePDF(false)}
+            onClick={() => handleInvoiceGeneration(false)}
             disabled={isGenerating || isSharingWhatsApp || isRefreshingDB}
             variant="outline"
             className="w-full"
@@ -537,6 +562,82 @@ export default function Invoice() {
           </Button>
         </div>
       </div>
+
+      {/* Spare Parts Confirmation Dialog */}
+      <Dialog open={showPartsConfirmation} onOpenChange={setShowPartsConfirmation}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Confirm Spare Parts
+            </DialogTitle>
+            <DialogDescription>
+              Please verify that these spare parts are correct for this job before generating the invoice:
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 max-h-60 overflow-y-auto">
+            <div className="text-sm font-medium text-muted-foreground">
+              Customer: {jobCard?.customer_name} | Bike: {jobCard?.bike_number}
+            </div>
+            
+            {spareParts && spareParts.length > 0 ? (
+              spareParts.map((part: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium">{part.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Qty: {part.quantity} × ₹{part.price}
+                    </div>
+                  </div>
+                  <div className="text-right font-medium">
+                    ₹{(part.price * part.quantity).toFixed(2)}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-muted-foreground py-4">
+                No spare parts added
+              </div>
+            )}
+            
+            {spareParts && spareParts.length > 0 && (
+              <div className="flex justify-between items-center pt-2 border-t font-medium">
+                <span>Total Parts:</span>
+                <span>₹{partsTotal.toFixed(2)}</span>
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-3 pt-4">
+            <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-2 rounded">
+              <AlertTriangle className="w-4 h-4" />
+              Are these parts correct for this service?
+            </div>
+            
+            <div className="flex gap-2">
+              <Button
+                onClick={handleEditJobCard}
+                variant="outline"
+                className="flex-1"
+                data-testid="button-edit-job-card"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Job Card
+              </Button>
+              
+              <Button
+                onClick={handlePartsConfirmed}
+                className="flex-1"
+                data-testid="button-confirm-parts"
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Confirm & Generate Invoice
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
