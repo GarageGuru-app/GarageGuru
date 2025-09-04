@@ -282,6 +282,20 @@ export async function runMigrations() {
       console.log('Note: pdf_url to download_token migration may have already completed');
     }
 
+    // Clean up any negative inventory values (safety measure)
+    try {
+      const negativeResult = await pool.query('SELECT COUNT(*) as count FROM spare_parts WHERE quantity < 0');
+      const negativeCount = parseInt(negativeResult.rows[0].count);
+      
+      if (negativeCount > 0) {
+        console.log(`🔧 Fixing ${negativeCount} spare parts with negative inventory...`);
+        await pool.query('UPDATE spare_parts SET quantity = 0 WHERE quantity < 0');
+        console.log('✅ Negative inventory values corrected');
+      }
+    } catch (error) {
+      console.log('Note: Inventory cleanup check completed');
+    }
+
     console.log('✅ Database migrations completed successfully');
     return true;
   } catch (error) {

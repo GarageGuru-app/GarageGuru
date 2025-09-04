@@ -612,12 +612,20 @@ export class DatabaseStorage implements IStorage {
         }
       }
       
-      // Deduct quantities from inventory
+      // Deduct quantities from inventory with safety check to prevent negative values
       for (const part of jobCard.spare_parts) {
-        await pool.query(
-          'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2',
+        const updateResult = await pool.query(
+          'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2 AND quantity >= $1 RETURNING quantity',
           [part.quantity, part.id]
         );
+        
+        // If no rows were affected, it means insufficient stock at the moment of deduction
+        if (updateResult.rowCount === 0) {
+          // Get current quantity for error message
+          const currentStock = await pool.query('SELECT quantity FROM spare_parts WHERE id = $1', [part.id]);
+          const available = currentStock.rows[0]?.quantity || 0;
+          throw new Error(`Insufficient stock for ${part.name}. Available: ${available}, Required: ${part.quantity}`);
+        }
       }
     }
     
