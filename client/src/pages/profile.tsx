@@ -399,25 +399,27 @@ export default function Profile() {
                       Optional: Set a username to login faster instead of typing your full email
                     </p>
                   </div>
-                  <div>
-                    <Label htmlFor="whatsappToggle" className="flex items-center gap-2 text-sm font-medium">
-                      <MessageCircle className="w-4 h-4" />
-                      WhatsApp Auto-Open
-                    </Label>
-                    <div className="flex items-center justify-between pt-2">
-                      <div className="flex flex-col">
-                        <span className="text-sm text-muted-foreground">
-                          Automatically open WhatsApp when sending invoices
-                        </span>
+                  {user?.role === 'garage_admin' && (
+                    <div>
+                      <Label htmlFor="whatsappToggle" className="flex items-center gap-2 text-sm font-medium">
+                        <MessageCircle className="w-4 h-4" />
+                        WhatsApp Auto-Open
+                      </Label>
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">
+                            Automatically open WhatsApp when sending invoices
+                          </span>
+                        </div>
+                        <Switch
+                          id="whatsappToggle"
+                          checked={userForm.autoWhatsappShare}
+                          onCheckedChange={(checked) => setUserForm(prev => ({ ...prev, autoWhatsappShare: checked }))}
+                          data-testid="toggle-whatsapp-auto-share"
+                        />
                       </div>
-                      <Switch
-                        id="whatsappToggle"
-                        checked={userForm.autoWhatsappShare}
-                        onCheckedChange={(checked) => setUserForm(prev => ({ ...prev, autoWhatsappShare: checked }))}
-                        data-testid="toggle-whatsapp-auto-share"
-                      />
                     </div>
-                  </div>
+                  )}
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -457,15 +459,17 @@ export default function Profile() {
               <span className="text-muted-foreground">Role</span>
               <span className="font-medium capitalize">{user?.role?.replace('_', ' ')}</span>
             </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-muted-foreground flex items-center gap-2">
-                <MessageCircle className="w-4 h-4" />
-                WhatsApp Auto-Open
-              </span>
-              <span className="font-medium">
-                {user?.autoWhatsappShare ? "Enabled" : "Disabled"}
-              </span>
-            </div>
+            {user?.role === 'garage_admin' && (
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp Auto-Open
+                </span>
+                <span className="font-medium">
+                  {user?.autoWhatsappShare ? "Enabled" : "Disabled"}
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
