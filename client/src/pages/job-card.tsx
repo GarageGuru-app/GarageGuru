@@ -134,6 +134,18 @@ export default function JobCard() {
             price: Number(part.price),
           };
         }
+      } else if (field === "quantity") {
+        // Validate quantity against available stock
+        const part = spareParts.find((p: any) => p.id === updated[index].id);
+        if (part && value > part.quantity) {
+          toast({
+            title: "Insufficient Stock",
+            description: `Only ${part.quantity} units available for ${part.name}`,
+            variant: "destructive",
+          });
+          return prev; // Don't update if insufficient stock
+        }
+        updated[index] = { ...updated[index], [field]: value };
       } else {
         updated[index] = { ...updated[index], [field]: value };
       }
@@ -150,8 +162,25 @@ export default function JobCard() {
     if (part) {
       const existingIndex = selectedParts.findIndex(p => p.id === part.id);
       if (existingIndex >= 0) {
-        updateSparePart(existingIndex, "quantity", selectedParts[existingIndex].quantity + 1);
+        const newQuantity = selectedParts[existingIndex].quantity + 1;
+        if (newQuantity > part.quantity) {
+          toast({
+            title: "Insufficient Stock",
+            description: `Only ${part.quantity} units available for ${part.name}`,
+            variant: "destructive",
+          });
+          return;
+        }
+        updateSparePart(existingIndex, "quantity", newQuantity);
       } else {
+        if (part.quantity < 1) {
+          toast({
+            title: "Out of Stock",
+            description: `${part.name} is currently out of stock`,
+            variant: "destructive",
+          });
+          return;
+        }
         setSelectedParts(prev => [...prev, {
           id: part.id,
           partNumber: part.partNumber || part.part_number,

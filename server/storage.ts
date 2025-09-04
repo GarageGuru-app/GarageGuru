@@ -597,6 +597,30 @@ export class DatabaseStorage implements IStorage {
 
   async createJobCard(jobCard: Partial<JobCard>): Promise<JobCard> {
     const id = jobCard.id || crypto.randomUUID();
+    
+    // Validate spare parts inventory before creating job card
+    if (jobCard.spare_parts && jobCard.spare_parts.length > 0) {
+      for (const part of jobCard.spare_parts) {
+        const partResult = await pool.query('SELECT quantity FROM spare_parts WHERE id = $1', [part.id]);
+        if (partResult.rows.length === 0) {
+          throw new Error(`Spare part with ID ${part.id} not found`);
+        }
+        
+        const availableQuantity = parseInt(partResult.rows[0].quantity);
+        if (availableQuantity < part.quantity) {
+          throw new Error(`Insufficient stock for ${part.name}. Available: ${availableQuantity}, Required: ${part.quantity}`);
+        }
+      }
+      
+      // Deduct quantities from inventory
+      for (const part of jobCard.spare_parts) {
+        await pool.query(
+          'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2',
+          [part.quantity, part.id]
+        );
+      }
+    }
+    
     const result = await pool.query(
       'INSERT INTO job_cards (id, garage_id, customer_id, customer_name, phone, bike_number, complaint, status, spare_parts, service_charge, water_wash_charge, diesel_charge, petrol_charge, foundry_charge, total_amount, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *',
       [id, jobCard.garage_id, jobCard.customer_id, jobCard.customer_name, jobCard.phone, jobCard.bike_number, jobCard.complaint, jobCard.status || 'pending', JSON.stringify(jobCard.spare_parts), jobCard.service_charge || 0, (jobCard as any).water_wash_charge || 0, (jobCard as any).diesel_charge || 0, (jobCard as any).petrol_charge || 0, (jobCard as any).foundry_charge || 0, jobCard.total_amount || 0, new Date()]

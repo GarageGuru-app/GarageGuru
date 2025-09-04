@@ -241,10 +241,31 @@ export default function EditJobCard() {
     const existingPartIndex = formData.spareParts.findIndex((p) => p.id === part.id);
     
     if (existingPartIndex >= 0) {
+      const currentQuantity = formData.spareParts[existingPartIndex].quantity;
+      const newQuantity = currentQuantity + 1;
+      
+      if (newQuantity > part.quantity) {
+        toast({
+          title: "Insufficient Stock",
+          description: `Only ${part.quantity} units available for ${part.name}`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const updatedParts = [...formData.spareParts];
-      updatedParts[existingPartIndex].quantity += 1;
+      updatedParts[existingPartIndex].quantity = newQuantity;
       setFormData(prev => ({ ...prev, spareParts: updatedParts }));
     } else {
+      if (part.quantity < 1) {
+        toast({
+          title: "Out of Stock",
+          description: `${part.name} is currently out of stock`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const newPart = {
         id: part.id,
         partNumber: part.part_number || "",
@@ -265,6 +286,20 @@ export default function EditJobCard() {
 
   const updateSparePartQuantity = (index: number, quantity: number) => {
     if (quantity <= 0) return;
+    
+    // Find the spare part details to check available stock
+    const partId = formData.spareParts[index].id;
+    const part = availableParts?.find((p: any) => p.id === partId);
+    
+    if (part && quantity > part.quantity) {
+      toast({
+        title: "Insufficient Stock",
+        description: `Only ${part.quantity} units available for ${part.name}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const updatedParts = [...formData.spareParts];
     updatedParts[index].quantity = quantity;
     setFormData(prev => ({ ...prev, spareParts: updatedParts }));
