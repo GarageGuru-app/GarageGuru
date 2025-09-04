@@ -1289,6 +1289,81 @@ export class DatabaseStorage implements IStorage {
       console.error('❌ Failed to fix inventory for existing job cards:', error);
     }
   }
+
+  async reserveInventory(partId: string, quantity: number, garageId: string): Promise<{success: boolean, message: string, availableQuantity?: number}> {
+    try {
+      // Check current inventory
+      const result = await pool.query(
+        'SELECT quantity, name FROM spare_parts WHERE id = $1 AND garage_id = $2',
+        [partId, garageId]
+      );
+      
+      if (result.rows.length === 0) {
+        return { success: false, message: 'Spare part not found' };
+      }
+      
+      const currentQuantity = parseInt(result.rows[0].quantity);
+      const partName = result.rows[0].name;
+      
+      if (currentQuantity < quantity) {
+        return { 
+          success: false, 
+          message: `Insufficient stock for ${partName}. Available: ${currentQuantity}, Requested: ${quantity}`,
+          availableQuantity: currentQuantity
+        };
+      }
+      
+      // Reserve the inventory by deducting it
+      await pool.query(
+        'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2 AND garage_id = $3',
+        [quantity, partId, garageId]
+      );
+      
+      console.log(`🔒 Reserved ${quantity} ${partName} from inventory (remaining: ${currentQuantity - quantity})`);
+      
+      return { 
+        success: true, 
+        message: `Successfully reserved ${quantity} ${partName}`,
+        availableQuantity: currentQuantity - quantity
+      };
+    } catch (error) {
+      console.error('❌ Failed to reserve inventory:', error);
+      return { success: false, message: 'Failed to reserve inventory' };
+    }
+  }
+
+  async releaseInventory(partId: string, quantity: number, garageId: string): Promise<{success: boolean, message: string}> {
+    try {
+      // Get part info for logging
+      const result = await pool.query(
+        'SELECT name, quantity FROM spare_parts WHERE id = $1 AND garage_id = $2',
+        [partId, garageId]
+      );
+      
+      if (result.rows.length === 0) {
+        return { success: false, message: 'Spare part not found' };
+      }
+      
+      const partName = result.rows[0].name;
+      const currentQuantity = parseInt(result.rows[0].quantity);
+      
+      // Release the inventory by adding it back
+      await pool.query(
+        'UPDATE spare_parts SET quantity = quantity + $1 WHERE id = $2 AND garage_id = $3',
+        [quantity, partId, garageId]
+      );
+      
+      console.log(`🔓 Released ${quantity} ${partName} back to inventory (now: ${currentQuantity + quantity})`);
+      
+      return { 
+        success: true, 
+        message: `Successfully released ${quantity} ${partName} back to inventory`
+      };
+    } catch (error) {
+      console.error('❌ Failed to release inventory:', error);
+      return { success: false, message: 'Failed to release inventory' };
+    }
+  }
 }
 
 // Export storage instance

@@ -120,79 +120,174 @@ export default function JobCard() {
     setSelectedParts(prev => [...prev, { id: "", partNumber: "", name: "", quantity: 1, price: 0 }]);
   };
 
-  const updateSparePart = (index: number, field: string, value: any) => {
-    setSelectedParts(prev => {
-      const updated = [...prev];
-      if (field === "id") {
-        const part = spareParts.find((p: any) => p.id === value);
-        if (part) {
-          updated[index] = {
-            id: part.id,
-            partNumber: part.partNumber,
-            name: part.name,
-            quantity: updated[index].quantity,
-            price: Number(part.price),
-          };
-        }
-      } else if (field === "quantity") {
-        // Validate quantity against available stock
-        const part = spareParts.find((p: any) => p.id === updated[index].id);
-        if (part && value > part.quantity) {
-          toast({
-            title: "Insufficient Stock",
-            description: `Only ${part.quantity} units available for ${part.name}`,
-            variant: "destructive",
-          });
-          return prev; // Don't update if insufficient stock
-        }
-        updated[index] = { ...updated[index], [field]: value };
-      } else {
-        updated[index] = { ...updated[index], [field]: value };
+  const reserveInventory = async (partId: string, quantity: number) => {
+    try {
+      const response = await fetch(`/api/garages/${garage?.id}/spare-parts/${partId}/reserve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ quantity })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
       }
-      return updated;
-    });
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Inventory reservation failed:', error);
+      throw error;
+    }
   };
 
-  const removeSparePart = (index: number) => {
+  const releaseInventory = async (partId: string, quantity: number) => {
+    try {
+      await fetch(`/api/garages/${garage?.id}/spare-parts/${partId}/release`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ quantity })
+      });
+    } catch (error) {
+      console.error('Inventory release failed:', error);
+    }
+  };
+
+  const updateSparePart = async (index: number, field: string, value: any) => {
+    if (field === "id") {
+      const part = spareParts.find((p: any) => p.id === value);
+      if (part) {
+        try {
+          // Reserve 1 unit immediately when part is selected
+          await reserveInventory(part.id, 1);
+          
+          setSelectedParts(prev => {
+            const updated = [...prev];
+            updated[index] = {
+              id: part.id,
+              partNumber: part.partNumber,
+              name: part.name,
+              quantity: 1,
+              price: Number(part.price),
+            };
+            return updated;
+          });
+          
+          toast({
+            title: "Part Reserved",
+            description: `${part.name} reserved from inventory`,
+          });
+        } catch (error) {
+          toast({
+            title: "Reservation Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      }
+    } else if (field === "quantity") {
+      const currentPart = selectedParts[index];
+      if (currentPart.id && value !== currentPart.quantity) {
+        const quantityDiff = value - currentPart.quantity;
+        
+        try {
+          if (quantityDiff > 0) {
+            // Reserve additional units
+            await reserveInventory(currentPart.id, quantityDiff);
+            toast({
+              title: "Additional Units Reserved",
+              description: `${quantityDiff} more ${currentPart.name} reserved`,
+            });
+          } else {
+            // Release units back to inventory
+            await releaseInventory(currentPart.id, Math.abs(quantityDiff));
+            toast({
+              title: "Units Released",
+              description: `${Math.abs(quantityDiff)} ${currentPart.name} returned to inventory`,
+            });
+          }
+          
+          setSelectedParts(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+          });
+        } catch (error) {
+          toast({
+            title: "Inventory Update Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        setSelectedParts(prev => {
+          const updated = [...prev];
+          updated[index] = { ...updated[index], [field]: value };
+          return updated;
+        });
+      }
+    } else {
+      setSelectedParts(prev => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], [field]: value };
+        return updated;
+      });
+    }
+  };
+
+  const removeSparePart = async (index: number) => {
+    const partToRemove = selectedParts[index];
+    if (partToRemove.id && partToRemove.quantity > 0) {
+      // Release the reserved inventory back to stock
+      await releaseInventory(partToRemove.id, partToRemove.quantity);
+      toast({
+        title: "Inventory Released",
+        description: `${partToRemove.quantity} ${partToRemove.name} returned to inventory`,
+      });
+    }
+    
     setSelectedParts(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleBarcodeScanned = (barcode: string) => {
+  const handleBarcodeScanned = async (barcode: string) => {
     const part = spareParts.find((p: any) => p.barcode === barcode || p.partNumber === barcode || p.part_number === barcode);
     if (part) {
       const existingIndex = selectedParts.findIndex(p => p.id === part.id);
       if (existingIndex >= 0) {
+        // Part already exists, increase quantity by 1
         const newQuantity = selectedParts[existingIndex].quantity + 1;
-        if (newQuantity > part.quantity) {
-          toast({
-            title: "Insufficient Stock",
-            description: `Only ${part.quantity} units available for ${part.name}`,
-            variant: "destructive",
-          });
-          return;
-        }
-        updateSparePart(existingIndex, "quantity", newQuantity);
+        await updateSparePart(existingIndex, "quantity", newQuantity);
       } else {
-        if (part.quantity < 1) {
+        // New part, reserve 1 unit
+        try {
+          await reserveInventory(part.id, 1);
+          
+          setSelectedParts(prev => [...prev, {
+            id: part.id,
+            partNumber: part.partNumber || part.part_number,
+            name: part.name,
+            quantity: 1,
+            price: Number(part.price),
+          }]);
+          
           toast({
-            title: "Out of Stock",
-            description: `${part.name} is currently out of stock`,
+            title: "Part Reserved",
+            description: `${part.name} reserved from inventory`,
+          });
+        } catch (error) {
+          toast({
+            title: "Reservation Failed",
+            description: error.message,
             variant: "destructive",
           });
-          return;
         }
-        setSelectedParts(prev => [...prev, {
-          id: part.id,
-          partNumber: part.partNumber || part.part_number,
-          name: part.name,
-          quantity: 1,
-          price: Number(part.price),
-        }]);
       }
-      toast({
-        title: "Part Added",
-        description: `${part.name} added to job card`,
-      });
     } else {
       toast({
         title: "Part Not Found",

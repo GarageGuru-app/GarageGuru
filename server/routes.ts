@@ -1246,6 +1246,45 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Inventory reservation endpoints for real-time stock management
+  app.post("/api/garages/:garageId/spare-parts/:id/reserve", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId, id } = req.params;
+      const { quantity } = req.body;
+      
+      if (!quantity || quantity <= 0) {
+        return res.status(400).json({ message: 'Valid quantity is required' });
+      }
+      
+      const result = await storage.reserveInventory(id, quantity, garageId);
+      if (!result.success) {
+        return res.status(400).json({ message: result.message });
+      }
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Inventory reservation error:', error);
+      res.status(500).json({ message: 'Failed to reserve inventory' });
+    }
+  });
+
+  app.post("/api/garages/:garageId/spare-parts/:id/release", authenticateToken, requireGarageAccess, async (req, res) => {
+    try {
+      const { garageId, id } = req.params;
+      const { quantity } = req.body;
+      
+      if (!quantity || quantity <= 0) {
+        return res.status(400).json({ message: 'Valid quantity is required' });
+      }
+      
+      const result = await storage.releaseInventory(id, quantity, garageId);
+      res.json(result);
+    } catch (error) {
+      console.error('Inventory release error:', error);
+      res.status(500).json({ message: 'Failed to release inventory' });
+    }
+  });
+
   // Job card routes
   app.get("/api/garages/:garageId/job-cards", authenticateToken, requireGarageAccess, async (req, res) => {
     try {
