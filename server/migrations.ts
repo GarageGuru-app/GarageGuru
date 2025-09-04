@@ -336,9 +336,9 @@ export async function runMigrations() {
 
 export async function createSuperAdmin() {
   // Read super admin accounts from environment variables
-  const superAdminEmails = process.env.SUPER_ADMIN_EMAILS || 'ananthautomotivegarage@gmail.com,gorla.ananthkalyan@gmail.com';
+  const superAdminEmails = process.env.SUPER_ADMIN_EMAILS || 'ananthautomotivegarage@gmail.com,ananthkalyan46@gmail.com';
   const superAdminNames = process.env.SUPER_ADMIN_NAMES || 'Ananth Automotive Admin,Ananth Kalyan';
-  const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || 'Ananth123';
+  const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || 'Ananth12e';
   
   // Parse comma-separated values
   const emails = superAdminEmails.split(',').map(email => email.trim()).filter(email => email);
@@ -365,20 +365,22 @@ export async function createSuperAdmin() {
       
       if (existingAdmin.rows.length === 0) {
         // Create super admin with configured password
+        const username = admin.email === 'ananthkalyan46@gmail.com' ? 'Kalyan' : null;
         await pool.query(`
-          INSERT INTO users (email, password, role, name, garage_id, first_login, must_change_password)
-          VALUES ($1, $2, 'super_admin', $3, NULL, true, false)
-        `, [admin.email, defaultPassword, admin.name]);
+          INSERT INTO users (email, password, role, name, garage_id, first_login, must_change_password, username)
+          VALUES ($1, $2, 'super_admin', $3, NULL, true, false, $4)
+        `, [admin.email, defaultPassword, admin.name, username]);
         
         console.log(`✅ Super admin created: ${admin.email}`);
         console.log(`👤 Name: ${admin.name}`);
         console.log(`🔑 Password: ${superAdminPassword}`);
       } else {
         // Reset super admin password and update name
+        const username = admin.email === 'ananthkalyan46@gmail.com' ? 'Kalyan' : null;
         await pool.query(`
-          UPDATE users SET password = $2, name = $3, first_login = true, must_change_password = false 
+          UPDATE users SET password = $2, name = $3, first_login = true, must_change_password = false, username = $4 
           WHERE email = $1
-        `, [admin.email, defaultPassword, admin.name]);
+        `, [admin.email, defaultPassword, admin.name, username]);
         
         console.log(`✅ Super admin updated: ${admin.email}`);
         console.log(`👤 Name: ${admin.name}`);
