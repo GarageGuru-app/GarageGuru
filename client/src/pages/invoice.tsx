@@ -127,10 +127,10 @@ export default function Invoice() {
   const petrolCharge = Number((jobCard as any).petrol_charge || 0);
   const foundryCharge = Number((jobCard as any).foundry_charge || 0);
   
-  // Service charge includes water wash, diesel, and petrol (but NOT foundry)
-  const combinedServiceCharge = serviceCharge + waterWashCharge + dieselCharge + petrolCharge;
+  // Service charge includes all operational charges: water wash, diesel, petrol, and foundry
+  const combinedServiceCharge = serviceCharge + waterWashCharge + dieselCharge + petrolCharge + foundryCharge;
   
-  const totalAmount = partsTotal + combinedServiceCharge + foundryCharge;
+  const totalAmount = partsTotal + combinedServiceCharge;
   
   // Create short, simple invoice filename
   const createInvoiceFilename = (invoiceId: string) => {
@@ -153,7 +153,6 @@ export default function Invoice() {
         garage,
         serviceCharge: combinedServiceCharge,
         invoiceNumber,
-        foundryCharge,
       });
       
       // Open PDF in new tab for preview with proper MIME type
@@ -214,7 +213,6 @@ export default function Invoice() {
         garage,
         serviceCharge: combinedServiceCharge,
         invoiceNumber,
-        foundryCharge,
       });
       
       // Generate download token for PDF access
@@ -261,7 +259,6 @@ export default function Invoice() {
         garage,
         serviceCharge: combinedServiceCharge,
         invoiceNumber: finalFilename,
-        foundryCharge,
       });
       
       // Update the download token with final filename
@@ -444,9 +441,9 @@ export default function Invoice() {
                       />
                     </div>
                   </div>
-                  {(waterWashCharge > 0 || dieselCharge > 0 || petrolCharge > 0) && (
+                  {(waterWashCharge > 0 || dieselCharge > 0 || petrolCharge > 0 || foundryCharge > 0) && (
                     <div className="text-xs text-muted-foreground italic ml-1">
-                      *Includes {[waterWashCharge > 0 ? 'water wash' : '', dieselCharge > 0 ? 'diesel' : '', petrolCharge > 0 ? 'petrol' : ''].filter(Boolean).join(', ')} charges
+                      *Includes {[waterWashCharge > 0 ? 'water wash' : '', dieselCharge > 0 ? 'diesel' : '', petrolCharge > 0 ? 'petrol' : '', foundryCharge > 0 ? 'foundry' : ''].filter(Boolean).join(', ')} charges
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
@@ -454,12 +451,6 @@ export default function Invoice() {
                     <span className="font-medium">₹{combinedServiceCharge.toFixed(2)}</span>
                   </div>
                 </div>
-                {foundryCharge > 0 && (
-                  <div className="flex justify-between text-sm mt-1">
-                    <span className="text-muted-foreground">Foundry:</span>
-                    <span>₹{foundryCharge.toFixed(2)}</span>
-                  </div>
-                )}
                 <div className="flex justify-between font-semibold text-lg mt-2 pt-2 border-t border-border">
                   <span>Total Amount:</span>
                   <span className="text-primary">₹{totalAmount.toFixed(2)}</span>
