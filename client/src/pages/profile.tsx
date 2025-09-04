@@ -47,7 +47,7 @@ export default function Profile() {
   const [userForm, setUserForm] = useState({
     name: user?.name || "",
     username: user?.username || "",
-    autoWhatsappShare: user?.autoWhatsappShare ?? true,
+    autoWhatsappShare: user?.auto_whatsapp_share ?? true,
   });
   
   const [isUserEditDialogOpen, setIsUserEditDialogOpen] = useState(false);
@@ -466,7 +466,7 @@ export default function Profile() {
                   WhatsApp Auto-Open
                 </span>
                 <span className="font-medium">
-                  {user?.autoWhatsappShare ? "Enabled" : "Disabled"}
+                  {user?.auto_whatsapp_share !== false ? "Enabled" : "Disabled"}
                 </span>
               </div>
             )}

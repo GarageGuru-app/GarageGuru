@@ -280,8 +280,8 @@ export default function Invoice() {
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Check user's WhatsApp auto-open preference before opening WhatsApp
-        if (user?.autoWhatsappShare !== false) {
+        // Check user's WhatsApp auto-open preference before opening WhatsApp  
+        if (user?.auto_whatsapp_share !== false) {
           // Send WhatsApp message with download URL
           sendWhatsAppMessage(jobCard.phone || '', finalDownloadUrl, garage?.name || 'GarageName');
           toast({
