@@ -219,7 +219,7 @@ export function UserManual() {
               >
                 {isGenerating ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <Wrench className="w-4 h-4 text-white animate-spin mr-2" />
                     Generating PDF...
                   </>
                 ) : (

@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode, Calculator } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, QrCode, Calculator, Wrench } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import * as z from "zod";
@@ -310,7 +310,7 @@ export default function EditJobCard() {
         </div>
         <div className="screen-content flex items-center justify-center">
           <div className="flex flex-col items-center space-y-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <Wrench className="w-8 h-8 text-primary animate-spin" />
             <span className="text-muted-foreground">Loading job card...</span>
           </div>
         </div>

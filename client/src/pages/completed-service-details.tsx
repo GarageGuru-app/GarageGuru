@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, User, Calendar, Phone, FileText, Settings, IndianRupee, Package } from "lucide-react";
+import { ArrowLeft, User, Calendar, Phone, FileText, Settings, IndianRupee, Package, Wrench } from "lucide-react";
 import { format } from "date-fns";
 
 export default function CompletedServiceDetails() {
@@ -76,9 +76,9 @@ export default function CompletedServiceDetails() {
           </div>
         </div>
         <div className="screen-content flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Loading service details...</p>
+          <div className="flex flex-col items-center space-y-3">
+            <Wrench className="w-8 h-8 text-primary animate-spin" />
+            <span className="text-muted-foreground">Loading service details...</span>
           </div>
         </div>
       </div>

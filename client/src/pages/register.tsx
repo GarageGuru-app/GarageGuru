@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Settings, Moon, Sun, Mail, Send, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, Settings, Moon, Sun, Mail, Send, Clock, CheckCircle, Wrench } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -313,7 +313,7 @@ export default function AccessRequestPage() {
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                    <Wrench className="w-4 h-4 text-primary animate-spin mr-2" />
                     Sending Request...
                   </>
                 ) : (

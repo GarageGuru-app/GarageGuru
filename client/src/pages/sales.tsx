@@ -261,7 +261,10 @@ export default function Sales() {
           </div>
         </div>
         <div className="screen-content flex items-center justify-center">
-          <div className="animate-pulse text-muted-foreground">Loading...</div>
+          <div className="flex flex-col items-center space-y-3">
+            <Wrench className="w-8 h-8 text-primary animate-spin" />
+            <span className="text-muted-foreground">Loading...</span>
+          </div>
         </div>
       </div>
     );

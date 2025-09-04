@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, FileText, Share } from "lucide-react";
+import { ArrowLeft, FileText, Share, Wrench } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 import { generateInvoicePDF, generateDownloadToken, createDownloadURL } from "@/utils/pdf-generator";
@@ -98,7 +98,7 @@ export default function Invoice() {
         </div>
         <div className="screen-content flex items-center justify-center">
           <div className="flex flex-col items-center space-y-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <Wrench className="w-8 h-8 text-primary animate-spin" />
             <span className="text-muted-foreground">Loading job card details...</span>
           </div>
         </div>
@@ -326,7 +326,7 @@ export default function Invoice() {
       {isRefreshingDB && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mx-4 max-w-sm w-full text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <Wrench className="w-12 h-12 text-primary animate-spin mx-auto" />
             <div>
               <h3 className="font-semibold">Updating Database</h3>
               <p className="text-sm text-muted-foreground mt-1">
@@ -341,7 +341,7 @@ export default function Invoice() {
       {isSharingWhatsApp && !isRefreshingDB && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mx-4 max-w-sm w-full text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <Wrench className="w-12 h-12 text-primary animate-spin mx-auto" />
             <div>
               <h3 className="font-semibold">Preparing WhatsApp</h3>
               <p className="text-sm text-muted-foreground mt-1">
