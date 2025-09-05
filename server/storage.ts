@@ -747,43 +747,10 @@ export class DatabaseStorage implements IStorage {
       [id, invoice.garage_id, invoice.job_card_id, invoice.customer_id, invoice.invoice_number, invoice.download_token, invoice.whatsapp_sent || false, invoice.total_amount || 0, invoice.parts_total || 0, invoice.service_charge || 0, new Date()]
     );
     
-    // CRITICAL: Reduce inventory quantities when invoice is created
-    if (invoice.job_card_id) {
-      try {
-        console.log(`🔧 [INVENTORY] Reducing spare parts inventory for job card ${invoice.job_card_id}`);
-        
-        // Get job card spare parts to reduce inventory
-        const jobCardResult = await pool.query('SELECT spare_parts FROM job_cards WHERE id = $1', [invoice.job_card_id]);
-        if (jobCardResult.rows.length > 0) {
-          const spareParts = jobCardResult.rows[0].spare_parts || [];
-          
-          // Reduce inventory for each spare part used
-          for (const part of spareParts) {
-            console.log(`📦 [INVENTORY] Reducing ${part.name} (ID: ${part.id}) by quantity ${part.quantity}`);
-            
-            // Check current stock
-            const stockResult = await pool.query('SELECT quantity, name FROM spare_parts WHERE id = $1', [part.id]);
-            if (stockResult.rows.length > 0) {
-              const currentStock = parseInt(stockResult.rows[0].quantity);
-              const partName = stockResult.rows[0].name;
-              
-              if (currentStock >= part.quantity) {
-                // Reduce the quantity
-                await pool.query(
-                  'UPDATE spare_parts SET quantity = quantity - $1 WHERE id = $2',
-                  [part.quantity, part.id]
-                );
-                console.log(`✅ [INVENTORY] Reduced ${partName} stock by ${part.quantity}. New stock: ${currentStock - part.quantity}`);
-              } else {
-                console.warn(`⚠️ [INVENTORY] Insufficient stock for ${partName}. Available: ${currentStock}, Required: ${part.quantity}`);
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('❌ [INVENTORY] Error reducing inventory:', error);
-      }
-    }
+    // NOTE: Inventory was already reserved when the job card was created
+    // No need to reduce inventory again during invoice creation as it was already deducted
+    // This prevents double inventory deduction
+    console.log(`✅ [INVENTORY] Invoice created for job card ${invoice.job_card_id} - inventory was already reserved during job card creation`)
     
     // Customer visit counts are automatically synced by the syncCustomerVisitCounts function
     // This ensures accurate counts based on actual invoices rather than manual increments
