@@ -212,9 +212,9 @@ export default function Dashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-muted-foreground text-sm">Today's Revenue</p>
+                  <p className="text-muted-foreground text-sm">Today's Profit</p>
                   <p className="text-2xl font-bold">₹{Number(todayStats?.todayProfit || 0).toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">Current day only</p>
+                  <p className="text-xs text-muted-foreground">Service charges only</p>
                 </div>
                 <div className="icon-container success-bg">
                   <IndianRupee className="success-text text-xl w-6 h-6" />
@@ -232,8 +232,8 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-sm">Total Revenue</p>
-                    <p className="text-2xl font-bold">₹{Number(salesStats?.totalProfit || 0).toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">All time revenue from {salesStats?.totalInvoices || 0} invoices</p>
+                    <p className="text-2xl font-bold">₹{Number((salesStats?.totalServiceCharges || 0) + (salesStats?.totalPartsTotal || 0)).toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">Service + Parts from {salesStats?.totalInvoices || 0} invoices</p>
                   </div>
                   <div className="icon-container bg-blue-100 dark:bg-blue-900">
                     <TrendingUp className="text-blue-600 dark:text-blue-400 text-xl w-6 h-6" />
