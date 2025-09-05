@@ -531,7 +531,16 @@ export default function PendingServices() {
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Total Amount:</span>
-                  <span>₹{selectedJob.total_amount || 0}</span>
+                  <span>₹{(() => {
+                    const partsTotal = (selectedJob.spareParts || selectedJob.spare_parts || [])
+                      .reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0);
+                    const serviceCharge = Number(selectedJob.service_charge || 0);
+                    const waterWash = Number(selectedJob.water_wash_charge || 0);
+                    const diesel = Number(selectedJob.diesel_charge || 0);
+                    const petrol = Number(selectedJob.petrol_charge || 0);
+                    const foundry = Number(selectedJob.foundry_charge || 0);
+                    return (partsTotal + serviceCharge + waterWash + diesel + petrol + foundry).toFixed(2);
+                  })()}</span>
                 </div>
               </div>
 
