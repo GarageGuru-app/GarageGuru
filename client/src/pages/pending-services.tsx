@@ -325,9 +325,9 @@ export default function PendingServices() {
                     )}
                   </div>
 
-                  {job.spareParts && job.spareParts.length > 0 && (
+                  {((job.spareParts && job.spareParts.length > 0) || (job.spare_parts && job.spare_parts.length > 0)) && (
                     <div className="text-xs text-muted-foreground mb-3">
-                      Parts: {job.spareParts.map((part: any) => part.name).join(", ")}
+                      Parts: {(job.spareParts || job.spare_parts || []).map((part: any) => part.name).join(", ")}
                     </div>
                   )}
 
@@ -474,11 +474,11 @@ export default function PendingServices() {
               </div>
 
               {/* Spare Parts */}
-              {selectedJob.spareParts && selectedJob.spareParts.length > 0 && (
+              {((selectedJob.spareParts && selectedJob.spareParts.length > 0) || (selectedJob.spare_parts && selectedJob.spare_parts.length > 0)) && (
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm">Spare Parts Used</h4>
                   <div className="space-y-2">
-                    {selectedJob.spareParts.map((part: any, index: number) => (
+                    {(selectedJob.spareParts || selectedJob.spare_parts || []).map((part: any, index: number) => (
                       <div key={index} className="flex justify-between text-sm bg-muted/30 p-2 rounded">
                         <span>
                           {part.partNumber ? `PN: ${part.partNumber} — ${part.name}` : part.name} x{part.quantity}
@@ -486,6 +486,39 @@ export default function PendingServices() {
                         <span>₹{(part.price * part.quantity).toFixed(2)}</span>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Operational Charges */}
+              {(selectedJob.water_wash_charge > 0 || selectedJob.diesel_charge > 0 || selectedJob.petrol_charge > 0 || selectedJob.foundry_charge > 0) && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">Operational Charges</h4>
+                  <div className="space-y-1">
+                    {selectedJob.water_wash_charge > 0 && (
+                      <div className="flex justify-between text-sm bg-muted/30 p-2 rounded">
+                        <span>Water Wash</span>
+                        <span>₹{Number(selectedJob.water_wash_charge).toFixed(2)}</span>
+                      </div>
+                    )}
+                    {selectedJob.diesel_charge > 0 && (
+                      <div className="flex justify-between text-sm bg-muted/30 p-2 rounded">
+                        <span>Diesel</span>
+                        <span>₹{Number(selectedJob.diesel_charge).toFixed(2)}</span>
+                      </div>
+                    )}
+                    {selectedJob.petrol_charge > 0 && (
+                      <div className="flex justify-between text-sm bg-muted/30 p-2 rounded">
+                        <span>Petrol</span>
+                        <span>₹{Number(selectedJob.petrol_charge).toFixed(2)}</span>
+                      </div>
+                    )}
+                    {selectedJob.foundry_charge > 0 && (
+                      <div className="flex justify-between text-sm bg-muted/30 p-2 rounded">
+                        <span>Foundry</span>
+                        <span>₹{Number(selectedJob.foundry_charge).toFixed(2)}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
