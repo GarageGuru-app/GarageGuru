@@ -158,7 +158,7 @@ export const insertSparePartSchema = createInsertSchema(spareParts).omit({
     z.number().min(0, "Cost price must be 0 or greater").transform(String)
   ]).optional().default("0"),
   quantity: z.number().int().min(0, "Quantity must be 0 or greater"),
-  barcode: z.string().optional().nullable()
+  barcode: z.union([z.string(), z.null()]).optional()
 });
 
 export const insertJobCardSchema = createInsertSchema(jobCards).omit({
