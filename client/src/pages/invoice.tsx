@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, FileText, Share, Wrench, AlertTriangle, CheckCircle2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,6 +30,7 @@ export default function Invoice() {
   const [workSummary, setWorkSummary] = useState("");
   const [showPartsConfirmation, setShowPartsConfirmation] = useState(false);
   const [pendingWhatsAppShare, setPendingWhatsAppShare] = useState(false);
+  const [checkedParts, setCheckedParts] = useState<{[key: string]: boolean}>({});
 
   const { data: jobCard, isLoading } = useQuery({
     queryKey: ["/api/garages", garage?.id, "job-cards", jobCardId],
@@ -149,7 +151,12 @@ export default function Invoice() {
   // Handle spare parts confirmation dialog
   const handleInvoiceGeneration = (sendWhatsApp: boolean = false) => {
     if (spareParts && spareParts.length > 0) {
-      // Show spare parts confirmation if there are parts
+      // Reset checklist and show spare parts confirmation if there are parts
+      const initialCheckedState = spareParts.reduce((acc: {[key: string]: boolean}, part: any, index: number) => {
+        acc[`${part.id || part.name}_${index}`] = false;
+        return acc;
+      }, {});
+      setCheckedParts(initialCheckedState);
       setPendingWhatsAppShare(sendWhatsApp);
       setShowPartsConfirmation(true);
     } else {
@@ -158,9 +165,24 @@ export default function Invoice() {
     }
   };
 
+  const handlePartCheck = (partKey: string, checked: boolean) => {
+    setCheckedParts(prev => ({
+      ...prev,
+      [partKey]: checked
+    }));
+  };
+
+  const areAllPartsChecked = () => {
+    const totalParts = Object.keys(checkedParts).length;
+    const checkedCount = Object.values(checkedParts).filter(Boolean).length;
+    return totalParts > 0 && checkedCount === totalParts;
+  };
+
   const handlePartsConfirmed = () => {
-    setShowPartsConfirmation(false);
-    handleGeneratePDF(pendingWhatsAppShare);
+    if (areAllPartsChecked()) {
+      setShowPartsConfirmation(false);
+      handleGeneratePDF(pendingWhatsAppShare);
+    }
   };
 
   const handleEditJobCard = () => {
@@ -572,7 +594,7 @@ export default function Invoice() {
               Confirm Spare Parts
             </DialogTitle>
             <DialogDescription>
-              Please verify that these spare parts are correct for this job before generating the invoice:
+              Please check each spare part to confirm it's correct for this job before generating the invoice:
             </DialogDescription>
           </DialogHeader>
           
@@ -582,19 +604,30 @@ export default function Invoice() {
             </div>
             
             {spareParts && spareParts.length > 0 ? (
-              spareParts.map((part: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex-1">
-                    <div className="font-medium">{part.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Qty: {part.quantity} × ₹{part.price}
+              spareParts.map((part: any, index: number) => {
+                const partKey = `${part.id || part.name}_${index}`;
+                return (
+                  <div key={index} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <Checkbox
+                      id={partKey}
+                      checked={checkedParts[partKey] || false}
+                      onCheckedChange={(checked) => handlePartCheck(partKey, checked as boolean)}
+                      className="flex-shrink-0"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor={partKey} className="cursor-pointer">
+                        <div className="font-medium">{part.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Qty: {part.quantity} × ₹{part.price}
+                        </div>
+                      </label>
+                    </div>
+                    <div className="text-right font-medium">
+                      ₹{(part.price * part.quantity).toFixed(2)}
                     </div>
                   </div>
-                  <div className="text-right font-medium">
-                    ₹{(part.price * part.quantity).toFixed(2)}
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center text-muted-foreground py-4">
                 No spare parts added
@@ -628,11 +661,12 @@ export default function Invoice() {
               
               <Button
                 onClick={handlePartsConfirmed}
+                disabled={!areAllPartsChecked()}
                 className="flex-1"
                 data-testid="button-confirm-parts"
               >
                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                Confirm & Generate Invoice
+                {areAllPartsChecked() ? "Confirm & Generate Invoice" : `Check all parts (${Object.values(checkedParts).filter(Boolean).length}/${Object.keys(checkedParts).length})`}
               </Button>
             </div>
           </div>
