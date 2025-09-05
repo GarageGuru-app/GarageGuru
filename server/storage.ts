@@ -856,7 +856,7 @@ export class DatabaseStorage implements IStorage {
         COUNT(*) as today_invoices,
         COALESCE(SUM(i.parts_total), 0) as today_parts,
         COALESCE(SUM(i.service_charge), 0) as today_service,
-        COALESCE(SUM(i.service_charge + i.parts_total), 0) as today_profit
+        COALESCE(SUM(i.service_charge), 0) as today_profit
        FROM invoices i
        WHERE i.garage_id = $1 AND i.created_at >= $2 AND i.created_at < $3`,
       [garageId, today.toISOString(), tomorrow.toISOString()]
@@ -890,7 +890,7 @@ export class DatabaseStorage implements IStorage {
         COALESCE(SUM(i.total_amount), 0) as total_sales,
         COALESCE(SUM(i.service_charge), 0) as service_charges,
         COALESCE(SUM(i.parts_total), 0) as parts_revenue,
-        COALESCE(SUM(i.service_charge + i.parts_total), 0) as profit,
+        COALESCE(SUM(i.service_charge), 0) as profit,
         COUNT(*) as count,
         COUNT(*) as invoice_count
        FROM invoices i
