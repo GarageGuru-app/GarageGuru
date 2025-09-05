@@ -48,15 +48,44 @@ export default function CompletedServiceDetails() {
   };
 
   const calculateTotals = () => {
-    if (!jobCard) return { partsTotal: 0, serviceCharge: 0, total: 0 };
+    if (!jobCard) return { 
+      partsTotal: 0, 
+      serviceCharge: 0, 
+      operationalCharges: 0,
+      total: 0,
+      breakdown: {
+        waterWash: 0,
+        diesel: 0,
+        petrol: 0,
+        foundry: 0
+      }
+    };
     
     const partsTotal = Array.isArray(jobCard.spare_parts) 
       ? jobCard.spare_parts.reduce((sum: number, part: any) => sum + (part.price * part.quantity), 0)
       : 0;
-    const serviceCharge = Number(jobCard.service_charge) || 0;
-    const total = partsTotal + serviceCharge;
     
-    return { partsTotal, serviceCharge, total };
+    const serviceCharge = Number(jobCard.service_charge) || 0;
+    const waterWash = Number(jobCard.water_wash_charge) || 0;
+    const diesel = Number(jobCard.diesel_charge) || 0;
+    const petrol = Number(jobCard.petrol_charge) || 0;
+    const foundry = Number(jobCard.foundry_charge) || 0;
+    
+    const operationalCharges = waterWash + diesel + petrol + foundry;
+    const total = partsTotal + serviceCharge + operationalCharges;
+    
+    return { 
+      partsTotal, 
+      serviceCharge, 
+      operationalCharges,
+      total,
+      breakdown: {
+        waterWash,
+        diesel,
+        petrol,
+        foundry
+      }
+    };
   };
 
   if (isLoading) {
@@ -114,7 +143,7 @@ export default function CompletedServiceDetails() {
     );
   }
 
-  const { partsTotal, serviceCharge, total } = calculateTotals();
+  const { partsTotal, serviceCharge, operationalCharges, total, breakdown } = calculateTotals();
 
   return (
     <div className="min-h-screen bg-background">
@@ -269,6 +298,42 @@ export default function CompletedServiceDetails() {
               <span>Service Charge:</span>
               <span>₹{serviceCharge.toFixed(2)}</span>
             </div>
+            
+            {/* Operational Charges Breakdown */}
+            {operationalCharges > 0 && (
+              <>
+                <div className="text-sm font-medium text-muted-foreground mt-3 mb-2">Operational Charges:</div>
+                {breakdown.waterWash > 0 && (
+                  <div className="flex justify-between text-sm pl-4">
+                    <span>Water Wash:</span>
+                    <span>₹{breakdown.waterWash.toFixed(2)}</span>
+                  </div>
+                )}
+                {breakdown.diesel > 0 && (
+                  <div className="flex justify-between text-sm pl-4">
+                    <span>Diesel:</span>
+                    <span>₹{breakdown.diesel.toFixed(2)}</span>
+                  </div>
+                )}
+                {breakdown.petrol > 0 && (
+                  <div className="flex justify-between text-sm pl-4">
+                    <span>Petrol:</span>
+                    <span>₹{breakdown.petrol.toFixed(2)}</span>
+                  </div>
+                )}
+                {breakdown.foundry > 0 && (
+                  <div className="flex justify-between text-sm pl-4">
+                    <span>Foundry:</span>
+                    <span>₹{breakdown.foundry.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm font-medium">
+                  <span>Total Operational:</span>
+                  <span>₹{operationalCharges.toFixed(2)}</span>
+                </div>
+              </>
+            )}
+            
             <Separator />
             <div className="flex justify-between text-lg font-semibold">
               <span>Total Amount:</span>
