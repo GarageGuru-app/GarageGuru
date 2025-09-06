@@ -36,11 +36,37 @@ import NotFound from "@/pages/not-found";
 import { UserManual } from "@/pages/UserManual";
 import Home from "@/pages/home";
 
+// PWA Mobile Detection
+function isMobileOrPWA() {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+  const isSmallScreen = window.innerWidth <= 768;
+  return isMobile || isPWA || isSmallScreen;
+}
+
+// Mobile-First Route Component
+function MobileFirstRoute() {
+  const token = localStorage.getItem('auth_token');
+  
+  // If user is authenticated, go to dashboard
+  if (token) {
+    return <Route path="/" component={() => { window.location.href = '/dashboard'; return null; }} />;
+  }
+  
+  // If not authenticated, go to login
+  return <Route path="/" component={() => { window.location.href = '/login'; return null; }} />;
+}
+
 function Router() {
   return (
     <AuthProvider>
       <Switch>
-        <Route path="/" component={Home} />
+        {/* Mobile-first routing: Skip homepage for PWA/mobile */}
+        {isMobileOrPWA() ? (
+          <MobileFirstRoute />
+        ) : (
+          <Route path="/" component={Home} />
+        )}
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/change-password" component={ChangePassword} />
