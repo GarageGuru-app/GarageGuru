@@ -26,7 +26,7 @@ import {
   Globe,
   Zap
 } from "lucide-react";
-import serviceguruLogo from "@/assets/serviceguru-logo.jpeg";
+import serviceguruLogo from "@/assets/serviceguru-logo.svg";
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
@@ -122,9 +122,7 @@ export default function Home() {
                   alt="ServiceGuru Logo" 
                   className="w-full h-full object-contain"
                   style={{ 
-                    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))',
-                    mixBlendMode: 'multiply',
-                    background: 'transparent'
+                    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))'
                   }} 
                 />
               </div>

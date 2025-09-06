@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings, Moon, Sun, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import serviceguruLogo from "@/assets/serviceguru-logo.jpeg";
+import serviceguruLogo from "@/assets/serviceguru-logo.svg";
 import { InlineLoader } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -469,9 +469,7 @@ export default function Login() {
               alt="ServiceGuru Logo" 
               className="w-20 h-20 object-contain"
               style={{ 
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                mixBlendMode: 'multiply',
-                background: 'transparent'
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
               }} 
             />
           </div>
