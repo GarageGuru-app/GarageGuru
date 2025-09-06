@@ -120,9 +120,9 @@ export default function Home() {
                 <img 
                   src={serviceguruLogo} 
                   alt="ServiceGuru Logo" 
-                  className="w-16 h-16 object-cover"
+                  className="w-20 h-20 object-cover"
                   style={{ 
-                    transform: 'scale(1.3)',
+                    transform: 'scale(1.6)',
                     objectPosition: 'center'
                   }}
                 />

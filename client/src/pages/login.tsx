@@ -468,9 +468,9 @@ export default function Login() {
               <img 
                 src={serviceguruLogo} 
                 alt="ServiceGuru Logo" 
-                className="w-28 h-28 object-cover"
+                className="w-36 h-36 object-cover"
                 style={{ 
-                  transform: 'scale(1.4)',
+                  transform: 'scale(1.8)',
                   objectPosition: 'center'
                 }}
               />
