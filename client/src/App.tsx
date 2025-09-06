@@ -48,25 +48,23 @@ function isMobileOrPWA() {
 function MobileFirstRoute() {
   const token = localStorage.getItem('auth_token');
   
-  // If user is authenticated, go to dashboard
+  // If user is authenticated, redirect to dashboard
   if (token) {
-    return <Route path="/" component={() => { window.location.href = '/dashboard'; return null; }} />;
+    window.location.replace('/dashboard');
+    return null;
   }
   
-  // If not authenticated, go to login
-  return <Route path="/" component={() => { window.location.href = '/login'; return null; }} />;
+  // If not authenticated, redirect to login  
+  window.location.replace('/login');
+  return null;
 }
 
 function Router() {
   return (
     <AuthProvider>
       <Switch>
-        {/* Mobile-first routing: Skip homepage for PWA/mobile */}
-        {isMobileOrPWA() ? (
-          <MobileFirstRoute />
-        ) : (
-          <Route path="/" component={Home} />
-        )}
+        {/* Standard routing - Mobile optimizations applied via CSS */}
+        <Route path="/" component={Home} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/change-password" component={ChangePassword} />
