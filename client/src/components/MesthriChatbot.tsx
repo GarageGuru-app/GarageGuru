@@ -98,7 +98,7 @@ const MESTHRI_KNOWLEDGE: ChatbotKnowledge[] = [
     keywords: ['login', 'sign in', 'password', 'forgot password', 'authentication', 'access'],
     fuzzyMatches: ['logn', 'signin', 'pasword', 'passward', 'forgot pass', 'auth', 'cant login', 'cannot login'],
     synonyms: ['log in', 'sign-in', 'pwd', 'pass', 'authenticate', 'enter system'],
-    response: "Hi! I'm Mesthri, your ultra-intelligent garage assistant! 🤖✨\n\n🔐 **Smart Login Help:**\n1. Enter email → I'll validate format automatically\n2. Enter password → Case-sensitive, I'll show hints\n3. Click 'Login' → I'll handle the rest!\n\n🧠 **AI Troubleshooting:**\n• Email format issues → I'll suggest corrections\n• Password problems → I'll guide you step by step\n• Browser issues → I'll detect and fix automatically\n\n🚀 **Pro Tip:** Save login for faster access next time!",
+    response: "Need help logging in? 🔐\n\n**Quick Steps:**\n1. Enter your registered email\n2. Type your password (case-sensitive)\n3. Click Login\n\n**Common Issues:**\n• Forgot password? Contact your garage admin\n• Email not recognized? Check spelling\n• Still having trouble? Clear browser cache\n\n💡 **Tip:** Use 'Remember Me' for faster access",
     category: 'authentication',
     confidence: 0.95,
     quickActions: [
@@ -113,7 +113,7 @@ const MESTHRI_KNOWLEDGE: ChatbotKnowledge[] = [
     keywords: ['customer', 'add customer', 'customer management', 'bike number', 'customer details', 'client'],
     fuzzyMatches: ['custmer', 'costumer', 'customr', 'customar', 'add custmer', 'bike no', 'bike num'],
     synonyms: ['client', 'customer data', 'customer info', 'vehicle owner', 'bike owner'],
-    response: "I'm your smart customer management expert! 👥🧠\n\n🚀 **AI-Powered Customer Management:**\n\n📝 **Smart Add Customer:**\n• Auto-detect duplicate bike numbers\n• Suggest similar names if exists\n• Validate phone numbers automatically\n• Smart model/year suggestions\n\n🔍 **Intelligent Search:**\n• Search by partial bike number\n• Find by phone digits\n• Match similar names\n• Filter by service history\n\n💡 **Proactive Insights:**\n• Customer visit patterns\n• Service preferences\n• Payment behavior\n• Loyalty recommendations",
+    response: "I'll help you manage customers! 👥\n\n**Add New Customer:**\n1. Go to 'Customers' section\n2. Click 'Add Customer'\n3. Fill: Name, Phone, Bike Number, Model\n4. Save the details\n\n**Search Customers:**\n• Type bike number or name in search\n• Use partial matches (like 'KA01' for bike numbers)\n• View service history and spending\n\n**Pro Tips:**\n• System prevents duplicate bike numbers\n• Phone validation helps avoid errors\n• Track customer visit frequency",
     category: 'customers',
     confidence: 0.98,
     quickActions: [
@@ -128,7 +128,7 @@ const MESTHRI_KNOWLEDGE: ChatbotKnowledge[] = [
     keywords: ['job card', 'service', 'job', 'complaint', 'work order', 'service request', 'repair'],
     fuzzyMatches: ['job crd', 'jobcard', 'servce', 'servis', 'complant', 'complane', 'work ordr'],
     synonyms: ['service card', 'work card', 'repair order', 'service order', 'maintenance request'],
-    response: "I'm your AI-powered job card specialist! 🔧🤖\n\n🚀 **Ultra-Smart Job Management:**\n\n📋 **Intelligent Creation:**\n• Auto-suggest similar past complaints\n• Smart parts recommendations\n• Estimated time & cost predictions\n• Risk assessment for complex jobs\n\n🧠 **AI Assistance:**\n• Real-time progress tracking\n• Quality check reminders\n• Parts availability alerts\n• Customer communication templates\n\n⚡ **Performance Optimization:**\n• Track mechanic efficiency\n• Suggest workflow improvements\n• Predict completion times\n• Auto-generate detailed reports\n\n💰 **Smart Pricing:**\n• Dynamic pricing suggestions\n• Competitor analysis\n• Profit margin optimization\n• Customer-specific discounts",
+    response: "Let me help with job cards! 🔧\n\n**Create Job Card:**\n1. Go to 'Job Cards' section\n2. Select customer (or add new)\n3. Enter complaint/service details\n4. Add required spare parts\n5. Set service charges\n6. Save and start work\n\n**Track Progress:**\n• Update status as work progresses\n• Mark parts as used\n• Add notes for team members\n• Complete when service is done\n\n**Generate Invoice:**\n• Click 'Generate Invoice' on completed job\n• Review parts + labor charges\n• Send via WhatsApp or print PDF",
     category: 'jobs',
     confidence: 0.97,
     quickActions: [
@@ -214,7 +214,7 @@ const MESTHRI_KNOWLEDGE: ChatbotKnowledge[] = [
     keywords: ['hi', 'hello', 'hey', 'help', 'what can you do', 'features', 'about', 'mesthri'],
     fuzzyMatches: ['helo', 'helo', 'hy', 'hai', 'wat can u do', 'fetures', 'abot'],
     synonyms: ['greetings', 'assistance', 'capabilities', 'functions', 'info'],
-    response: "🤖✨ **I'm Mesthri - Your Ultra-Intelligent Garage AI!** ✨🤖\n\n🧠 **My Advanced Capabilities:**\n\n🚀 **Smart Operations:**\n• AI-powered customer insights\n• Predictive maintenance scheduling\n• Intelligent inventory optimization\n• Dynamic pricing recommendations\n\n🔬 **Problem Solving:**\n• Diagnostic troubleshooting\n• Performance analysis\n• Workflow optimization\n• Business intelligence\n\n⚡ **Real-Time Assistance:**\n• Voice command processing\n• Context-aware responses\n• Proactive notifications\n• Emergency handling\n\n🎯 **Personalized Experience:**\n• Role-based intelligence\n• Learning from interactions\n• Customized recommendations\n• Multilingual support\n\n💡 **Ask me anything - I understand fuzzy keywords, context, and even typos!**",
+    response: "Hi! I'm Mesthri, your garage assistant! 👋\n\n**I can help you with:**\n• Customer management\n• Job cards and services\n• Spare parts inventory\n• Invoice generation\n• Daily operations\n• System troubleshooting\n\n**Special Features:**\n• Voice commands (click mic button)\n• Smart search with typos\n• Quick action buttons\n• Context-aware help\n\n**Just ask me:**\n• \"How to add customer?\"\n• \"Check brake pad stock\"\n• \"Generate invoice\"\n• \"Not starting problem\"\n\nI understand common garage terms and even typos! 😊",
     category: 'general',
     confidence: 1.0,
     quickActions: [
