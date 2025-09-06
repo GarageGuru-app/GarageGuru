@@ -582,11 +582,11 @@ export function MesthriChatbot() {
 
   if (!isOpen) {
     return (
-      <div className="fixed left-6 z-[9999]" style={{ bottom: '75px' }}>
+      <div className="fixed left-4 md:left-6 z-[9999]" style={{ bottom: '75px' }}>
         <div className="relative">
           <Button
             onClick={() => setIsOpen(true)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-16 h-16 shadow-2xl border-2 border-white/20 backdrop-blur-sm transform transition-all duration-300 hover:scale-110 relative z-[10000]"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-14 h-14 md:w-16 md:h-16 shadow-2xl border-2 border-white/20 backdrop-blur-sm transform transition-all duration-300 hover:scale-110 relative z-[10000]"
             data-testid="chatbot-open-button"
           >
             <div className="relative">
@@ -603,9 +603,9 @@ export function MesthriChatbot() {
   }
 
   return (
-    <div className="fixed left-6 z-50 w-[420px] h-[600px] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden backdrop-blur-sm" style={{ bottom: '75px' }}>
+    <div className="fixed left-2 right-2 md:left-6 md:right-auto z-50 w-auto md:w-[420px] h-[600px] max-h-[90vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden backdrop-blur-sm" style={{ bottom: '75px' }}>
       {/* Enhanced Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 md:p-4 flex items-center justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 animate-pulse"></div>
         <div className="flex items-center gap-3 relative z-10">
           <div className="relative">
