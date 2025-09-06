@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ServiceGuru Mobile CSS */
+@layer base {
+  :root {
+    --primary: 30 64 175; /* Blue-600 */
+    --primary-foreground: 255 255 255;
+    --secondary: 241 245 249; /* Slate-100 */
+    --secondary-foreground: 15 23 42; /* Slate-900 */
+    --accent: 59 130 246; /* Blue-500 */
+    --accent-foreground: 255 255 255;
+    --destructive: 239 68 68; /* Red-500 */
+    --destructive-foreground: 255 255 255;
+    --muted: 248 250 252; /* Slate-50 */
+    --muted-foreground: 100 116 139; /* Slate-500 */
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+    --border: 226 232 240; /* Slate-200 */
+    --input: 241 245 249; /* Slate-100 */
+    --ring: 30 64 175; /* Blue-600 */
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Mobile-optimized styles */
+@layer components {
+  .mobile-container {
+    @apply mx-auto max-w-md px-4;
+  }
+  
+  .mobile-card {
+    @apply bg-white rounded-lg shadow-sm border p-4 mb-4;
+  }
+  
+  .mobile-button {
+    @apply bg-blue-600 text-white px-4 py-3 rounded-lg font-medium text-center block w-full;
+    @apply active:bg-blue-700 transition-colors touch-manipulation;
+  }
+  
+  .mobile-input {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-lg;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+  
+  .mobile-header {
+    @apply bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between;
+  }
+  
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200;
+    @apply flex items-center justify-around py-2 safe-bottom;
+  }
+  
+  .mobile-nav-item {
+    @apply flex flex-col items-center p-2 text-gray-500;
+    @apply active:text-blue-600 transition-colors touch-manipulation;
+  }
+  
+  .mobile-nav-item.active {
+    @apply text-blue-600;
+  }
+}
+
+/* PWA safe area handling */
+@layer utilities {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Offline indicator */
+.offline-indicator {
+  @apply fixed top-0 left-0 right-0 bg-red-500 text-white text-center py-2 text-sm z-50;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+}
+
+.offline-indicator.show {
+  transform: translateY(0);
+}
+
+/* Custom scrollbar for mobile */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
