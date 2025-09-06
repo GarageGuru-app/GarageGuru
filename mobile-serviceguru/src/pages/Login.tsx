@@ -18,6 +18,35 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const checkInternetAndNavigate = (path: string, feature: string) => {
+    if (!isOnline) {
+      alert(`Internet connection required for ${feature}. Please connect to internet and try again.`);
+      return;
+    }
+    navigate(path);
+  };
+
+  const handleSuperAdminReset = () => {
+    checkInternetAndNavigate('/admin-password-reset', 'Super Admin Password Reset');
+  };
+
+  const handleRequestAccess = () => {
+    checkInternetAndNavigate('/request-access', 'Request Access');
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -163,22 +192,40 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         <div className="bg-white/90 rounded-lg p-4 mb-6">
           <div className="text-center space-y-3">
             <button
-              onClick={() => navigate('/forgot-password')}
+              onClick={() => checkInternetAndNavigate('/forgot-password', 'Forgot Password')}
               className="text-blue-700 font-medium underline text-sm"
               disabled={isLoading}
             >
-              Forgot Password? (Requires Internet)
+              Forgot Password?
             </button>
             
-            <p className="text-gray-600 text-sm">Don't have an account?</p>
             <button
-              onClick={() => navigate('/register')}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium w-full disabled:opacity-50"
+              onClick={handleSuperAdminReset}
+              className="text-blue-700 font-medium underline text-sm block w-full"
               disabled={isLoading}
             >
-              Create New Account (Requires Internet)
+              Super Admin Password Reset (MFA)
+            </button>
+            
+            <button
+              onClick={handleRequestAccess}
+              className="text-blue-700 font-medium underline text-sm block w-full"
+              disabled={isLoading}
+            >
+              Request Access
             </button>
           </div>
+        </div>
+
+        {/* Create Account Button */}
+        <div className="bg-white/90 rounded-lg p-4 mb-6">
+          <button
+            onClick={() => checkInternetAndNavigate('/register', 'Registration')}
+            className="bg-green-600 text-white px-4 py-3 rounded-lg text-sm font-medium w-full disabled:opacity-50"
+            disabled={isLoading}
+          >
+            Create New Account
+          </button>
         </div>
 
         {/* Demo Login Options */}
