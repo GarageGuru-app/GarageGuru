@@ -122,7 +122,7 @@ export default function Home() {
                   alt="ServiceGuru Logo" 
                   className="w-20 h-20 object-cover"
                   style={{ 
-                    transform: 'scale(1.1)',
+                    transform: 'scale(1.1) translateY(0.1px)',
                     objectPosition: 'center'
                   }}
                 />
