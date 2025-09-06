@@ -30,7 +30,7 @@ import {
   Plus,
   Edit,
   Trash2,
-  TriangleAlert,
+  AlertTriangle,
   QrCode,
   Wrench,
   RefreshCw,
@@ -852,7 +852,7 @@ export default function SpareParts() {
                 : "border-destructive text-destructive"
             }
           >
-            <TriangleAlert className="w-4 h-4" />
+            <AlertTriangle className="w-4 h-4" />
           </Button>
         </div>
 
@@ -1056,7 +1056,7 @@ export default function SpareParts() {
                   </>
                 ) : (
                   <>
-                    <TriangleAlert className="w-5 h-5 text-destructive" />
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
                     <span>Duplicate Part Number Detected</span>
                   </>
                 )}
