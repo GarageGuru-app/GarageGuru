@@ -29,7 +29,7 @@ import {
   Cog,
   Clock,
   IndianRupee,
-  AlertTriangle,
+  TriangleAlert,
   FileText,
   Plus,
   Car,
@@ -331,7 +331,7 @@ export default function AdminDashboard() {
           <Card data-testid="card-low-stock-alert">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <TriangleAlert className="w-5 h-5 text-red-600" />
                 <div>
                   <p className="text-sm text-muted-foreground">Low Stock</p>
                   <p className="text-2xl font-bold text-red-600">{lowStockParts?.length || 0}</p>
@@ -629,7 +629,7 @@ export default function AdminDashboard() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-red-600">
-              <AlertTriangle className="w-5 h-5" />
+              <TriangleAlert className="w-5 h-5" />
               Low Stock Alert
             </AlertDialogTitle>
             <AlertDialogDescription>

@@ -27,7 +27,7 @@ import {
   Cog,
   Clock,
   IndianRupee,
-  AlertTriangle,
+  TriangleAlert,
   FileText
 } from "lucide-react";
 
@@ -278,7 +278,7 @@ export default function Dashboard() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center space-x-2">
-                <AlertTriangle className="w-5 h-5 text-destructive" />
+                <TriangleAlert className="w-5 h-5 text-destructive" />
                 <span>Low Stock Alert</span>
               </AlertDialogTitle>
               <AlertDialogDescription>
