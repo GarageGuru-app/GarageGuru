@@ -7,7 +7,6 @@ import {
   AlertTriangle,
   Edit,
   Trash2,
-  IndianRupee
 } from 'lucide-react';
 import { User, db, DatabaseManager, SparePart } from '../lib/database';
 import MobileHeader from '../components/MobileHeader';

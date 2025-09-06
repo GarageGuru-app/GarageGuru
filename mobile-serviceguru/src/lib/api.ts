@@ -15,7 +15,7 @@ interface PasswordResetData {
 }
 
 export class OnlineAPIService {
-  private static readonly API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  private static readonly API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
   
   // Check if device is online
   static isOnline(): boolean {
