@@ -5,8 +5,8 @@ const config: CapacitorConfig = {
   appName: 'ServiceGuru',
   webDir: 'www',
   server: {
-    // Your deployed ServiceGuru URL - update this with your actual deployment URL
-    url: 'https://your-serviceguru-deployment.replit.app',
+    // Your deployed ServiceGuru URL on Render
+    url: 'https://garageguru-whh7.onrender.com',
     cleartext: true,
     allowNavigation: ['*']
   },
