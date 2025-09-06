@@ -463,8 +463,17 @@ export default function Login() {
 
         {/* Logo and Title */}
         <div className="text-center mb-8">
-          <div className="w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ marginTop: '5px' }}>
-            <img src={serviceguruLogo} alt="ServiceGuru Logo" className="w-20 h-20 object-contain rounded-full" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }} />
+          <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center" style={{ marginTop: '5px' }}>
+            <img 
+              src={serviceguruLogo} 
+              alt="ServiceGuru Logo" 
+              className="w-20 h-20 object-contain"
+              style={{ 
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                mixBlendMode: 'multiply',
+                background: 'transparent'
+              }} 
+            />
           </div>
           <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>ServiceGuru</h1>
           <p className={theme === 'dark' ? 'text-gray-300' : 'text-blue-100'}>Professional Garage Management</p>
