@@ -470,7 +470,7 @@ export default function Login() {
                 alt="ServiceGuru Logo" 
                 className="w-36 h-36 object-cover"
                 style={{ 
-                  transform: 'scale(1.8)',
+                  transform: 'scale(1.3)',
                   objectPosition: 'center'
                 }}
               />
