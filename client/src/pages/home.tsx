@@ -26,7 +26,7 @@ import {
   Globe,
   Zap
 } from "lucide-react";
-import serviceguruLogo from "@/assets/serviceguru-logo.svg";
+import serviceguruLogo from "@/assets/serviceguru-logo-final.jpeg";
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
@@ -116,13 +116,15 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full overflow-hidden">
                 <img 
                   src={serviceguruLogo} 
                   alt="ServiceGuru Logo" 
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover scale-150"
                   style={{ 
-                    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))'
+                    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))',
+                    transform: 'scale(1.5)',
+                    objectPosition: 'center'
                   }} 
                 />
               </div>
