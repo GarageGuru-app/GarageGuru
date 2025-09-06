@@ -116,11 +116,15 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-white flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
                 <img 
                   src={serviceguruLogo} 
                   alt="ServiceGuru Logo" 
-                  className="w-10 h-10 object-contain"
+                  className="w-16 h-16 object-cover"
+                  style={{ 
+                    transform: 'scale(1.3)',
+                    objectPosition: 'center'
+                  }}
                 />
               </div>
               <span className="text-xl font-bold text-blue-600">ServiceGuru</span>

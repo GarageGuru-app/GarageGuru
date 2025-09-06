@@ -464,11 +464,15 @@ export default function Login() {
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center" style={{ marginTop: '5px' }}>
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-white flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center">
               <img 
                 src={serviceguruLogo} 
                 alt="ServiceGuru Logo" 
-                className="w-16 h-16 object-contain"
+                className="w-28 h-28 object-cover"
+                style={{ 
+                  transform: 'scale(1.4)',
+                  objectPosition: 'center'
+                }}
               />
             </div>
           </div>
