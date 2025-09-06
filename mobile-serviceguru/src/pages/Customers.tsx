@@ -7,7 +7,8 @@ import {
   IndianRupee,
   FileText,
   Edit,
-  Trash2
+  Trash2,
+  Users
 } from 'lucide-react';
 import { User, db, DatabaseManager, Customer } from '../lib/database';
 import MobileHeader from '../components/MobileHeader';

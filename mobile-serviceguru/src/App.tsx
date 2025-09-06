@@ -11,6 +11,8 @@ import JobCardsPage from './pages/JobCards';
 import SparePartsPage from './pages/SpareParts';
 import InvoicesPage from './pages/Invoices';
 import ProfilePage from './pages/Profile';
+import RegisterPage from './pages/Register';
+import ForgotPasswordPage from './pages/ForgotPassword';
 
 // Components
 import LoadingSpinner from './components/LoadingSpinner';
@@ -64,12 +66,28 @@ function App() {
       
       <Router>
         <Switch>
-          {/* Login Route - No Homepage as requested */}
+          {/* Authentication Routes */}
           <Route path="/login">
             {currentUser ? (
               <Redirect to={currentUser.role === 'garage_admin' ? '/admin-dashboard' : '/mechanic-dashboard'} />
             ) : (
               <LoginPage onLogin={setCurrentUser} />
+            )}
+          </Route>
+
+          <Route path="/register">
+            {currentUser ? (
+              <Redirect to={currentUser.role === 'garage_admin' ? '/admin-dashboard' : '/mechanic-dashboard'} />
+            ) : (
+              <RegisterPage />
+            )}
+          </Route>
+
+          <Route path="/forgot-password">
+            {currentUser ? (
+              <Redirect to={currentUser.role === 'garage_admin' ? '/admin-dashboard' : '/mechanic-dashboard'} />
+            ) : (
+              <ForgotPasswordPage />
             )}
           </Route>
 

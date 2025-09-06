@@ -158,9 +158,31 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           </form>
         </div>
 
+        {/* Account Actions */}
+        <div className="bg-white/90 rounded-lg p-4 mb-6">
+          <div className="text-center space-y-3">
+            <button
+              onClick={() => navigate('/forgot-password')}
+              className="text-blue-700 font-medium underline text-sm"
+              disabled={isLoading}
+            >
+              Forgot Password? (Requires Internet)
+            </button>
+            
+            <p className="text-gray-600 text-sm">Don't have an account?</p>
+            <button
+              onClick={() => navigate('/register')}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium w-full disabled:opacity-50"
+              disabled={isLoading}
+            >
+              Create New Account (Requires Internet)
+            </button>
+          </div>
+        </div>
+
         {/* Demo Login Options */}
         <div className="bg-white/90 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-600 text-center mb-3">Demo Access:</p>
+          <p className="text-sm text-gray-600 text-center mb-3">Quick Demo Access:</p>
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => loginAsDemo('admin')}
