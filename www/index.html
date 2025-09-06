@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServiceGuru</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .loading {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">
+        <h1>🚗 ServiceGuru</h1>
+        <p>Loading your garage management system...</p>
+        <p><small>This will redirect to your deployed app</small></p>
+    </div>
+    
+    <script>
+        // Redirect to your deployed ServiceGuru URL
+        window.location.href = 'https://your-serviceguru-deployment.replit.app';
+    </script>
+</body>
+</html>
