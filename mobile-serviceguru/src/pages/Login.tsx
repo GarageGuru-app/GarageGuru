@@ -190,10 +190,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
         {/* Account Actions */}
         <div className="bg-white/90 rounded-lg p-4 mb-6">
-          <div className="text-center space-y-3">
+          <div className="text-center space-y-4">
             <button
               onClick={() => checkInternetAndNavigate('/forgot-password', 'Forgot Password')}
-              className="text-blue-700 font-medium underline text-sm"
+              className="text-blue-700 font-medium underline text-sm block w-full"
               disabled={isLoading}
             >
               Forgot Password?
