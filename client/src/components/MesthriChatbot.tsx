@@ -582,11 +582,11 @@ export function MesthriChatbot() {
 
   if (!isOpen) {
     return (
-      <div className="fixed left-6 z-50" style={{ bottom: '75px' }}>
+      <div className="fixed left-6 z-[9999]" style={{ bottom: '75px' }}>
         <div className="relative">
           <Button
             onClick={() => setIsOpen(true)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-16 h-16 shadow-2xl border-2 border-white/20 backdrop-blur-sm transform transition-all duration-300 hover:scale-110"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-16 h-16 shadow-2xl border-2 border-white/20 backdrop-blur-sm transform transition-all duration-300 hover:scale-110 relative z-[10000]"
             data-testid="chatbot-open-button"
           >
             <div className="relative">
@@ -595,8 +595,8 @@ export function MesthriChatbot() {
             </div>
           </Button>
           {/* AI Pulse Animation */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 animate-pulse opacity-30 scale-110"></div>
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-300 to-purple-300 animate-ping opacity-20 scale-125"></div>
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 animate-pulse opacity-30 scale-110 pointer-events-none"></div>
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-300 to-purple-300 animate-ping opacity-20 scale-125 pointer-events-none"></div>
         </div>
       </div>
     );
