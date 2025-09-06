@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings, Moon, Sun, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import serviceguruLogo from "@/assets/serviceguru-logo.jpeg";
 import { InlineLoader } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -463,7 +464,7 @@ export default function Login() {
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center" style={{ marginTop: '5px' }}>
-            <img src="/serviceguru-logo.svg" alt="ServiceGuru Logo" className="w-20 h-20" />
+            <img src={serviceguruLogo} alt="ServiceGuru Logo" className="w-20 h-20 object-contain" />
           </div>
           <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : ''}`}>ServiceGuru</h1>
           <p className={theme === 'dark' ? 'text-gray-300' : 'text-blue-100'}>Professional Garage Management</p>
