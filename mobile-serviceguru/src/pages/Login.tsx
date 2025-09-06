@@ -16,6 +16,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
