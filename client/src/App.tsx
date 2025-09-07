@@ -232,19 +232,12 @@ function AndroidInstallManager() {
   const [userJustLoggedIn, setUserJustLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Check if user just logged in successfully
-    if (user && !userJustLoggedIn) {
-      // Only show popup if user hasn't dismissed it this session
-      const dismissed = sessionStorage.getItem('androidInstallDismissed');
-      const alreadyInstalled = sessionStorage.getItem('androidAppInstalled');
-      
-      if (!dismissed && !alreadyInstalled) {
-        // Small delay to let login transition complete
-        setTimeout(() => {
-          setShowInstallPopup(true);
-        }, 1500);
-      }
-      
+    // Show popup for testing - always show if user is logged in
+    if (user) {
+      // Small delay to let login transition complete
+      setTimeout(() => {
+        setShowInstallPopup(true);
+      }, 1500);
       setUserJustLoggedIn(true);
     } else if (!user && userJustLoggedIn) {
       // User logged out, reset the flag
