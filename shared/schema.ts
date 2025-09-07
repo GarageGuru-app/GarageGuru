@@ -11,11 +11,6 @@ export const garages = pgTable("garages", {
   phone: text("phone").notNull(),
   email: text("email").notNull(),
   logo: text("logo"), // Cloudinary URL
-  storageType: text("storage_type").notNull().default("cloud"), // 'local_mobile', 'local_computer', 'cloud'
-  billingStatus: text("billing_status").default("free"), // 'free', 'trial', 'paid', 'suspended'
-  subscriptionTier: text("subscription_tier").default("basic"), // 'basic', 'premium', 'enterprise'
-  lastSyncAt: timestamp("last_sync_at"), // For local storage sync tracking
-  syncEnabled: boolean("sync_enabled").default(false), // Allow sync between local and cloud
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -119,23 +114,19 @@ export const invoices = pgTable("invoices", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
-// Access requests table for hybrid storage system
+// Access requests table
 export const accessRequests = pgTable("access_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   garageId: varchar("garage_id").notNull().references(() => garages.id),
   requesterEmail: text("requester_email").notNull(),
   requesterName: text("requester_name").notNull(),
   requestType: text("request_type").notNull(), // 'staff', 'admin'
-  storageType: text("storage_type").notNull(), // 'local_mobile', 'local_computer', 'cloud'
   message: text("message"),
   status: text("status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
   approvedBy: varchar("approved_by").references(() => users.id),
   approvedAt: timestamp("approved_at"),
   rejectedAt: timestamp("rejected_at"),
   rejectionReason: text("rejection_reason"),
-  approvedStorageType: text("approved_storage_type"), // Final storage type set by super admin
-  installationRequired: boolean("installation_required").default(false),
-  pricingAcknowledged: boolean("pricing_acknowledged").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
