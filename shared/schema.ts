@@ -114,22 +114,6 @@ export const invoices = pgTable("invoices", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
-// Access requests table
-export const accessRequests = pgTable("access_requests", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  garageId: varchar("garage_id").notNull().references(() => garages.id),
-  requesterEmail: text("requester_email").notNull(),
-  requesterName: text("requester_name").notNull(),
-  requestType: text("request_type").notNull(), // 'staff', 'admin'
-  message: text("message"),
-  status: text("status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
-  approvedBy: varchar("approved_by").references(() => users.id),
-  approvedAt: timestamp("approved_at"),
-  rejectedAt: timestamp("rejected_at"),
-  rejectionReason: text("rejection_reason"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
 // Insert schemas
 export const insertGarageSchema = createInsertSchema(garages).omit({
   id: true,
@@ -229,23 +213,10 @@ export const insertInvoiceSchema = createInsertSchema(invoices).omit({
   createdAt: true,
 });
 
-export const insertAccessRequestSchema = createInsertSchema(accessRequests).omit({
-  id: true,
-  createdAt: true,
-  approvedAt: true,
-  rejectedAt: true,
-  approvedBy: true,
-}).extend({
-  requesterEmail: z.string().email("Valid email is required"),
-  requesterName: z.string().min(1, "Name is required"),
-  message: z.string().optional(),
-});
-
 // Types
 export type Garage = typeof garages.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Customer = typeof customers.$inferSelect;
-export type AccessRequest = typeof accessRequests.$inferSelect;
 export type SparePart = typeof spareParts.$inferSelect;
 export type JobCard = typeof jobCards.$inferSelect;
 export type Invoice = typeof invoices.$inferSelect;
@@ -314,6 +285,21 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Access requests table (for staff requesting access to garages)
+export const accessRequests = pgTable("access_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  garageId: varchar("garage_id").notNull().references(() => garages.id),
+  userId: varchar("user_id").notNull(),
+  email: text("email").notNull(),
+  name: text("name").notNull(),
+  requestedRole: text("requested_role").notNull(), // 'admin', 'staff'
+  status: text("status").notNull().default("pending"), // 'pending', 'approved', 'denied'
+  note: text("note"),
+  processedBy: varchar("processed_by"),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas for new tables
 export const insertOtpRecordSchema = createInsertSchema(otpRecords).omit({
   id: true,
@@ -325,9 +311,15 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
   createdAt: true,
 });
 
+export const insertAccessRequestSchema = createInsertSchema(accessRequests).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types for new tables
 export type OtpRecord = typeof otpRecords.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type AccessRequest = typeof accessRequests.$inferSelect;
 export type InsertOtpRecord = z.infer<typeof insertOtpRecordSchema>;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type InsertAccessRequest = z.infer<typeof insertAccessRequestSchema>;

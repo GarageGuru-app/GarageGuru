@@ -4,9 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme";
-import { AuthProvider, useAuth } from "@/lib/auth";
-import { AndroidInstallPopup } from "@/components/AndroidInstallPopup";
-import { useState, useEffect } from "react";
+import { AuthProvider } from "@/lib/auth";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { MesthriChatbot } from "@/components/MesthriChatbot";
@@ -38,35 +36,10 @@ import NotFound from "@/pages/not-found";
 import { UserManual } from "@/pages/UserManual";
 import Home from "@/pages/home";
 
-// PWA Mobile Detection
-function isMobileOrPWA() {
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  const isPWA = window.matchMedia('(display-mode: standalone)').matches;
-  const isSmallScreen = window.innerWidth <= 768;
-  return isMobile || isPWA || isSmallScreen;
-}
-
-// Mobile-First Route Component
-function MobileFirstRoute() {
-  const token = localStorage.getItem('auth_token');
-  
-  // If user is authenticated, redirect to dashboard
-  if (token) {
-    window.location.replace('/dashboard');
-    return null;
-  }
-  
-  // If not authenticated, redirect to login  
-  window.location.replace('/login');
-  return null;
-}
-
 function Router() {
   return (
     <AuthProvider>
-      <AndroidInstallManager />
       <Switch>
-        {/* Standard routing - Mobile optimizations applied via CSS */}
         <Route path="/" component={Home} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
@@ -182,7 +155,11 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      <Route path="/access-request" component={AccessRequest} />
+      <Route path="/access-request">
+        <ProtectedRoute roles={["mechanic_staff"]}>
+          <AccessRequest />
+        </ProtectedRoute>
+      </Route>
       
       <Route path="/completed-services">
         <ProtectedRoute>
@@ -222,40 +199,6 @@ function Router() {
     {/* Global Mesthri Chatbot */}
     <MesthriChatbot />
     </AuthProvider>
-  );
-}
-
-// Android Install Manager Component
-function AndroidInstallManager() {
-  const { user } = useAuth();
-  const [showInstallPopup, setShowInstallPopup] = useState(false);
-  const [userJustLoggedIn, setUserJustLoggedIn] = useState(false);
-
-  useEffect(() => {
-    // Show popup for testing - always show if user is logged in
-    if (user) {
-      // Small delay to let login transition complete
-      setTimeout(() => {
-        setShowInstallPopup(true);
-      }, 1500);
-      setUserJustLoggedIn(true);
-    } else if (!user && userJustLoggedIn) {
-      // User logged out, reset the flag
-      setUserJustLoggedIn(false);
-    }
-  }, [user, userJustLoggedIn]);
-
-  const handleInstalled = () => {
-    sessionStorage.setItem('androidAppInstalled', 'true');
-    setShowInstallPopup(false);
-  };
-
-  return (
-    <AndroidInstallPopup
-      open={showInstallPopup}
-      onOpenChange={setShowInstallPopup}
-      onInstalled={handleInstalled}
-    />
   );
 }
 

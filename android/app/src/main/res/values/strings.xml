@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">ServiceGuru</string>
-    <string name="title_activity_main">ServiceGuru</string>
-    <string name="package_name">com.serviceguru.app</string>
-    <string name="custom_url_scheme">com.serviceguru.app</string>
-</resources>

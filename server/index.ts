@@ -1,6 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
-import path from "path";
 import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -46,14 +45,6 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// Serve service worker with correct MIME type
-app.get('/sw.js', (req, res) => {
-  res.setHeader('Content-Type', 'application/javascript');
-  res.setHeader('Service-Worker-Allowed', '/');
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.sendFile(path.resolve(import.meta.dirname, '..', 'public', 'sw.js'));
-});
 
 app.use((req, res, next) => {
   const start = Date.now();

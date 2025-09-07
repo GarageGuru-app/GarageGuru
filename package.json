@@ -11,15 +11,6 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.3",
-    "@capacitor/app": "^7.1.0",
-    "@capacitor/camera": "^7.0.2",
-    "@capacitor/cli": "^7.4.3",
-    "@capacitor/core": "^7.4.3",
-    "@capacitor/device": "^7.0.2",
-    "@capacitor/filesystem": "^7.1.4",
-    "@capacitor/splash-screen": "^7.0.3",
-    "@capacitor/status-bar": "^7.0.3",
     "@google-cloud/storage": "^7.16.0",
     "@hono/node-server": "^1.19.0",
     "@hookform/resolvers": "^3.10.0",

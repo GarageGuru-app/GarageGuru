@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,10 +42,7 @@ import {
   UserCheck,
   BookOpen,
   Download,
-  Wrench,
-  Cloud,
-  Smartphone,
-  Monitor
+  Wrench
 } from 'lucide-react';
 
 // Super Admin emails that can access this page
@@ -65,11 +62,6 @@ interface Garage {
   adminCount: number;
   staffCount: number;
   users: User[];
-  storage_type: 'local_mobile' | 'local_computer' | 'cloud';
-  billing_status: 'free' | 'trial' | 'paid' | 'suspended';
-  subscription_tier: 'basic' | 'premium' | 'enterprise';
-  sync_enabled: boolean;
-  last_sync_at?: string;
 }
 
 interface User {
@@ -757,112 +749,6 @@ export default function SuperAdminPage() {
                             <Users className="w-3 h-3" />
                             {garage.staffCount} Staff
                           </span>
-                        </div>
-
-                                      
-                                      <div className="space-y-2">
-                                        <div className="flex items-center gap-2 p-2 border rounded">
-                                          <input 
-                                            type="radio" 
-                                            name={`storage-${garage.id}`} 
-                                            id={`cloud-${garage.id}`}
-                                            defaultChecked={garage.storage_type === 'cloud'}
-                                          />
-                                          <label htmlFor={`cloud-${garage.id}`} className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                              <Cloud className="w-4 h-4 text-blue-600" />
-                                              <div>
-                                                <div className="font-medium">Cloud Storage</div>
-                                                <div className="text-xs text-muted-foreground">₹499/month • Multi-device • Auto-backup</div>
-                                              </div>
-                                            </div>
-                                          </label>
-                                        </div>
-                                        
-                                        <div className="flex items-center gap-2 p-2 border rounded">
-                                          <input 
-                                            type="radio" 
-                                            name={`storage-${garage.id}`} 
-                                            id={`local-mobile-${garage.id}`}
-                                            defaultChecked={garage.storage_type === 'local_mobile'}
-                                          />
-                                          <label htmlFor={`local-mobile-${garage.id}`} className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                              <Smartphone className="w-4 h-4 text-green-600" />
-                                              <div>
-                                                <div className="font-medium">Local Mobile</div>
-                                                <div className="text-xs text-muted-foreground">Free • Android APK • Offline</div>
-                                              </div>
-                                            </div>
-                                          </label>
-                                        </div>
-                                        
-                                        <div className="flex items-center gap-2 p-2 border rounded">
-                                          <input 
-                                            type="radio" 
-                                            name={`storage-${garage.id}`} 
-                                            id={`local-computer-${garage.id}`}
-                                            defaultChecked={garage.storage_type === 'local_computer'}
-                                          />
-                                          <label htmlFor={`local-computer-${garage.id}`} className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                              <Monitor className="w-4 h-4 text-green-600" />
-                                              <div>
-                                                <div className="font-medium">Local Computer</div>
-                                                <div className="text-xs text-muted-foreground">Free • Desktop app • Offline</div>
-                                              </div>
-                                            </div>
-                                          </label>
-                                        </div>
-                                      </div>
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction 
-                                      onClick={async () => {
-                                        try {
-                                          // Get selected storage type from radio buttons
-                                          const selectedRadio = document.querySelector(`input[name="storage-${garage.id}"]:checked`) as HTMLInputElement;
-                                          if (!selectedRadio) return;
-                                          
-                                          const newStorageType = selectedRadio.id.split('-')[0]; // Extract type from ID
-                                          const actualStorageType = newStorageType === 'cloud' ? 'cloud' : 
-                                                                   selectedRadio.id.includes('mobile') ? 'local_mobile' : 'local_computer';
-
-                                          const response = await apiRequest('PUT', `/api/super-admin/garages/${garage.id}/storage-type`, {
-                                            storageType: actualStorageType,
-                                            billingStatus: actualStorageType === 'cloud' ? 'paid' : 'free',
-                                            subscriptionTier: 'basic'
-                                          });
-
-                                          if (response.ok) {
-                                            const result = await response.json();
-                                            toast({
-                                              title: "Storage Type Updated",
-                                              description: result.message
-                                            });
-                                            // Refresh garage data
-                                            queryClient.invalidateQueries({ queryKey: ['/api/super-admin/garages'] });
-                                          } else {
-                                            throw new Error('Failed to update storage type');
-                                          }
-                                        } catch (error: any) {
-                                          toast({
-                                            title: "Error",
-                                            description: error.message || "Failed to update storage type",
-                                            variant: "destructive"
-                                          });
-                                        }
-                                      }}
-                                    >
-                                      Update Storage Type
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          </div>
                         </div>
 
                         {/* Users List */}

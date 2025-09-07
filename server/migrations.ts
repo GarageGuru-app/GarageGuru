@@ -180,71 +180,25 @@ export async function runMigrations() {
       CREATE TABLE IF NOT EXISTS access_requests (
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
         garage_id VARCHAR REFERENCES garages(id),
-        requester_email TEXT NOT NULL,
-        requester_name TEXT NOT NULL,
-        request_type TEXT NOT NULL,
-        storage_type TEXT NOT NULL,
-        message TEXT,
+        user_id VARCHAR REFERENCES users(id),
+        email TEXT NOT NULL,
+        name TEXT NOT NULL,
+        requested_role TEXT NOT NULL,
         status TEXT DEFAULT 'pending',
-        approved_by VARCHAR REFERENCES users(id),
-        approved_at TIMESTAMP,
-        rejected_at TIMESTAMP,
-        rejection_reason TEXT,
-        approved_storage_type TEXT,
-        installation_required BOOLEAN DEFAULT false,
-        pricing_acknowledged BOOLEAN DEFAULT false,
+        note TEXT,
+        processed_by TEXT,
+        processed_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
 
-    // Update access_requests table schema to match new structure
+    // Add missing columns to existing access_requests table (if they don't exist)
     try {
-      // Check if old columns exist and rename/add new ones
-      const checkColumns = await pool.query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'access_requests'
-      `);
-      const existingColumns = checkColumns.rows.map(row => row.column_name);
-      
-      // Add new columns if they don't exist
-      if (!existingColumns.includes('requester_email')) {
-        if (existingColumns.includes('email')) {
-          await pool.query(`ALTER TABLE access_requests RENAME COLUMN email TO requester_email`);
-        } else {
-          await pool.query(`ALTER TABLE access_requests ADD COLUMN requester_email TEXT`);
-        }
-      }
-      
-      if (!existingColumns.includes('requester_name')) {
-        if (existingColumns.includes('name')) {
-          await pool.query(`ALTER TABLE access_requests RENAME COLUMN name TO requester_name`);
-        } else {
-          await pool.query(`ALTER TABLE access_requests ADD COLUMN requester_name TEXT`);
-        }
-      }
-      
-      if (!existingColumns.includes('request_type')) {
-        if (existingColumns.includes('requested_role')) {
-          await pool.query(`ALTER TABLE access_requests RENAME COLUMN requested_role TO request_type`);
-        } else {
-          await pool.query(`ALTER TABLE access_requests ADD COLUMN request_type TEXT DEFAULT 'staff'`);
-        }
-      }
-      
-      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS storage_type TEXT DEFAULT 'local_mobile'`);
-      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS message TEXT`);
-      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS approved_by VARCHAR REFERENCES users(id)`);
-      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP`);
-      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP`);
-      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS rejection_reason TEXT`);
-      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS approved_storage_type TEXT`);
-      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS installation_required BOOLEAN DEFAULT false`);
-      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS pricing_acknowledged BOOLEAN DEFAULT false`);
-      
-      console.log('✅ Access requests table schema updated successfully');
+      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS processed_by TEXT`);
+      await pool.query(`ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP`);
     } catch (error) {
-      console.log('⚠️ Access requests schema update error:', error instanceof Error ? error.message : String(error));
+      // Columns might already exist, ignore error
+      console.log('Note: processed_by/processed_at columns may already exist');
     }
 
     // Add must_change_password column to users table

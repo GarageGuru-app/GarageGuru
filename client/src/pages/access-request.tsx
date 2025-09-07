@@ -1,34 +1,27 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/auth";
-import { useTheme } from "@/hooks/use-theme";
+import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { 
+  Settings, 
   Moon, 
   Sun, 
   Send,
   Clock,
+  Mail,
   Building,
   User,
   MessageSquare,
+  CheckCircle,
   AlertCircle
 } from "lucide-react";
 
@@ -56,16 +49,6 @@ export default function AccessRequest() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmitRequest = async () => {
-    // Validate required fields
-    if (!selectedGarageId) {
-      toast({
-        title: "Missing Information",
-        description: "Please select a garage.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -223,62 +206,71 @@ export default function AccessRequest() {
           <CardContent className="space-y-4">
             {/* Garage Selection */}
             <div>
-              <Label htmlFor="garage-select" className="text-base font-medium flex items-center gap-2">
-                <Building className="w-4 h-4" />
-                Select Garage
+              <Label htmlFor="garage-select" className="text-sm font-medium">
+                Select Garage *
               </Label>
-              <Select
-                value={selectedGarageId}
-                onValueChange={setSelectedGarageId}
+              <Select 
+                value={selectedGarageId} 
+                onValueChange={(value) => {
+                  console.log("🏪 Garage changed to:", value, "Type:", typeof value);
+                  setSelectedGarageId(value);
+                }}
+                disabled={isLoading}
               >
-                <SelectTrigger className="mt-2" data-testid="select-garage">
-                  <SelectValue placeholder="Choose a garage to join..." />
+                <SelectTrigger data-testid="select-garage">
+                  <SelectValue placeholder={isLoading ? "Loading garages..." : "Choose a garage to request access"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {isLoading ? (
-                    <SelectItem value="" disabled>Loading garages...</SelectItem>
-                  ) : garages && garages.length > 0 ? (
-                    garages.map((garage: any) => (
-                      <SelectItem key={garage.id} value={garage.id} data-testid={`option-garage-${garage.id}`}>
-                        {garage.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="" disabled>No garages available</SelectItem>
-                  )}
+                  {garages?.map((garage: any) => (
+                    <SelectItem key={garage.id} value={garage.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{garage.name}</span>
+                        <span className="text-sm text-muted-foreground">
+                          Owner: {garage.ownerName}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {!selectedGarageId && (
+                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  Please select a garage to enable the submit button
+                </p>
+              )}
             </div>
 
             {/* Message */}
             <div>
-              <Label htmlFor="message" className="text-base font-medium flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" />
-                Additional Message
+              <Label htmlFor="message" className="text-sm font-medium">
+                Message (Optional)
               </Label>
               <Textarea
                 id="message"
-                placeholder="Tell the garage admin why you'd like to join their team..."
+                placeholder="Tell the garage owner why you'd like to work there..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="mt-2"
-                rows={3}
-                data-testid="input-message"
+                rows={4}
+                data-testid="textarea-message"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Introduce yourself and mention any relevant experience
+              </p>
             </div>
 
             {/* Submit Button */}
             <Button
               onClick={handleSubmitRequest}
-              disabled={isSubmitting || !selectedGarageId}
-              className="w-full"
+              disabled={isSubmitting || !selectedGarageId || selectedGarageId.trim() === ''}
+              className={`w-full ${(!selectedGarageId || selectedGarageId.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
               data-testid="button-submit-request"
             >
               {isSubmitting ? (
-                <>
-                  <Clock className="w-4 h-4 mr-2 animate-spin" />
-                  Sending Request...
-                </>
+                <div className="flex items-center justify-center space-x-2">
+                  <Wrench className="w-4 h-4 text-white animate-spin" />
+                  <span>Sending Request...</span>
+                </div>
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
@@ -289,6 +281,51 @@ export default function AccessRequest() {
           </CardContent>
         </Card>
 
+        {/* Information Card */}
+        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950">
+          <CardContent className="p-4">
+            <div className="flex items-start space-x-2 text-blue-800 dark:text-blue-200">
+              <Mail className="w-5 h-5 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium mb-2">What happens next?</p>
+                <ul className="space-y-1">
+                  <li>• Your request will be sent to the garage admin</li>
+                  <li>• They will review your request and contact you</li>
+                  <li>• Once approved, you'll be able to access the staff dashboard</li>
+                  <li>• You'll receive email notifications about your request status</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Alternative Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Need help?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              If you don't see the garage you're looking for, ask the garage owner to:
+            </p>
+            <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+              <li>• Register their garage on the platform</li>
+              <li>• Provide you with an activation code</li>
+              <li>• Contact support for assistance</li>
+            </ul>
+            
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/register")}
+                size="sm"
+                data-testid="button-register-with-code"
+              >
+                I have an activation code
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
