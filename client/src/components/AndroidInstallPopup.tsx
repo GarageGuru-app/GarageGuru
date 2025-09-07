@@ -86,7 +86,9 @@ export function AndroidInstallPopup({ open, onOpenChange, onInstalled }: Android
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-none w-[calc(100%-2rem)] mx-4 p-0 bg-gradient-to-r from-blue-600 to-blue-700 border-0 rounded-lg">
+      <DialogContent 
+        className="max-w-none w-[calc(100%-2rem)] mx-4 p-0 bg-gradient-to-r from-blue-600 to-blue-700 border-0 rounded-lg [&>button]:hidden"
+      >
         <div className="flex items-center justify-between px-4 py-3 text-white">
           <div className="flex items-center gap-3">
             <div>
