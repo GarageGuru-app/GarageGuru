@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, X, Smartphone } from "lucide-react";
+import { Download, X, Smartphone, Share, Plus } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -11,6 +11,7 @@ export function InstallBanner() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
+  const [isIOSSafari, setIsIOSSafari] = useState(false);
 
   useEffect(() => {
     // Listen for the beforeinstallprompt event
@@ -37,6 +38,16 @@ export function InstallBanner() {
     if (isStandalone || isInWebAppiOS) {
       console.log('📱 App already installed');
       return;
+    }
+
+    // Detect iOS Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isIOS && isSafari && !isInWebAppiOS) {
+      setIsIOSSafari(true);
+      setShowBanner(true);
+      console.log('📱 iOS Safari detected - showing manual install instructions');
     }
 
     // Add event listeners
@@ -81,7 +92,7 @@ export function InstallBanner() {
     setInstallPrompt(null);
   };
 
-  if (!showBanner || !installPrompt) {
+  if (!showBanner) {
     return null;
   }
 
@@ -94,31 +105,39 @@ export function InstallBanner() {
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold">Install ServiceGuru</p>
-            <p className="text-xs opacity-90">Get quick access from your home screen</p>
+            {isIOSSafari ? (
+              <p className="text-xs opacity-90">
+                Tap <Share className="inline w-3 h-3 mx-1" /> then "Add to Home Screen"
+              </p>
+            ) : (
+              <p className="text-xs opacity-90">Get quick access from your home screen</p>
+            )}
           </div>
         </div>
         
         <div className="flex items-center space-x-2 ml-3">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={handleInstall}
-            disabled={isInstalling}
-            className="bg-white text-blue-600 hover:bg-white/90 text-xs px-3 py-1.5 h-auto"
-            data-testid="button-install-app"
-          >
-            {isInstalling ? (
-              <>
-                <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-1" />
-                Installing...
-              </>
-            ) : (
-              <>
-                <Download className="w-3 h-3 mr-1" />
-                Install
-              </>
-            )}
-          </Button>
+          {!isIOSSafari && installPrompt && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleInstall}
+              disabled={isInstalling}
+              className="bg-white text-blue-600 hover:bg-white/90 text-xs px-3 py-1.5 h-auto"
+              data-testid="button-install-app"
+            >
+              {isInstalling ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-1" />
+                  Installing...
+                </>
+              ) : (
+                <>
+                  <Download className="w-3 h-3 mr-1" />
+                  Install
+                </>
+              )}
+            </Button>
+          )}
           
           <Button
             size="sm"
