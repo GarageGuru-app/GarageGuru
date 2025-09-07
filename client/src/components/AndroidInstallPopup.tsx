@@ -87,31 +87,33 @@ export function AndroidInstallPopup({ open, onOpenChange, onInstalled }: Android
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-none w-[calc(100%-2rem)] mx-4 p-0 bg-gradient-to-r from-purple-600 to-purple-700 border-0 rounded-lg">
+      <DialogContent className="max-w-none w-[calc(100%-2rem)] mx-4 p-0 bg-gradient-to-r from-blue-600 to-blue-700 border-0 rounded-lg">
         <div className="flex items-center justify-between px-4 py-3 text-white">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-8 w-8 p-0 text-white hover:bg-white/20"
-            >
-              <X className="h-4 w-4" />
-            </Button>
             <div>
               <div className="font-medium text-sm">ServiceGuru</div>
-              <div className="text-xs text-purple-100">Get our free app. It won't take up space on your phone.</div>
+              <div className="text-xs text-blue-100">Get our free app. It won't take up space on your phone.</div>
             </div>
           </div>
           
-          <Button
-            onClick={handleInstall}
-            disabled={isInstalling}
-            className="bg-white text-purple-700 hover:bg-gray-100 px-6 py-2 text-sm font-medium rounded-full"
-            size="sm"
-          >
-            {isInstalling ? 'Installing...' : 'Install'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleClose}
+              variant="ghost"
+              className="text-white hover:bg-white/20 px-4 py-2 text-sm font-medium rounded-full"
+              size="sm"
+            >
+              Maybe Later
+            </Button>
+            <Button
+              onClick={handleInstall}
+              disabled={isInstalling}
+              className="bg-white text-blue-700 hover:bg-gray-100 px-6 py-2 text-sm font-medium rounded-full"
+              size="sm"
+            >
+              {isInstalling ? 'Installing...' : 'Install'}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
