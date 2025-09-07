@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useTheme } from "@/context/theme-context";
+import { useAuth } from "@/hooks/auth";
+import { useTheme } from "@/hooks/use-theme";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";

@@ -759,60 +759,6 @@ export default function SuperAdminPage() {
                           </span>
                         </div>
 
-                        {/* Storage Type Controls */}
-                        <div className="border-t pt-3 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium">Storage Type</h4>
-                            <Badge 
-                              variant={garage.storage_type === 'cloud' ? 'default' : 'secondary'}
-                              className={`text-xs ${
-                                garage.storage_type === 'cloud' 
-                                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200' 
-                                  : 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200'
-                              }`}
-                            >
-                              {garage.storage_type === 'cloud' ? '☁️ Cloud' : 
-                               garage.storage_type === 'local_mobile' ? '📱 Mobile' : '💻 Computer'}
-                            </Badge>
-                          </div>
-                          
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
-                              {garage.storage_type === 'cloud' && (
-                                <span className="text-blue-600 dark:text-blue-400">₹499/month</span>
-                              )}
-                              {garage.storage_type !== 'cloud' && (
-                                <span className="text-green-600 dark:text-green-400">Free</span>
-                              )}
-                              <span className="text-muted-foreground">•</span>
-                              <span className="text-muted-foreground capitalize">
-                                {garage.billing_status}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                              {garage.sync_enabled && garage.last_sync_at && (
-                                <span className="text-xs text-muted-foreground" title={`Last sync: ${new Date(garage.last_sync_at).toLocaleString()}`}>
-                                  🔄 Synced
-                                </span>
-                              )}
-                              
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    className="h-7 px-2"
-                                    data-testid={`button-change-storage-${garage.id}`}
-                                  >
-                                    Change
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Change Storage Type for {garage.name}</AlertDialogTitle>
-                                    <AlertDialogDescription className="space-y-3">
-                                      <p>Current: <strong>{garage.storage_type.replace('_', ' ').toUpperCase()}</strong></p>
                                       
                                       <div className="space-y-2">
                                         <div className="flex items-center gap-2 p-2 border rounded">
