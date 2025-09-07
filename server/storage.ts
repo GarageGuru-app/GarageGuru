@@ -21,6 +21,11 @@ export interface Garage {
   phone: string | null;
   email: string | null;
   logo: string | null;
+  storage_type: 'local_mobile' | 'local_computer' | 'cloud';
+  billing_status: 'free' | 'trial' | 'paid' | 'suspended';
+  subscription_tier: 'basic' | 'premium' | 'enterprise';
+  sync_enabled: boolean;
+  last_sync_at: Date | null;
   created_at: Date;
 }
 
@@ -114,14 +119,21 @@ export interface AuditLog {
 export interface AccessRequest {
   id: string;
   garage_id: string;
-  user_id: string;
+  user_id?: string;
   email: string;
   name: string;
   requested_role: string;
+  storage_type: 'local_mobile' | 'local_computer' | 'cloud';
   status: string;
   note?: string;
+  approved_storage_type?: string;
+  installation_required: boolean;
+  pricing_acknowledged: boolean;
   processed_by?: string;
   processed_at?: Date;
+  approved_at?: Date;
+  rejected_at?: Date;
+  rejection_reason?: string;
   created_at: Date;
 }
 
@@ -323,8 +335,21 @@ export class DatabaseStorage implements IStorage {
   async createGarage(garage: Partial<Garage>): Promise<Garage> {
     const id = garage.id || crypto.randomUUID();
     const result = await pool.query(
-      'INSERT INTO garages (id, name, owner_name, phone, email, logo, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [id, garage.name, garage.owner_name, garage.phone, garage.email, garage.logo, new Date()]
+      `INSERT INTO garages (id, name, owner_name, phone, email, logo, storage_type, billing_status, subscription_tier, sync_enabled, created_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [
+        id, 
+        garage.name, 
+        garage.owner_name, 
+        garage.phone, 
+        garage.email, 
+        garage.logo,
+        garage.storage_type || 'cloud',
+        garage.billing_status || 'free',
+        garage.subscription_tier || 'basic',
+        garage.sync_enabled || false,
+        new Date()
+      ]
     );
     return result.rows[0];
   }
@@ -367,8 +392,31 @@ export class DatabaseStorage implements IStorage {
 
   async updateGarage(id: string, garage: Partial<Garage>): Promise<Garage> {
     const result = await pool.query(
-      'UPDATE garages SET name = COALESCE($2, name), owner_name = COALESCE($3, owner_name), phone = COALESCE($4, phone), email = COALESCE($5, email), logo = COALESCE($6, logo) WHERE id = $1 RETURNING *',
-      [id, garage.name, garage.owner_name, garage.phone, garage.email, garage.logo]
+      `UPDATE garages SET 
+        name = COALESCE($2, name), 
+        owner_name = COALESCE($3, owner_name), 
+        phone = COALESCE($4, phone), 
+        email = COALESCE($5, email), 
+        logo = COALESCE($6, logo),
+        storage_type = COALESCE($7, storage_type),
+        billing_status = COALESCE($8, billing_status),
+        subscription_tier = COALESCE($9, subscription_tier),
+        sync_enabled = COALESCE($10, sync_enabled),
+        last_sync_at = COALESCE($11, last_sync_at)
+       WHERE id = $1 RETURNING *`,
+      [
+        id, 
+        garage.name, 
+        garage.owner_name, 
+        garage.phone, 
+        garage.email, 
+        garage.logo,
+        garage.storage_type,
+        garage.billing_status,
+        garage.subscription_tier,
+        garage.sync_enabled,
+        garage.last_sync_at
+      ]
     );
     return result.rows[0];
   }
@@ -1055,8 +1103,20 @@ export class DatabaseStorage implements IStorage {
   async createAccessRequest(request: Partial<AccessRequest>): Promise<AccessRequest> {
     const id = crypto.randomUUID();
     const result = await pool.query(
-      'INSERT INTO access_requests (id, garage_id, user_id, email, name, requested_role, status, note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-      [id, request.garage_id, request.user_id, request.email, request.name, request.requested_role, request.status || 'pending', request.note]
+      `INSERT INTO access_requests (id, garage_id, requester_email, requester_name, request_type, storage_type, message, installation_required, pricing_acknowledged, status) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [
+        id, 
+        request.garage_id, 
+        request.email, 
+        request.name, 
+        request.requested_role || 'staff',
+        request.storage_type,
+        request.note,
+        request.installation_required || false,
+        request.pricing_acknowledged || false,
+        request.status || 'pending'
+      ]
     );
     return result.rows[0];
   }

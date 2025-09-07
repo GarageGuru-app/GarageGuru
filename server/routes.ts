@@ -439,7 +439,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Request access route - saves to database and notifies super admin
   app.post("/api/auth/request-access", async (req, res) => {
     try {
-      const { email, name, requestType, message, garageId } = req.body;
+      const { email, name, requestType, message, garageId, storageType, pricingAcknowledged, installationRequired } = req.body;
       
       // Validate required fields
       if (!email || !name) {
@@ -452,6 +452,20 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (requestType === 'staff' && !garageId) {
         return res.status(400).json({ 
           message: 'Garage selection is required for staff access requests. Please select a garage to continue.' 
+        });
+      }
+
+      // Storage type is now mandatory
+      if (!storageType || !['local_mobile', 'local_computer', 'cloud'].includes(storageType)) {
+        return res.status(400).json({
+          message: 'Please select a valid storage type (Local Mobile, Local Computer, or Cloud).'
+        });
+      }
+
+      // Validate pricing acknowledgment for cloud storage
+      if (storageType === 'cloud' && !pricingAcknowledged) {
+        return res.status(400).json({
+          message: 'Please acknowledge the cloud storage pricing before proceeding.'
         });
       }
       
@@ -482,6 +496,9 @@ export async function registerRoutes(app: Express): Promise<void> {
         email,
         name,
         requested_role: requestType || 'staff',
+        storage_type: storageType,
+        pricing_acknowledged: pricingAcknowledged || false,
+        installation_required: installationRequired || false,
         status: 'pending',
         note: message
       });
@@ -1024,6 +1041,56 @@ export async function registerRoutes(app: Express): Promise<void> {
       res.json(garage);
     } catch (error) {
       res.status(500).json({ message: 'Failed to update garage' });
+    }
+  });
+
+  // Super admin route to change garage storage type
+  app.put("/api/super-admin/garages/:id/storage-type", authenticateToken, async (req, res) => {
+    try {
+      // Verify super admin access
+      if (!req.user || !SUPER_ADMIN_EMAILS.includes(req.user.email)) {
+        return res.status(403).json({ message: 'Super admin access required' });
+      }
+
+      const { id } = req.params;
+      const { storageType, billingStatus, subscriptionTier } = req.body;
+
+      // Validate storage type
+      if (!['local_mobile', 'local_computer', 'cloud'].includes(storageType)) {
+        return res.status(400).json({ message: 'Invalid storage type' });
+      }
+
+      const updateData = {
+        storage_type: storageType,
+        billing_status: billingStatus || (storageType === 'cloud' ? 'paid' : 'free'),
+        subscription_tier: subscriptionTier || 'basic',
+        sync_enabled: storageType.startsWith('local') && billingStatus === 'paid',
+        last_sync_at: storageType === 'cloud' ? new Date() : null
+      };
+
+      const garage = await storage.updateGarage(id, updateData);
+      
+      // Create audit log
+      await storage.createAuditLog({
+        actor_id: req.user.id,
+        actor_email: req.user.email,
+        action: 'storage_type_change',
+        details: { 
+          garage_id: id, 
+          new_storage_type: storageType,
+          previous_type: garage.storage_type
+        },
+        garage_id: id
+      });
+
+      res.json({ 
+        success: true, 
+        garage,
+        message: `Storage type changed to ${storageType.replace('_', ' ')} for garage ${garage.name}`
+      });
+    } catch (error) {
+      console.error('Storage type change error:', error);
+      res.status(500).json({ message: 'Failed to change storage type' });
     }
   });
 
