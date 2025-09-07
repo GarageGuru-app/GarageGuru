@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -874,12 +874,40 @@ export default function SuperAdminPage() {
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction 
-                                      onClick={() => {
-                                        // TODO: Implement storage type change
-                                        toast({
-                                          title: "Storage Type Changed",
-                                          description: `${garage.name} storage type will be updated.`
-                                        });
+                                      onClick={async () => {
+                                        try {
+                                          // Get selected storage type from radio buttons
+                                          const selectedRadio = document.querySelector(`input[name="storage-${garage.id}"]:checked`) as HTMLInputElement;
+                                          if (!selectedRadio) return;
+                                          
+                                          const newStorageType = selectedRadio.id.split('-')[0]; // Extract type from ID
+                                          const actualStorageType = newStorageType === 'cloud' ? 'cloud' : 
+                                                                   selectedRadio.id.includes('mobile') ? 'local_mobile' : 'local_computer';
+
+                                          const response = await apiRequest('PUT', `/api/super-admin/garages/${garage.id}/storage-type`, {
+                                            storageType: actualStorageType,
+                                            billingStatus: actualStorageType === 'cloud' ? 'paid' : 'free',
+                                            subscriptionTier: 'basic'
+                                          });
+
+                                          if (response.ok) {
+                                            const result = await response.json();
+                                            toast({
+                                              title: "Storage Type Updated",
+                                              description: result.message
+                                            });
+                                            // Refresh garage data
+                                            queryClient.invalidateQueries({ queryKey: ['/api/super-admin/garages'] });
+                                          } else {
+                                            throw new Error('Failed to update storage type');
+                                          }
+                                        } catch (error: any) {
+                                          toast({
+                                            title: "Error",
+                                            description: error.message || "Failed to update storage type",
+                                            variant: "destructive"
+                                          });
+                                        }
                                       }}
                                     >
                                       Update Storage Type
