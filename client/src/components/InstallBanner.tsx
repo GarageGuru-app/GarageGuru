@@ -9,7 +9,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 export function InstallBanner() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showBanner, setShowBanner] = useState(false);
+  const [showBanner, setShowBanner] = useState(true); // Always show for testing
   const [isInstalling, setIsInstalling] = useState(false);
   const [isIOSSafari, setIsIOSSafari] = useState(false);
 
@@ -50,6 +50,14 @@ export function InstallBanner() {
       console.log('📱 iOS Safari detected - showing manual install instructions');
     }
 
+    // For testing: Show banner after 2 seconds if no install prompt detected
+    const testTimer = setTimeout(() => {
+      if (!installPrompt && !isStandalone && !isInWebAppiOS) {
+        console.log('📱 Showing test install banner for demo');
+        setShowBanner(true);
+      }
+    }, 2000);
+
     // Add event listeners
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -57,6 +65,7 @@ export function InstallBanner() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      clearTimeout(testTimer);
     };
   }, []);
 
@@ -116,28 +125,26 @@ export function InstallBanner() {
         </div>
         
         <div className="flex items-center space-x-2 ml-3">
-          {!isIOSSafari && installPrompt && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={handleInstall}
-              disabled={isInstalling}
-              className="bg-white text-blue-600 hover:bg-white/90 text-xs px-3 py-1.5 h-auto"
-              data-testid="button-install-app"
-            >
-              {isInstalling ? (
-                <>
-                  <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-1" />
-                  Installing...
-                </>
-              ) : (
-                <>
-                  <Download className="w-3 h-3 mr-1" />
-                  Install
-                </>
-              )}
-            </Button>
-          )}
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={installPrompt ? handleInstall : () => alert('Add to Home Screen from browser menu!')}
+            disabled={isInstalling}
+            className="bg-white text-blue-600 hover:bg-white/90 text-xs px-3 py-1.5 h-auto"
+            data-testid="button-install-app"
+          >
+            {isInstalling ? (
+              <>
+                <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-1" />
+                Installing...
+              </>
+            ) : (
+              <>
+                <Download className="w-3 h-3 mr-1" />
+                Install
+              </>
+            )}
+          </Button>
           
           <Button
             size="sm"
