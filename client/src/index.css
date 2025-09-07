@@ -116,6 +116,22 @@
       scroll-behavior: smooth;
     }
   }
+
+  /* Install prompt animations */
+  @keyframes slide-up {
+    from {
+      transform: translateY(100px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.4s ease-out forwards;
+  }
 }
 
 @layer components {

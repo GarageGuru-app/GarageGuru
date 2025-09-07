@@ -1,21 +1,31 @@
-// ServiceGuru Progressive Web App Service Worker
+// Enhanced Service Worker for ServiceGuru PWA
 const CACHE_NAME = 'serviceguru-v1.0.0';
-const STATIC_CACHE = 'serviceguru-static-v1';
-const DYNAMIC_CACHE = 'serviceguru-dynamic-v1';
+const STATIC_CACHE = 'serviceguru-static-v1.0.0';
+const DYNAMIC_CACHE = 'serviceguru-dynamic-v1.0.0';
 
 console.log('🔧 ServiceGuru Service Worker loaded');
 
-// Files to cache for offline functionality
-const STATIC_FILES = [
+// Files to cache immediately
+const STATIC_ASSETS = [
   '/',
+  '/dashboard',
+  '/job-card',
+  '/customers',
+  '/spare-parts',
+  '/sales',
   '/manifest.json',
+  '/offline.html',
   '/serviceguru-logo.svg'
 ];
 
 // API endpoints to cache
 const API_CACHE_PATTERNS = [
-  '/api/user/profile',
-  '/api/garages'
+  /\/api\/user\/profile/,
+  /\/api\/garages/,
+  /\/api\/customers/,
+  /\/api\/spare-parts/,
+  /\/api\/job-cards/,
+  /\/api\/sales/
 ];
 
 // Install event - cache static files
