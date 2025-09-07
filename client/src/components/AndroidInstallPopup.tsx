@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Download, Smartphone, Wifi, WifiOff, X } from "lucide-react";
+import { Download, Smartphone, Wifi, WifiOff } from "lucide-react";
 import serviceguruLogo from "@/assets/serviceguru-logo-final.jpeg";
 
 interface AndroidInstallPopupProps {
@@ -119,122 +118,61 @@ export function AndroidInstallPopup({ open, onOpenChange, onInstalled }: Android
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-sm max-w-[300px] mx-4">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              <img src={serviceguruLogo} alt="ServiceGuru" className="w-8 h-8 rounded" />
-              Install ServiceGuru App
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLater}
-              className="h-6 w-6"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <DialogDescription>
-            Get the best ServiceGuru experience by installing our Android app
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Smartphone className="h-4 w-4 text-blue-600" />
+            Install App
+          </DialogTitle>
+          <DialogDescription className="text-sm">
+            Add ServiceGuru to your home screen
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Connection Status */}
-          <Alert className={isOnline ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
-            <div className="flex items-center gap-2">
-              {isOnline ? (
-                <Wifi className="w-4 h-4 text-green-600" />
-              ) : (
-                <div className="animate-pulse">
-                  <WifiOff className="w-4 h-4 text-red-600" />
-                </div>
-              )}
-              <AlertDescription className={isOnline ? "text-green-800" : "text-red-800"}>
-                {isOnline ? (
-                  "✅ Connected to internet"
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span>❌ No internet connection</span>
-                    <div className="animate-spin w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full"></div>
-                  </div>
-                )}
-              </AlertDescription>
+        <div className="space-y-3">
+          {/* App Logo */}
+          <div className="text-center">
+            <div className="w-14 h-14 mx-auto bg-blue-100 rounded-lg flex items-center justify-center mb-2">
+              <img src={serviceguruLogo} alt="ServiceGuru" className="w-10 h-10 rounded object-cover" />
             </div>
-          </Alert>
-
-          {/* App Features */}
-          <div className="space-y-3">
-            <h4 className="font-medium flex items-center gap-2">
-              <Smartphone className="w-4 h-4" />
-              Why install the app?
-            </h4>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>⚡ Faster performance and offline access</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>📱 Native Android app experience</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>🔔 Push notifications for important updates</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>🏠 Add to home screen for quick access</span>
-              </li>
-            </ul>
           </div>
 
-          {/* Installation Buttons */}
-          <div className="flex gap-2 pt-4">
-            <Button
-              onClick={handleInstall}
-              disabled={!isOnline || isInstalling}
-              className="flex-1"
-              data-testid="button-install-app"
+          {/* Install Button */}
+          <div className="space-y-2">
+            <Button 
+              onClick={handleInstall} 
+              className="w-full" 
+              disabled={!canInstall || isInstalling}
+              size="sm"
             >
-              {isInstalling ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                  <span>Installing...</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Download className="w-4 h-4" />
-                  <span>
-                    {canInstall || /Chrome/.test(navigator.userAgent) ? "Install App" : "Add to Home Screen"}
-                  </span>
-                </div>
-              )}
+              <Download className="mr-2 h-4 w-4" />
+              {isInstalling ? 'Installing...' : 'Install App'}
             </Button>
             
-            <Button
-              variant="outline"
-              onClick={handleLater}
-              className="flex-1"
-              data-testid="button-maybe-later"
+            <Button 
+              variant="outline" 
+              onClick={handleLater} 
+              className="w-full"
+              size="sm"
             >
               Maybe Later
             </Button>
           </div>
 
-          {/* Connection Help */}
-          {!isOnline && (
-            <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
-              <p className="font-medium mb-1">Need internet connection:</p>
-              <p>• Check your WiFi or mobile data</p>
-              <p>• Try refreshing the page once connected</p>
-              <div className="flex items-center gap-1 mt-2">
-                <div className="animate-pulse w-2 h-2 bg-gray-400 rounded-full"></div>
-                <span>Checking connection...</span>
-              </div>
-            </div>
-          )}
+          {/* Connection Status */}
+          <div className="flex items-center justify-center gap-2 text-xs">
+            {isOnline ? (
+              <>
+                <Wifi className="h-3 w-3 text-green-600" />
+                <span className="text-green-600">Online</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="h-3 w-3 text-red-600" />
+                <span className="text-red-600">Offline</span>
+              </>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

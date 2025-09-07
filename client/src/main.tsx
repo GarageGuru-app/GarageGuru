@@ -8,8 +8,17 @@ const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
       console.log('🔄 Registering ServiceGuru Service Worker...');
+      
+      // Wait for page to fully load before registering SW
+      if (document.readyState === 'loading') {
+        await new Promise(resolve => {
+          document.addEventListener('DOMContentLoaded', resolve);
+        });
+      }
+      
       const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/'
+        scope: '/',
+        type: 'classic'
       });
       
       if (registration.installing) {
@@ -25,12 +34,15 @@ const registerServiceWorker = async () => {
         console.log('🔄 Service worker update found');
       });
 
-      console.log('✅ ServiceGuru SW registered successfully:', registration);
+      console.log('✅ ServiceGuru SW registered successfully');
+      return registration;
     } catch (error) {
-      console.error('❌ ServiceGuru SW registration failed:', error);
+      console.error('❌ ServiceGuru SW registration failed:', error instanceof Error ? error.message : String(error));
+      return null;
     }
   } else {
     console.log('⚠️ Service Worker not supported');
+    return null;
   }
 };
 
