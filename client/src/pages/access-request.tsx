@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Settings, 
@@ -22,7 +24,14 @@ import {
   User,
   MessageSquare,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Smartphone,
+  Monitor,
+  Cloud,
+  Download,
+  CreditCard,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 
 export default function AccessRequest() {
@@ -32,7 +41,11 @@ export default function AccessRequest() {
   const { toast } = useToast();
   
   const [selectedGarageId, setSelectedGarageId] = useState("");
+  const [storageType, setStorageType] = useState("");
   const [message, setMessage] = useState("");
+  const [showPricingAlert, setShowPricingAlert] = useState(false);
+  const [showInstallAlert, setShowInstallAlert] = useState(false);
+  const [pricingAcknowledged, setPricingAcknowledged] = useState(false);
   
   // Debug garage selection
   console.log("🔍 Debug - selectedGarageId:", selectedGarageId, "Type:", typeof selectedGarageId, "Length:", selectedGarageId?.length);
@@ -48,7 +61,35 @@ export default function AccessRequest() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleStorageTypeChange = (value: string) => {
+    setStorageType(value);
+    setPricingAcknowledged(false);
+    
+    // Show appropriate alerts based on storage type
+    if (value === "cloud") {
+      setShowPricingAlert(true);
+    } else if (value === "local_mobile" || value === "local_computer") {
+      setShowInstallAlert(true);
+    }
+  };
+
   const handleSubmitRequest = async () => {
+    // Validate required fields
+    if (!selectedGarageId || !storageType) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both garage and storage type.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check pricing acknowledgment for cloud storage
+    if (storageType === "cloud" && !pricingAcknowledged) {
+      setShowPricingAlert(true);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -57,7 +98,10 @@ export default function AccessRequest() {
         name: user?.name,
         requestType: "staff",
         garageId: selectedGarageId,
+        storageType: storageType,
         message: message.trim(),
+        pricingAcknowledged: pricingAcknowledged,
+        installationRequired: storageType.startsWith("local"),
       });
 
       if (response.ok) {
@@ -69,7 +113,9 @@ export default function AccessRequest() {
         
         // Clear form
         setSelectedGarageId("");
+        setStorageType("");
         setMessage("");
+        setPricingAcknowledged(false);
       } else {
         const errorResult = await response.json();
         
