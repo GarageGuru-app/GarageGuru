@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Settings, Moon, Sun, Mail, Send, Clock, CheckCircle, Wrench } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ArrowLeft, Settings, Moon, Sun, Mail, Send, Clock, CheckCircle, Wrench, Smartphone, Monitor, Cloud, Download, CreditCard, Wifi } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -21,8 +23,12 @@ export default function AccessRequestPage() {
     name: "",
     requestType: "staff",
     message: "",
-    garageId: ""
+    garageId: "",
+    storageType: ""
   });
+  const [showPricingAlert, setShowPricingAlert] = useState(false);
+  const [showInstallAlert, setShowInstallAlert] = useState(false);
+  const [pricingAcknowledged, setPricingAcknowledged] = useState(false);
   const [availableGarages, setAvailableGarages] = useState<any[]>([]);
   const [requestSubmitted, setRequestSubmitted] = useState(false);
 
@@ -43,12 +49,47 @@ export default function AccessRequestPage() {
     }
   }, [accessRequest.requestType]);
 
+  const handleStorageTypeChange = (value: string) => {
+    setAccessRequest(prev => ({ ...prev, storageType: value }));
+    setPricingAcknowledged(false);
+    
+    // Show appropriate alerts based on storage type
+    if (value === "cloud") {
+      setShowPricingAlert(true);
+    } else if (value === "local_mobile" || value === "local_computer") {
+      setShowInstallAlert(true);
+    }
+  };
+
   const handleAccessRequest = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // For garage admin requests, validate storage type
+    if (accessRequest.requestType === "admin" && !accessRequest.storageType) {
+      toast({
+        title: "Storage Type Required",
+        description: "Please select a storage type to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check pricing acknowledgment for cloud storage on admin requests
+    if (accessRequest.requestType === "admin" && accessRequest.storageType === "cloud" && !pricingAcknowledged) {
+      setShowPricingAlert(true);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await apiRequest("POST", "/api/auth/request-access", accessRequest);
+      const requestData = {
+        ...accessRequest,
+        pricingAcknowledged: pricingAcknowledged,
+        installationRequired: accessRequest.storageType?.startsWith("local") || false
+      };
+
+      const response = await apiRequest("POST", "/api/auth/request-access", requestData);
       const data = await response.json();
 
       if (response.ok) {
@@ -57,7 +98,8 @@ export default function AccessRequestPage() {
           title: "Request Sent Successfully",
           description: "Your access request has been sent to the super admin. You'll receive an email notification once your request is reviewed.",
         });
-        setAccessRequest({ email: "", name: "", requestType: "staff", message: "", garageId: "" });
+        setAccessRequest({ email: "", name: "", requestType: "staff", message: "", garageId: "", storageType: "" });
+        setPricingAcknowledged(false);
       } else {
         // Handle specific garage selection error
         if (data.message && data.message.includes("Garage selection is required")) {
@@ -252,6 +294,86 @@ export default function AccessRequestPage() {
                 </Select>
               </div>
 
+              {/* Storage Type Selection - Only for Admin Access */}
+              {accessRequest.requestType === "admin" && (
+                <div>
+                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                    <Settings className="w-4 h-4" />
+                    Storage Type <span className="text-red-400">*</span>
+                  </Label>
+                  <div className="mt-2">
+                    <Select value={accessRequest.storageType} onValueChange={handleStorageTypeChange}>
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white focus:border-white/50" data-testid="select-storage-type">
+                        <SelectValue placeholder="Choose your preferred storage method..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="local_mobile">
+                          <div className="flex items-center gap-2">
+                            <Smartphone className="w-4 h-4" />
+                            <div className="flex flex-col">
+                              <span>Local Mobile App</span>
+                              <span className="text-xs text-muted-foreground">Free • Offline capable • Android APK</span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="local_computer">
+                          <div className="flex items-center gap-2">
+                            <Monitor className="w-4 h-4" />
+                            <div className="flex flex-col">
+                              <span>Local Computer</span>
+                              <span className="text-xs text-muted-foreground">Free • Offline capable • Desktop App</span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="cloud">
+                          <div className="flex items-center gap-2">
+                            <Cloud className="w-4 h-4" />
+                            <div className="flex flex-col">
+                              <span>Cloud Storage</span>
+                              <span className="text-xs text-muted-foreground">Paid • Always online • Multi-device</span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Storage Type Information */}
+                  {accessRequest.storageType && (
+                    <div className="mt-3">
+                      {accessRequest.storageType === "cloud" && (
+                        <Alert className="border-blue-200/50 bg-blue-900/30">
+                          <CreditCard className="w-4 h-4" />
+                          <AlertDescription className="text-blue-100">
+                            <strong>Cloud Storage:</strong> ₹499/month • Real-time sync • Multi-device access • Automatic backups • 24/7 support
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      {(accessRequest.storageType === "local_mobile" || accessRequest.storageType === "local_computer") && (
+                        <Alert className="border-green-200/50 bg-green-900/30">
+                          <Download className="w-4 h-4" />
+                          <AlertDescription className="text-green-100">
+                            <strong>Local Storage:</strong> Completely free • Works offline • Data stays on your device • 
+                            {accessRequest.storageType === "local_mobile" ? " Android APK download" : " Desktop app installation"} required
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Important Note */}
+                  <div className="mt-3 p-3 bg-orange-900/30 border border-orange-200/50 rounded-lg">
+                    <div className="flex items-start gap-2 text-orange-100">
+                      <Wifi className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <div className="text-xs">
+                        <p className="font-medium">Internet Connection Required</p>
+                        <p>Initial setup and access requests require internet connection, even for local storage options.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {accessRequest.requestType === "staff" && (
                 <div>
                   <Label htmlFor="garageSelection" className="block text-sm font-medium mb-2">
@@ -351,6 +473,89 @@ export default function AccessRequestPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Pricing Alert Dialog */}
+        <AlertDialog open={showPricingAlert} onOpenChange={setShowPricingAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-blue-600" />
+                Cloud Storage Pricing
+              </AlertDialogTitle>
+              <AlertDialogDescription className="space-y-3">
+                <p>You've selected <strong>Cloud Storage</strong> which includes:</p>
+                <ul className="space-y-1 text-sm">
+                  <li>✅ Real-time data synchronization</li>
+                  <li>✅ Multi-device access</li>
+                  <li>✅ Automatic backups</li>
+                  <li>✅ 24/7 technical support</li>
+                  <li>✅ Always up-to-date features</li>
+                </ul>
+                <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+                  <p className="font-semibold text-blue-800 dark:text-blue-200">
+                    Monthly Subscription: ₹499/month per garage
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                    Billing starts after approval by super admin
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowPricingAlert(false)}>
+                Choose Different Option
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => {
+                  setPricingAcknowledged(true);
+                  setShowPricingAlert(false);
+                }}
+              >
+                I Understand - Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Installation Alert Dialog */}
+        <AlertDialog open={showInstallAlert} onOpenChange={setShowInstallAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Download className="w-5 h-5 text-green-600" />
+                Local Storage Setup
+              </AlertDialogTitle>
+              <AlertDialogDescription className="space-y-3">
+                <p>You've selected <strong>Local Storage</strong> - completely free option!</p>
+                <ul className="space-y-1 text-sm">
+                  <li>✅ No monthly fees</li>
+                  <li>✅ Works completely offline</li>
+                  <li>✅ Your data stays on your device</li>
+                  <li>✅ Fast and responsive</li>
+                </ul>
+                <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
+                  <p className="font-semibold text-green-800 dark:text-green-200">
+                    {accessRequest.storageType === "local_mobile" 
+                      ? "📱 Android APK installation required"
+                      : "💻 Desktop app installation required"
+                    }
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-300 mt-1">
+                    Download link will be provided after approval
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowInstallAlert(false)}>
+                Choose Different Option
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={() => setShowInstallAlert(false)}>
+                Perfect - Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
