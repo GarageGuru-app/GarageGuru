@@ -1,37 +1,35 @@
 import { useState } from "react";
-import { useAuth } from "@/lib/auth";
-import { useTheme } from "@/lib/theme";
+import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/context/theme-context";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Settings, 
   Moon, 
   Sun, 
   Send,
   Clock,
-  Mail,
   Building,
   User,
   MessageSquare,
-  CheckCircle,
-  AlertCircle,
-  Smartphone,
-  Monitor,
-  Cloud,
-  Download,
-  CreditCard,
-  Wifi,
-  WifiOff
+  AlertCircle
 } from "lucide-react";
 
 export default function AccessRequest() {
@@ -41,11 +39,7 @@ export default function AccessRequest() {
   const { toast } = useToast();
   
   const [selectedGarageId, setSelectedGarageId] = useState("");
-  const [storageType, setStorageType] = useState("");
   const [message, setMessage] = useState("");
-  const [showPricingAlert, setShowPricingAlert] = useState(false);
-  const [showInstallAlert, setShowInstallAlert] = useState(false);
-  const [pricingAcknowledged, setPricingAcknowledged] = useState(false);
   
   // Debug garage selection
   console.log("🔍 Debug - selectedGarageId:", selectedGarageId, "Type:", typeof selectedGarageId, "Length:", selectedGarageId?.length);
@@ -61,32 +55,14 @@ export default function AccessRequest() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleStorageTypeChange = (value: string) => {
-    setStorageType(value);
-    setPricingAcknowledged(false);
-    
-    // Show appropriate alerts based on storage type
-    if (value === "cloud") {
-      setShowPricingAlert(true);
-    } else if (value === "local_mobile" || value === "local_computer") {
-      setShowInstallAlert(true);
-    }
-  };
-
   const handleSubmitRequest = async () => {
     // Validate required fields
-    if (!selectedGarageId || !storageType) {
+    if (!selectedGarageId) {
       toast({
         title: "Missing Information",
-        description: "Please select both garage and storage type.",
+        description: "Please select a garage.",
         variant: "destructive"
       });
-      return;
-    }
-
-    // Check pricing acknowledgment for cloud storage
-    if (storageType === "cloud" && !pricingAcknowledged) {
-      setShowPricingAlert(true);
       return;
     }
 
@@ -98,10 +74,7 @@ export default function AccessRequest() {
         name: user?.name,
         requestType: "staff",
         garageId: selectedGarageId,
-        storageType: storageType,
         message: message.trim(),
-        pricingAcknowledged: pricingAcknowledged,
-        installationRequired: storageType.startsWith("local"),
       });
 
       if (response.ok) {
@@ -113,9 +86,7 @@ export default function AccessRequest() {
         
         // Clear form
         setSelectedGarageId("");
-        setStorageType("");
         setMessage("");
-        setPricingAcknowledged(false);
       } else {
         const errorResult = await response.json();
         
@@ -279,73 +250,6 @@ export default function AccessRequest() {
               </Select>
             </div>
 
-            {/* Storage Type Selection */}
-            <div>
-              <Label className="text-base font-medium flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Storage Type <span className="text-red-500">*</span>
-              </Label>
-              <div className="mt-2">
-                <Select value={storageType} onValueChange={handleStorageTypeChange}>
-                  <SelectTrigger data-testid="select-storage-type">
-                    <SelectValue placeholder="Choose your preferred storage method..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="local_mobile">
-                      <div className="flex items-center gap-2">
-                        <Smartphone className="w-4 h-4" />
-                        <div className="flex flex-col">
-                          <span>Local Mobile App</span>
-                          <span className="text-xs text-muted-foreground">Free • Offline capable • Android APK</span>
-                        </div>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="local_computer">
-                      <div className="flex items-center gap-2">
-                        <Monitor className="w-4 h-4" />
-                        <div className="flex flex-col">
-                          <span>Local Computer</span>
-                          <span className="text-xs text-muted-foreground">Free • Offline capable • Desktop App</span>
-                        </div>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="cloud">
-                      <div className="flex items-center gap-2">
-                        <Cloud className="w-4 h-4" />
-                        <div className="flex flex-col">
-                          <span>Cloud Storage</span>
-                          <span className="text-xs text-muted-foreground">Paid • Always online • Multi-device</span>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Storage Type Information */}
-              {storageType && (
-                <div className="mt-3">
-                  {storageType === "cloud" && (
-                    <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950">
-                      <CreditCard className="w-4 h-4" />
-                      <AlertDescription>
-                        <strong>Cloud Storage:</strong> ₹499/month • Real-time sync • Multi-device access • Automatic backups • 24/7 support
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {(storageType === "local_mobile" || storageType === "local_computer") && (
-                    <Alert className="border-green-200 bg-green-50 dark:bg-green-950">
-                      <Download className="w-4 h-4" />
-                      <AlertDescription>
-                        <strong>Local Storage:</strong> Completely free • Works offline • Data stays on your device • 
-                        {storageType === "local_mobile" ? " Android APK download" : " Desktop app installation"} required
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-              )}
-            </div>
-
             {/* Message */}
             <div>
               <Label htmlFor="message" className="text-base font-medium flex items-center gap-2">
@@ -366,7 +270,7 @@ export default function AccessRequest() {
             {/* Submit Button */}
             <Button
               onClick={handleSubmitRequest}
-              disabled={isSubmitting || !selectedGarageId || !storageType}
+              disabled={isSubmitting || !selectedGarageId}
               className="w-full"
               data-testid="button-submit-request"
             >
@@ -385,88 +289,6 @@ export default function AccessRequest() {
           </CardContent>
         </Card>
 
-        {/* Pricing Alert Dialog */}
-        <AlertDialog open={showPricingAlert} onOpenChange={setShowPricingAlert}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-blue-600" />
-                Cloud Storage Pricing
-              </AlertDialogTitle>
-              <AlertDialogDescription className="space-y-3">
-                <p>You've selected <strong>Cloud Storage</strong> which includes:</p>
-                <ul className="space-y-1 text-sm">
-                  <li>✅ Real-time data synchronization</li>
-                  <li>✅ Multi-device access</li>
-                  <li>✅ Automatic backups</li>
-                  <li>✅ 24/7 technical support</li>
-                  <li>✅ Always up-to-date features</li>
-                </ul>
-                <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
-                  <p className="font-semibold text-blue-800 dark:text-blue-200">
-                    Monthly Subscription: ₹499/month per garage
-                  </p>
-                  <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                    Billing starts after approval by garage admin
-                  </p>
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setShowPricingAlert(false)}>
-                Choose Different Option
-              </AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={() => {
-                  setPricingAcknowledged(true);
-                  setShowPricingAlert(false);
-                }}
-              >
-                I Understand - Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Installation Alert Dialog */}
-        <AlertDialog open={showInstallAlert} onOpenChange={setShowInstallAlert}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <Download className="w-5 h-5 text-green-600" />
-                Local Storage Setup
-              </AlertDialogTitle>
-              <AlertDialogDescription className="space-y-3">
-                <p>You've selected <strong>Local Storage</strong> - completely free option!</p>
-                <ul className="space-y-1 text-sm">
-                  <li>✅ No monthly fees</li>
-                  <li>✅ Works completely offline</li>
-                  <li>✅ Your data stays on your device</li>
-                  <li>✅ Fast and responsive</li>
-                </ul>
-                <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
-                  <p className="font-semibold text-green-800 dark:text-green-200">
-                    {storageType === "local_mobile" 
-                      ? "📱 Android APK installation required"
-                      : "💻 Desktop app installation required"
-                    }
-                  </p>
-                  <p className="text-xs text-green-600 dark:text-green-300 mt-1">
-                    Download link will be provided after approval
-                  </p>
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setShowInstallAlert(false)}>
-                Choose Different Option
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={() => setShowInstallAlert(false)}>
-                Perfect - Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
   );

@@ -235,15 +235,9 @@ export const insertAccessRequestSchema = createInsertSchema(accessRequests).omit
   approvedAt: true,
   rejectedAt: true,
   approvedBy: true,
-  installationRequired: true,
-  pricingAcknowledged: true,
-  approvedStorageType: true,
 }).extend({
   requesterEmail: z.string().email("Valid email is required"),
   requesterName: z.string().min(1, "Name is required"),
-  storageType: z.enum(["local_mobile", "local_computer", "cloud"], {
-    errorMap: () => ({ message: "Please select a storage type" })
-  }),
   message: z.string().optional(),
 });
 
