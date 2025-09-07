@@ -3,6 +3,37 @@ import App from "./App";
 import "./index.css";
 import "./styles/mobile.css";
 
+// Register Service Worker for PWA functionality
+const registerServiceWorker = async () => {
+  if ('serviceWorker' in navigator) {
+    try {
+      console.log('🔄 Registering ServiceGuru Service Worker...');
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/'
+      });
+      
+      if (registration.installing) {
+        console.log('⚙️ Service worker installing');
+      } else if (registration.waiting) {
+        console.log('⏳ Service worker installed');
+      } else if (registration.active) {
+        console.log('✅ Service worker active');
+      }
+
+      // Listen for updates
+      registration.addEventListener('updatefound', () => {
+        console.log('🔄 Service worker update found');
+      });
+
+      console.log('✅ ServiceGuru SW registered successfully:', registration);
+    } catch (error) {
+      console.error('❌ ServiceGuru SW registration failed:', error);
+    }
+  } else {
+    console.log('⚠️ Service Worker not supported');
+  }
+};
+
 // Initialize mobile PWA features
 function initMobilePWA() {
   // Add mobile viewport meta if not present
@@ -44,5 +75,8 @@ function initMobilePWA() {
 
 // Initialize PWA features
 initMobilePWA();
+
+// Register service worker for PWA installation
+registerServiceWorker();
 
 createRoot(document.getElementById("root")!).render(<App />);

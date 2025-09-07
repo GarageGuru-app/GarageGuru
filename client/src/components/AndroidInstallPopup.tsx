@@ -35,21 +35,29 @@ export function AndroidInstallPopup({ open, onOpenChange, onInstalled }: Android
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     // Check if we can install - Chrome often supports installation even without the event
-    const checkInstallable = () => {
+    const checkInstallable = async () => {
       // Check if it's a Chrome-based browser and not already installed
       const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const hasServiceWorker = 'serviceWorker' in navigator;
       
       if (isChrome && !isStandalone && hasServiceWorker) {
-        setCanInstall(true);
-        console.log('🚀 Chrome PWA installation available');
+        // Wait for service worker to be ready
+        try {
+          await navigator.serviceWorker.ready;
+          setCanInstall(true);
+          console.log('🚀 Chrome PWA installation available with service worker ready');
+        } catch (error) {
+          console.log('⚠️ Service worker not ready, but Chrome supports installation');
+          setCanInstall(true);
+        }
       }
     };
 
-    // Check immediately and after a small delay for manifest to load
+    // Check immediately and after delays for manifest and service worker to load
     checkInstallable();
     setTimeout(checkInstallable, 1000);
+    setTimeout(checkInstallable, 3000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -79,37 +87,23 @@ export function AndroidInstallPopup({ open, onOpenChange, onInstalled }: Android
         setDeferredPrompt(null);
         setCanInstall(false);
       } else {
-        // Fallback: Show Chrome menu instructions for installation
-        console.log('🚀 No native prompt, showing Chrome install instructions');
+        // Force the native install prompt by reloading and trying again
+        console.log('🚀 No native prompt available, checking PWA requirements');
         
-        // Check if Chrome supports installation
-        const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
+        // Check if app is already installed or standalone
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+        const isInStandaloneMode = (window.navigator as any).standalone === true;
         
-        if (isChrome) {
-          // Show instructions for Chrome installation
-          alert(`To install ServiceGuru app:
-          
-1. Click the three dots menu (⋮) in Chrome
-2. Select "Install ServiceGuru" or "Add to Home screen"
-3. Click "Install" in the popup
-
-This will add ServiceGuru as a standalone app on your device!`);
-        } else {
-          // For other browsers, just add to home screen
-          alert(`To add ServiceGuru to your home screen:
-          
-1. Open your browser menu
-2. Look for "Add to Home screen" option
-3. Follow the prompts to add the shortcut
-
-This will give you quick access to ServiceGuru!`);
-        }
-        
-        // Still count this as "installed" since user was guided
-        setTimeout(() => {
+        if (isStandalone || isInStandaloneMode) {
+          console.log('✅ App is already installed');
           onInstalled();
           onOpenChange(false);
-        }, 2000);
+        } else {
+          // Let the user know there's an issue
+          console.error('❌ PWA install not available - checking manifest and service worker');
+          alert('PWA installation is not available right now. Please try refreshing the page or use Chrome browser for best experience.');
+          setIsInstalling(false);
+        }
       }
     } catch (error) {
       console.error('PWA install error:', error);
