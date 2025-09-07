@@ -252,71 +252,129 @@ export default function AccessRequest() {
           <CardContent className="space-y-4">
             {/* Garage Selection */}
             <div>
-              <Label htmlFor="garage-select" className="text-sm font-medium">
-                Select Garage *
+              <Label htmlFor="garage-select" className="text-base font-medium flex items-center gap-2">
+                <Building className="w-4 h-4" />
+                Select Garage
               </Label>
-              <Select 
-                value={selectedGarageId} 
-                onValueChange={(value) => {
-                  console.log("🏪 Garage changed to:", value, "Type:", typeof value);
-                  setSelectedGarageId(value);
-                }}
-                disabled={isLoading}
+              <Select
+                value={selectedGarageId}
+                onValueChange={setSelectedGarageId}
               >
-                <SelectTrigger data-testid="select-garage">
-                  <SelectValue placeholder={isLoading ? "Loading garages..." : "Choose a garage to request access"} />
+                <SelectTrigger className="mt-2" data-testid="select-garage">
+                  <SelectValue placeholder="Choose a garage to join..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {garages?.map((garage: any) => (
-                    <SelectItem key={garage.id} value={garage.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{garage.name}</span>
-                        <span className="text-sm text-muted-foreground">
-                          Owner: {garage.ownerName}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {isLoading ? (
+                    <SelectItem value="" disabled>Loading garages...</SelectItem>
+                  ) : garages && garages.length > 0 ? (
+                    garages.map((garage: any) => (
+                      <SelectItem key={garage.id} value={garage.id} data-testid={`option-garage-${garage.id}`}>
+                        {garage.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>No garages available</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
-              {!selectedGarageId && (
-                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  Please select a garage to enable the submit button
-                </p>
+            </div>
+
+            {/* Storage Type Selection */}
+            <div>
+              <Label className="text-base font-medium flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Storage Type <span className="text-red-500">*</span>
+              </Label>
+              <div className="mt-2">
+                <Select value={storageType} onValueChange={handleStorageTypeChange}>
+                  <SelectTrigger data-testid="select-storage-type">
+                    <SelectValue placeholder="Choose your preferred storage method..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="local_mobile">
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="w-4 h-4" />
+                        <div className="flex flex-col">
+                          <span>Local Mobile App</span>
+                          <span className="text-xs text-muted-foreground">Free • Offline capable • Android APK</span>
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="local_computer">
+                      <div className="flex items-center gap-2">
+                        <Monitor className="w-4 h-4" />
+                        <div className="flex flex-col">
+                          <span>Local Computer</span>
+                          <span className="text-xs text-muted-foreground">Free • Offline capable • Desktop App</span>
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="cloud">
+                      <div className="flex items-center gap-2">
+                        <Cloud className="w-4 h-4" />
+                        <div className="flex flex-col">
+                          <span>Cloud Storage</span>
+                          <span className="text-xs text-muted-foreground">Paid • Always online • Multi-device</span>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Storage Type Information */}
+              {storageType && (
+                <div className="mt-3">
+                  {storageType === "cloud" && (
+                    <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950">
+                      <CreditCard className="w-4 h-4" />
+                      <AlertDescription>
+                        <strong>Cloud Storage:</strong> ₹499/month • Real-time sync • Multi-device access • Automatic backups • 24/7 support
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  {(storageType === "local_mobile" || storageType === "local_computer") && (
+                    <Alert className="border-green-200 bg-green-50 dark:bg-green-950">
+                      <Download className="w-4 h-4" />
+                      <AlertDescription>
+                        <strong>Local Storage:</strong> Completely free • Works offline • Data stays on your device • 
+                        {storageType === "local_mobile" ? " Android APK download" : " Desktop app installation"} required
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
               )}
             </div>
 
             {/* Message */}
             <div>
-              <Label htmlFor="message" className="text-sm font-medium">
-                Message (Optional)
+              <Label htmlFor="message" className="text-base font-medium flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Additional Message
               </Label>
               <Textarea
                 id="message"
-                placeholder="Tell the garage owner why you'd like to work there..."
+                placeholder="Tell the garage admin why you'd like to join their team..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                rows={4}
-                data-testid="textarea-message"
+                className="mt-2"
+                rows={3}
+                data-testid="input-message"
               />
-              <p className="text-sm text-muted-foreground mt-1">
-                Introduce yourself and mention any relevant experience
-              </p>
             </div>
 
             {/* Submit Button */}
             <Button
               onClick={handleSubmitRequest}
-              disabled={isSubmitting || !selectedGarageId || selectedGarageId.trim() === ''}
-              className={`w-full ${(!selectedGarageId || selectedGarageId.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isSubmitting || !selectedGarageId || !storageType}
+              className="w-full"
               data-testid="button-submit-request"
             >
               {isSubmitting ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <Wrench className="w-4 h-4 text-white animate-spin" />
-                  <span>Sending Request...</span>
-                </div>
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  Sending Request...
+                </>
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
@@ -327,51 +385,88 @@ export default function AccessRequest() {
           </CardContent>
         </Card>
 
-        {/* Information Card */}
-        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-2 text-blue-800 dark:text-blue-200">
-              <Mail className="w-5 h-5 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium mb-2">What happens next?</p>
-                <ul className="space-y-1">
-                  <li>• Your request will be sent to the garage admin</li>
-                  <li>• They will review your request and contact you</li>
-                  <li>• Once approved, you'll be able to access the staff dashboard</li>
-                  <li>• You'll receive email notifications about your request status</li>
+        {/* Pricing Alert Dialog */}
+        <AlertDialog open={showPricingAlert} onOpenChange={setShowPricingAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-blue-600" />
+                Cloud Storage Pricing
+              </AlertDialogTitle>
+              <AlertDialogDescription className="space-y-3">
+                <p>You've selected <strong>Cloud Storage</strong> which includes:</p>
+                <ul className="space-y-1 text-sm">
+                  <li>✅ Real-time data synchronization</li>
+                  <li>✅ Multi-device access</li>
+                  <li>✅ Automatic backups</li>
+                  <li>✅ 24/7 technical support</li>
+                  <li>✅ Always up-to-date features</li>
                 </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Alternative Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Need help?</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              If you don't see the garage you're looking for, ask the garage owner to:
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-              <li>• Register their garage on the platform</li>
-              <li>• Provide you with an activation code</li>
-              <li>• Contact support for assistance</li>
-            </ul>
-            
-            <div className="pt-2">
-              <Button
-                variant="outline"
-                onClick={() => navigate("/register")}
-                size="sm"
-                data-testid="button-register-with-code"
+                <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+                  <p className="font-semibold text-blue-800 dark:text-blue-200">
+                    Monthly Subscription: ₹499/month per garage
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                    Billing starts after approval by garage admin
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowPricingAlert(false)}>
+                Choose Different Option
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => {
+                  setPricingAcknowledged(true);
+                  setShowPricingAlert(false);
+                }}
               >
-                I have an activation code
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                I Understand - Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Installation Alert Dialog */}
+        <AlertDialog open={showInstallAlert} onOpenChange={setShowInstallAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Download className="w-5 h-5 text-green-600" />
+                Local Storage Setup
+              </AlertDialogTitle>
+              <AlertDialogDescription className="space-y-3">
+                <p>You've selected <strong>Local Storage</strong> - completely free option!</p>
+                <ul className="space-y-1 text-sm">
+                  <li>✅ No monthly fees</li>
+                  <li>✅ Works completely offline</li>
+                  <li>✅ Your data stays on your device</li>
+                  <li>✅ Fast and responsive</li>
+                </ul>
+                <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
+                  <p className="font-semibold text-green-800 dark:text-green-200">
+                    {storageType === "local_mobile" 
+                      ? "📱 Android APK installation required"
+                      : "💻 Desktop app installation required"
+                    }
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-300 mt-1">
+                    Download link will be provided after approval
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowInstallAlert(false)}>
+                Choose Different Option
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={() => setShowInstallAlert(false)}>
+                Perfect - Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

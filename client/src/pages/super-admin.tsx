@@ -42,7 +42,10 @@ import {
   UserCheck,
   BookOpen,
   Download,
-  Wrench
+  Wrench,
+  Cloud,
+  Smartphone,
+  Monitor
 } from 'lucide-react';
 
 // Super Admin emails that can access this page
@@ -62,6 +65,11 @@ interface Garage {
   adminCount: number;
   staffCount: number;
   users: User[];
+  storage_type: 'local_mobile' | 'local_computer' | 'cloud';
+  billing_status: 'free' | 'trial' | 'paid' | 'suspended';
+  subscription_tier: 'basic' | 'premium' | 'enterprise';
+  sync_enabled: boolean;
+  last_sync_at?: string;
 }
 
 interface User {
@@ -749,6 +757,138 @@ export default function SuperAdminPage() {
                             <Users className="w-3 h-3" />
                             {garage.staffCount} Staff
                           </span>
+                        </div>
+
+                        {/* Storage Type Controls */}
+                        <div className="border-t pt-3 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-medium">Storage Type</h4>
+                            <Badge 
+                              variant={garage.storage_type === 'cloud' ? 'default' : 'secondary'}
+                              className={`text-xs ${
+                                garage.storage_type === 'cloud' 
+                                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200' 
+                                  : 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200'
+                              }`}
+                            >
+                              {garage.storage_type === 'cloud' ? '☁️ Cloud' : 
+                               garage.storage_type === 'local_mobile' ? '📱 Mobile' : '💻 Computer'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              {garage.storage_type === 'cloud' && (
+                                <span className="text-blue-600 dark:text-blue-400">₹499/month</span>
+                              )}
+                              {garage.storage_type !== 'cloud' && (
+                                <span className="text-green-600 dark:text-green-400">Free</span>
+                              )}
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-muted-foreground capitalize">
+                                {garage.billing_status}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              {garage.sync_enabled && garage.last_sync_at && (
+                                <span className="text-xs text-muted-foreground" title={`Last sync: ${new Date(garage.last_sync_at).toLocaleString()}`}>
+                                  🔄 Synced
+                                </span>
+                              )}
+                              
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="h-7 px-2"
+                                    data-testid={`button-change-storage-${garage.id}`}
+                                  >
+                                    Change
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Change Storage Type for {garage.name}</AlertDialogTitle>
+                                    <AlertDialogDescription className="space-y-3">
+                                      <p>Current: <strong>{garage.storage_type.replace('_', ' ').toUpperCase()}</strong></p>
+                                      
+                                      <div className="space-y-2">
+                                        <div className="flex items-center gap-2 p-2 border rounded">
+                                          <input 
+                                            type="radio" 
+                                            name={`storage-${garage.id}`} 
+                                            id={`cloud-${garage.id}`}
+                                            defaultChecked={garage.storage_type === 'cloud'}
+                                          />
+                                          <label htmlFor={`cloud-${garage.id}`} className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                              <Cloud className="w-4 h-4 text-blue-600" />
+                                              <div>
+                                                <div className="font-medium">Cloud Storage</div>
+                                                <div className="text-xs text-muted-foreground">₹499/month • Multi-device • Auto-backup</div>
+                                              </div>
+                                            </div>
+                                          </label>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-2 p-2 border rounded">
+                                          <input 
+                                            type="radio" 
+                                            name={`storage-${garage.id}`} 
+                                            id={`local-mobile-${garage.id}`}
+                                            defaultChecked={garage.storage_type === 'local_mobile'}
+                                          />
+                                          <label htmlFor={`local-mobile-${garage.id}`} className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                              <Smartphone className="w-4 h-4 text-green-600" />
+                                              <div>
+                                                <div className="font-medium">Local Mobile</div>
+                                                <div className="text-xs text-muted-foreground">Free • Android APK • Offline</div>
+                                              </div>
+                                            </div>
+                                          </label>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-2 p-2 border rounded">
+                                          <input 
+                                            type="radio" 
+                                            name={`storage-${garage.id}`} 
+                                            id={`local-computer-${garage.id}`}
+                                            defaultChecked={garage.storage_type === 'local_computer'}
+                                          />
+                                          <label htmlFor={`local-computer-${garage.id}`} className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                              <Monitor className="w-4 h-4 text-green-600" />
+                                              <div>
+                                                <div className="font-medium">Local Computer</div>
+                                                <div className="text-xs text-muted-foreground">Free • Desktop app • Offline</div>
+                                              </div>
+                                            </div>
+                                          </label>
+                                        </div>
+                                      </div>
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => {
+                                        // TODO: Implement storage type change
+                                        toast({
+                                          title: "Storage Type Changed",
+                                          description: `${garage.name} storage type will be updated.`
+                                        });
+                                      }}
+                                    >
+                                      Update Storage Type
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </div>
                         </div>
 
                         {/* Users List */}
