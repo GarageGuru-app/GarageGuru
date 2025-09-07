@@ -244,7 +244,7 @@ export async function runMigrations() {
       
       console.log('✅ Access requests table schema updated successfully');
     } catch (error) {
-      console.log('⚠️ Access requests schema update error:', error.message);
+      console.log('⚠️ Access requests schema update error:', error instanceof Error ? error.message : String(error));
     }
 
     // Add must_change_password column to users table
