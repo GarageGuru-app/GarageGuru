@@ -26,12 +26,30 @@ export function AndroidInstallPopup({ open, onOpenChange, onInstalled }: Android
 
     // Listen for PWA install prompt
     const handleBeforeInstallPrompt = (e: any) => {
+      console.log('🚀 PWA install prompt event detected');
       e.preventDefault();
       setDeferredPrompt(e);
       setCanInstall(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Check if we can install - Chrome often supports installation even without the event
+    const checkInstallable = () => {
+      // Check if it's a Chrome-based browser and not already installed
+      const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      const hasServiceWorker = 'serviceWorker' in navigator;
+      
+      if (isChrome && !isStandalone && hasServiceWorker) {
+        setCanInstall(true);
+        console.log('🚀 Chrome PWA installation available');
+      }
+    };
+
+    // Check immediately and after a small delay for manifest to load
+    checkInstallable();
+    setTimeout(checkInstallable, 1000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -41,33 +59,60 @@ export function AndroidInstallPopup({ open, onOpenChange, onInstalled }: Android
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) {
-      // Fallback for browsers that don't support PWA install
-      navigator.serviceWorker?.ready.then(() => {
-        onInstalled();
-        onOpenChange(false);
-      });
-      return;
-    }
-
     setIsInstalling(true);
 
     try {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        console.log('✅ PWA install accepted');
-        onInstalled();
-        onOpenChange(false);
+      if (deferredPrompt) {
+        // Use the native install prompt if available
+        console.log('🚀 Triggering native PWA install prompt');
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+          console.log('✅ PWA install accepted');
+          onInstalled();
+          onOpenChange(false);
+        } else {
+          console.log('❌ PWA install declined');
+          setIsInstalling(false);
+        }
+        setDeferredPrompt(null);
+        setCanInstall(false);
       } else {
-        console.log('❌ PWA install declined');
+        // Fallback: Show Chrome menu instructions for installation
+        console.log('🚀 No native prompt, showing Chrome install instructions');
+        
+        // Check if Chrome supports installation
+        const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
+        
+        if (isChrome) {
+          // Show instructions for Chrome installation
+          alert(`To install ServiceGuru app:
+          
+1. Click the three dots menu (⋮) in Chrome
+2. Select "Install ServiceGuru" or "Add to Home screen"
+3. Click "Install" in the popup
+
+This will add ServiceGuru as a standalone app on your device!`);
+        } else {
+          // For other browsers, just add to home screen
+          alert(`To add ServiceGuru to your home screen:
+          
+1. Open your browser menu
+2. Look for "Add to Home screen" option
+3. Follow the prompts to add the shortcut
+
+This will give you quick access to ServiceGuru!`);
+        }
+        
+        // Still count this as "installed" since user was guided
+        setTimeout(() => {
+          onInstalled();
+          onOpenChange(false);
+        }, 2000);
       }
     } catch (error) {
       console.error('PWA install error:', error);
-    } finally {
-      setDeferredPrompt(null);
-      setCanInstall(false);
       setIsInstalling(false);
     }
   };
@@ -167,7 +212,9 @@ export function AndroidInstallPopup({ open, onOpenChange, onInstalled }: Android
               ) : (
                 <div className="flex items-center gap-2">
                   <Download className="w-4 h-4" />
-                  <span>{canInstall ? "Install App" : "Add to Home Screen"}</span>
+                  <span>
+                    {canInstall || /Chrome/.test(navigator.userAgent) ? "Install App" : "Add to Home Screen"}
+                  </span>
                 </div>
               )}
             </Button>
