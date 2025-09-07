@@ -3,6 +3,8 @@ const CACHE_NAME = 'serviceguru-v1.0.0';
 const STATIC_CACHE = 'serviceguru-static-v1';
 const DYNAMIC_CACHE = 'serviceguru-dynamic-v1';
 
+console.log('🔧 ServiceGuru Service Worker loaded');
+
 // Files to cache for offline functionality
 const STATIC_FILES = [
   '/',
