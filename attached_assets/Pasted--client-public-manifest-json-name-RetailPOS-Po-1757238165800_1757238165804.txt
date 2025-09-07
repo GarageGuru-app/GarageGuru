@@ -1,0 +1,527 @@
+// ==================== client/public/manifest.json ====================
+{
+  "name": "RetailPOS - Point of Sale System",
+  "short_name": "RetailPOS",
+  "description": "Professional Point of Sale system for retail stores with barcode scanning, inventory management, and customer analytics",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "start_url": "/dashboard?source=pwa",
+  "id": "retail-pos-app",
+  "categories": ["business", "productivity", "finance"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/pwa-64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon-180x180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "apple-touch-icon"
+    },
+    {
+      "src": "/maskable-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Sale",
+      "short_name": "Sale",
+      "description": "Start a new sale transaction",
+      "url": "/pos?source=shortcut",
+      "icons": [
+        {
+          "src": "/shortcut-pos-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "short_name": "Products",
+      "description": "Manage your product inventory",
+      "url": "/products?source=shortcut",
+      "icons": [
+        {
+          "src": "/shortcut-products-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "short_name": "Reports",
+      "description": "View sales reports and analytics",
+      "url": "/reports?source=shortcut",
+      "icons": [
+        {
+          "src": "/shortcut-reports-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+retailpos",
+      "url": "/pos?barcode=%s"
+    }
+  ]
+}
+
+// ==================== client/public/sw.js ====================
+// Enhanced Service Worker for RetailPOS PWA
+const CACHE_NAME = 'retailpos-v1.0.0';
+const STATIC_CACHE = 'retailpos-static-v1.0.0';
+const DYNAMIC_CACHE = 'retailpos-dynamic-v1.0.0';
+
+// Files to cache immediately
+const STATIC_ASSETS = [
+  '/',
+  '/dashboard',
+  '/pos',
+  '/products',
+  '/customers',
+  '/reports',
+  '/manifest.json',
+  '/offline.html'
+];
+
+// API endpoints to cache
+const API_CACHE_PATTERNS = [
+  /\/api\/products/,
+  /\/api\/customers/,
+  /\/api\/categories/,
+  /\/api\/dashboard\/stats/
+];
+
+// Install event - cache static assets
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing service worker...');
+  event.waitUntil(
+    caches.open(STATIC_CACHE)
+      .then((cache) => {
+        console.log('[SW] Caching static assets');
+        return cache.addAll(STATIC_ASSETS);
+      })
+      .then(() => {
+        console.log('[SW] Static assets cached successfully');
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('[SW] Failed to cache static assets:', error);
+      })
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating service worker...');
+  event.waitUntil(
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+              console.log('[SW] Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('[SW] Service worker activated');
+        return self.clients.claim();
+      })
+  );
+});
+
+// Fetch event - handle requests with caching strategies
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip non-GET requests and chrome-extension requests
+  if (request.method !== 'GET' || url.protocol === 'chrome-extension:') {
+    return;
+  }
+
+  // Handle API requests
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(handleApiRequest(request));
+    return;
+  }
+
+  // Handle static assets
+  if (url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/)) {
+    event.respondWith(handleStaticAsset(request));
+    return;
+  }
+
+  // Handle navigation requests
+  if (request.mode === 'navigate') {
+    event.respondWith(handleNavigation(request));
+    return;
+  }
+});
+
+// Network-first strategy for API requests
+async function handleApiRequest(request) {
+  const cache = await caches.open(DYNAMIC_CACHE);
+  
+  try {
+    const networkResponse = await fetch(request);
+    
+    // Cache successful responses
+    if (networkResponse.ok) {
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('[SW] Network failed, trying cache for:', request.url);
+    const cachedResponse = await cache.match(request);
+    
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    // Return offline response for failed API calls
+    return new Response(JSON.stringify({ error: 'Offline' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+// Cache-first strategy for static assets
+async function handleStaticAsset(request) {
+  const cache = await caches.open(STATIC_CACHE);
+  const cachedResponse = await cache.match(request);
+  
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  try {
+    const networkResponse = await fetch(request);
+    cache.put(request, networkResponse.clone());
+    return networkResponse;
+  } catch (error) {
+    console.log('[SW] Failed to fetch static asset:', request.url);
+    throw error;
+  }
+}
+
+// Navigation requests with fallback
+async function handleNavigation(request) {
+  try {
+    const networkResponse = await fetch(request);
+    return networkResponse;
+  } catch (error) {
+    console.log('[SW] Navigation failed, serving offline page');
+    const cache = await caches.open(STATIC_CACHE);
+    return cache.match('/offline.html') || cache.match('/');
+  }
+}
+
+// Background sync for offline data
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'background-sync') {
+    event.waitUntil(syncOfflineData());
+  }
+});
+
+async function syncOfflineData() {
+  try {
+    // Sync any pending offline transactions
+    console.log('[SW] Syncing offline data...');
+    
+    // Implementation would sync stored offline sales, inventory updates, etc.
+    
+  } catch (error) {
+    console.error('[SW] Sync failed:', error);
+  }
+}
+
+// Handle push notifications
+self.addEventListener('push', (event) => {
+  if (event.data) {
+    const data = event.data.json();
+    
+    const options = {
+      body: data.body,
+      icon: '/pwa-192x192.png',
+      badge: '/pwa-64x64.png',
+      vibrate: [200, 100, 200],
+      data: data.data || {},
+      actions: [
+        {
+          action: 'view',
+          title: 'View Details'
+        },
+        {
+          action: 'dismiss',
+          title: 'Dismiss'
+        }
+      ]
+    };
+    
+    event.waitUntil(
+      self.registration.showNotification(data.title, options)
+    );
+  }
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  if (event.action === 'view') {
+    event.waitUntil(
+      clients.openWindow('/dashboard')
+    );
+  }
+});
+
+// ==================== client/src/components/InstallPrompt.tsx ====================
+import React, { useState, useEffect } from 'react';
+import { Download, X, Smartphone, Monitor } from 'lucide-react';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+const InstallPrompt: React.FC = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    // Check if app is already installed/standalone
+    const checkStandalone = () => {
+      const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
+                                 (window.navigator as any).standalone ||
+                                 document.referrer.includes('android-app://');
+      setIsStandalone(isInStandaloneMode);
+    };
+
+    // Check if iOS
+    const checkIOS = () => {
+      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      setIsIOS(isIOSDevice);
+    };
+
+    checkStandalone();
+    checkIOS();
+
+    // Listen for the beforeinstallprompt event
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      
+      // Show install prompt after a delay
+      setTimeout(() => {
+        setShowPrompt(true);
+      }, 5000);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+
+    try {
+      await deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      
+      if (choiceResult.outcome === 'accepted') {
+        console.log('PWA installation accepted');
+      } else {
+        console.log('PWA installation dismissed');
+      }
+      
+      setDeferredPrompt(null);
+      setShowPrompt(false);
+    } catch (error) {
+      console.error('Install prompt error:', error);
+    }
+  };
+
+  const dismissPrompt = () => {
+    setShowPrompt(false);
+    localStorage.setItem('installPromptDismissed', Date.now().toString());
+  };
+
+  // Don't show if already installed or dismissed recently
+  if (isStandalone || !showPrompt) {
+    return null;
+  }
+
+  // Check if user dismissed recently (within 7 days)
+  const lastDismissed = localStorage.getItem('installPromptDismissed');
+  if (lastDismissed && Date.now() - parseInt(lastDismissed) < 7 * 24 * 60 * 60 * 1000) {
+    return null;
+  }
+
+  return (
+    <div className="fixed bottom-4 left-4 right-4 z-50 lg:left-auto lg:right-4 lg:bottom-4 lg:w-96">
+      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 animate-slide-up">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              {isIOS ? <Smartphone className="w-6 h-6 text-white" /> : <Monitor className="w-6 h-6 text-white" />}
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 text-lg">Install RetailPOS</h3>
+              <p className="text-sm text-gray-600">Get the full app experience</p>
+            </div>
+          </div>
+          <button
+            onClick={dismissPrompt}
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {isIOS ? (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-700">
+              To install this app on your iOS device:
+            </p>
+            <ol className="text-sm text-gray-600 space-y-2 pl-4">
+              <li className="flex items-center space-x-2">
+                <span className="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                <span>Tap the Share button in Safari</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <span className="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                <span>Select "Add to Home Screen"</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <span className="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                <span>Tap "Add" to confirm</span>
+              </li>
+            </ol>
+            <button
+              onClick={dismissPrompt}
+              className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-700">
+              Install our app for quick access, offline support, and a better experience.
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={handleInstall}
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center space-x-2"
+              >
+                <Download className="w-4 h-4" />
+                <span>Install App</span>
+              </button>
+              <button
+                onClick={dismissPrompt}
+                className="py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+              >
+                Later
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default InstallPrompt;
+
+// ==================== client/index.html ====================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="RetailPOS" />
+  
+  <!-- Icons -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/pwa-64x64.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/pwa-64x64.png" />
+  
+  <title>RetailPOS - Point of Sale System</title>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('SW registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
+
+// ==================== Usage in App.tsx ====================
+import InstallPrompt from '@/components/InstallPrompt';
+
+function App() {
+  return (
+    <div className="App">
+      {/* Your existing app content */}
+      <InstallPrompt />
+    </div>
+  );
+}

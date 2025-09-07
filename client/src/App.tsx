@@ -8,7 +8,7 @@ import { AuthProvider } from "@/lib/auth";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { MesthriChatbot } from "@/components/MesthriChatbot";
-import { InstallBanner } from "@/components/InstallBanner";
+import InstallPrompt from "@/components/InstallPrompt";
 
 // Pages
 import Login from "@/pages/login";
@@ -200,8 +200,8 @@ function Router() {
     {/* Global Mesthri Chatbot */}
     <MesthriChatbot />
     
-    {/* Install Banner for PWA */}
-    <InstallBanner />
+    {/* Install Prompt for PWA */}
+    <InstallPrompt />
     </AuthProvider>
   );
 }

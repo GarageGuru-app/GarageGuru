@@ -1,15 +1,17 @@
 {
   "name": "ServiceGuru - Professional Garage Management",
   "short_name": "ServiceGuru",
-  "description": "Complete automotive service management system for garages and workshops",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#1e40af",
+  "description": "Complete automotive service management system for garages and workshops with job cards, inventory, and invoicing",
   "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "display": "standalone",
   "orientation": "portrait-primary",
   "scope": "/",
-  "lang": "en",
+  "start_url": "/dashboard?source=pwa",
+  "id": "serviceguru-garage-app",
   "categories": ["business", "productivity", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -62,26 +64,15 @@
   ],
   "shortcuts": [
     {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Access your garage dashboard",
-      "url": "/dashboard",
+      "name": "New Job Card",
+      "short_name": "New Job",
+      "description": "Create a new service job card",
+      "url": "/job-card?source=shortcut",
       "icons": [
         {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Job Cards",
-      "short_name": "Jobs",
-      "description": "Manage service job cards",
-      "url": "/job-cards", 
-      "icons": [
-        {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192"
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
     },
@@ -89,23 +80,38 @@
       "name": "Customers",
       "short_name": "Customers",
       "description": "Manage customer database",
-      "url": "/customers",
+      "url": "/customers?source=shortcut",
       "icons": [
         {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192"
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
     },
     {
       "name": "Spare Parts",
       "short_name": "Parts",
-      "description": "Inventory management",
-      "url": "/spare-parts",
+      "description": "Inventory management with scanning",
+      "url": "/spare-parts?source=shortcut",
       "icons": [
         {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192"
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Sales Analytics",
+      "short_name": "Analytics",
+      "description": "View sales reports and statistics",
+      "url": "/sales?source=shortcut",
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
     }
