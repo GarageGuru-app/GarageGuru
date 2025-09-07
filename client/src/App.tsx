@@ -179,11 +179,7 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      <Route path="/access-request">
-        <ProtectedRoute roles={["mechanic_staff"]}>
-          <AccessRequest />
-        </ProtectedRoute>
-      </Route>
+      <Route path="/access-request" component={AccessRequest} />
       
       <Route path="/completed-services">
         <ProtectedRoute>
