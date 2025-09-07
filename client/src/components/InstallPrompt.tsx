@@ -30,10 +30,10 @@ const InstallPrompt: React.FC = () => {
     checkStandalone();
     checkIOS();
 
-    // Listen for the beforeinstallprompt event
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    // Listen for the custom PWA install available event
+    const handlePWAInstallAvailable = (e: CustomEvent) => {
+      console.log('📱 PWA install available event received');
+      setDeferredPrompt(e.detail);
       
       // Show install prompt after a delay
       setTimeout(() => {
@@ -48,27 +48,51 @@ const InstallPrompt: React.FC = () => {
       }
     }, 3000);
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('pwaInstallAvailable', handlePWAInstallAvailable as EventListener);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('pwaInstallAvailable', handlePWAInstallAvailable as EventListener);
       clearTimeout(showPromptTimer);
     };
   }, [isStandalone]);
 
   const handleInstall = async () => {
+    console.log('🔄 Install button clicked, deferredPrompt:', !!deferredPrompt);
+    
     if (!deferredPrompt) {
-      // Fallback for browsers that don't support the API
-      alert('To install ServiceGuru:\n\n1. Open browser menu\n2. Select "Add to Home Screen"\n3. Tap "Add" to install');
+      // For Android Chrome, try to trigger the native install prompt manually
+      if ('getInstalledRelatedApps' in navigator) {
+        try {
+          // Check if app is already installed
+          const relatedApps = await (navigator as any).getInstalledRelatedApps();
+          if (relatedApps.length > 0) {
+            alert('ServiceGuru is already installed!');
+            return;
+          }
+        } catch (e) {
+          console.log('Could not check installed apps');
+        }
+      }
+      
+      // Show manual instructions for Android
+      if (/Android/i.test(navigator.userAgent)) {
+        alert('To install ServiceGuru on Android:\n\n1. Tap the menu (⋮) in your browser\n2. Select "Add to Home Screen" or "Install App"\n3. Tap "Add" to install\n\nThe app will appear on your home screen like a native app!');
+      } else {
+        alert('To install ServiceGuru:\n\n1. Open browser menu\n2. Select "Add to Home Screen"\n3. Tap "Add" to install');
+      }
       return;
     }
 
     try {
+      console.log('🚀 Triggering install prompt...');
       await deferredPrompt.prompt();
       const choiceResult = await deferredPrompt.userChoice;
       
+      console.log('📱 User choice:', choiceResult.outcome);
+      
       if (choiceResult.outcome === 'accepted') {
         console.log('✅ PWA installation accepted');
+        alert('🎉 ServiceGuru installed successfully! Check your home screen.');
       } else {
         console.log('❌ PWA installation dismissed');
       }
@@ -77,7 +101,7 @@ const InstallPrompt: React.FC = () => {
       setShowPrompt(false);
     } catch (error) {
       console.error('❌ Install prompt error:', error);
-      alert('To install ServiceGuru, use your browser\'s "Add to Home Screen" option');
+      alert('Installation failed. Please use your browser\'s "Add to Home Screen" option.');
     }
   };
 

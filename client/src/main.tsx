@@ -7,7 +7,7 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     console.log('🔄 Registering ServiceGuru Service Worker...');
     
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
       .then((registration) => {
         console.log('✅ ServiceGuru SW registered successfully');
         console.log('✅ ServiceGuru SW registered successfully:', registration.scope);
@@ -47,5 +47,23 @@ if ('serviceWorker' in navigator) {
 } else {
   console.warn('⚠️ Service Workers not supported in this browser');
 }
+
+// Listen for beforeinstallprompt globally to help with PWA installation
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  console.log('🎯 beforeinstallprompt event fired - PWA can be installed!');
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  
+  // Dispatch custom event for install prompt component
+  window.dispatchEvent(new CustomEvent('pwaInstallAvailable', { detail: e }));
+});
+
+// Listen for app installation
+window.addEventListener('appinstalled', () => {
+  console.log('🎉 ServiceGuru PWA was installed successfully!');
+  deferredInstallPrompt = null;
+});
 
 createRoot(document.getElementById("root")!).render(<App />);
