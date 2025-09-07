@@ -1108,11 +1108,11 @@ export class DatabaseStorage implements IStorage {
       [
         id, 
         request.garage_id, 
-        request.email, 
-        request.name, 
-        request.requested_role || 'staff',
+        request.requester_email || request.email, // Support both field names
+        request.requester_name || request.name,
+        request.request_type || request.requested_role || 'staff',
         request.storage_type,
-        request.note,
+        request.message || request.note,
         request.installation_required || false,
         request.pricing_acknowledged || false,
         request.status || 'pending'
@@ -1123,7 +1123,7 @@ export class DatabaseStorage implements IStorage {
 
   async checkExistingAccessRequest(email: string): Promise<AccessRequest | null> {
     const result = await pool.query(
-      'SELECT * FROM access_requests WHERE email = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
+      'SELECT * FROM access_requests WHERE requester_email = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
       [email, 'pending']
     );
     return result.rows[0] || null;

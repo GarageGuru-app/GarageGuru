@@ -4,7 +4,9 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme";
-import { AuthProvider } from "@/lib/auth";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { AndroidInstallPopup } from "@/components/AndroidInstallPopup";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { MesthriChatbot } from "@/components/MesthriChatbot";
@@ -62,6 +64,7 @@ function MobileFirstRoute() {
 function Router() {
   return (
     <AuthProvider>
+      <AndroidInstallManager />
       <Switch>
         {/* Standard routing - Mobile optimizations applied via CSS */}
         <Route path="/" component={Home} />
@@ -219,6 +222,47 @@ function Router() {
     {/* Global Mesthri Chatbot */}
     <MesthriChatbot />
     </AuthProvider>
+  );
+}
+
+// Android Install Manager Component
+function AndroidInstallManager() {
+  const { user } = useAuth();
+  const [showInstallPopup, setShowInstallPopup] = useState(false);
+  const [userJustLoggedIn, setUserJustLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check if user just logged in successfully
+    if (user && !userJustLoggedIn) {
+      // Only show popup if user hasn't dismissed it this session
+      const dismissed = sessionStorage.getItem('androidInstallDismissed');
+      const alreadyInstalled = sessionStorage.getItem('androidAppInstalled');
+      
+      if (!dismissed && !alreadyInstalled) {
+        // Small delay to let login transition complete
+        setTimeout(() => {
+          setShowInstallPopup(true);
+        }, 1500);
+      }
+      
+      setUserJustLoggedIn(true);
+    } else if (!user && userJustLoggedIn) {
+      // User logged out, reset the flag
+      setUserJustLoggedIn(false);
+    }
+  }, [user, userJustLoggedIn]);
+
+  const handleInstalled = () => {
+    sessionStorage.setItem('androidAppInstalled', 'true');
+    setShowInstallPopup(false);
+  };
+
+  return (
+    <AndroidInstallPopup
+      open={showInstallPopup}
+      onOpenChange={setShowInstallPopup}
+      onInstalled={handleInstalled}
+    />
   );
 }
 
