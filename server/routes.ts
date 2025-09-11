@@ -34,36 +34,36 @@ const insertGarageSchema = z.object({
 const insertCustomerSchema = z.object({
   garageId: z.string(),
   name: z.string(),
-  phone: z.string().optional(),
-  bikeNumber: z.string().optional(),
+  phone: z.string().min(1, "Phone number is required"),
+  bikeNumber: z.string().min(1, "Bike number is required"),
   notes: z.string().optional()
 });
 
 const insertSparePartSchema = z.object({
   garageId: z.string(),
   name: z.string(),
-  partNumber: z.string().optional(),
-  price: z.union([z.number(), z.string().transform(Number)]),
-  quantity: z.union([z.number(), z.string().transform(Number)]).optional(),
-  lowStockThreshold: z.union([z.number(), z.string().transform(Number)]).optional(),
+  partNumber: z.string().min(1, "Part number is required"),
+  price: z.union([z.number(), z.string().transform(val => val === '' ? 0 : Number(val))]).refine(val => !Number.isNaN(val) && val > 0, "Price must be a valid number greater than 0"),
+  quantity: z.union([z.number(), z.string().transform(val => val === '' ? 0 : Number(val))]).refine(val => !Number.isNaN(val) && val >= 0, "Quantity must be a valid number greater than or equal to 0").default(0),
+  lowStockThreshold: z.union([z.number(), z.string().transform(val => val === '' ? 2 : Number(val))]).refine(val => !Number.isNaN(val) && val >= 0, "Low stock threshold must be a valid number greater than or equal to 0").default(2),
   barcode: z.string().optional(),
-  costPrice: z.union([z.number(), z.string().transform(Number)]).optional()
+  costPrice: z.union([z.number(), z.string().transform(val => val === '' ? 0 : Number(val))]).refine(val => !Number.isNaN(val) && val >= 0, "Cost price must be a valid number greater than or equal to 0").default(0)
 });
 
 const insertJobCardSchema = z.object({
   garageId: z.string(),
-  customerId: z.string().optional(),
-  customerName: z.string(),
-  phone: z.string().optional(),
-  bikeNumber: z.string().optional(),
-  complaint: z.string(),
-  serviceCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
-  waterWashCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
-  dieselCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
-  petrolCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
-  foundryCharge: z.union([z.number(), z.string().transform(Number)]).optional(),
-  totalAmount: z.union([z.number(), z.string().transform(Number)]).optional(),
-  spareParts: z.array(z.any()).optional()
+  customerId: z.string().optional(), // Allow optional for new customers
+  customerName: z.string().min(1, "Customer name is required"),
+  phone: z.string().min(1, "Phone number is required"),
+  bikeNumber: z.string().min(1, "Bike number is required"),
+  complaint: z.string().min(1, "Complaint is required"),
+  serviceCharge: z.union([z.number(), z.string().transform(val => val === '' ? 0 : Number(val))]).refine(val => !Number.isNaN(val), "Service charge must be a valid number").default(0),
+  waterWashCharge: z.union([z.number(), z.string().transform(val => val === '' ? 0 : Number(val))]).refine(val => !Number.isNaN(val), "Water wash charge must be a valid number").default(0),
+  dieselCharge: z.union([z.number(), z.string().transform(val => val === '' ? 0 : Number(val))]).refine(val => !Number.isNaN(val), "Diesel charge must be a valid number").default(0),
+  petrolCharge: z.union([z.number(), z.string().transform(val => val === '' ? 0 : Number(val))]).refine(val => !Number.isNaN(val), "Petrol charge must be a valid number").default(0),
+  foundryCharge: z.union([z.number(), z.string().transform(val => val === '' ? 0 : Number(val))]).refine(val => !Number.isNaN(val), "Foundry charge must be a valid number").default(0),
+  totalAmount: z.union([z.number(), z.string().transform(val => val === '' ? 0 : Number(val))]).refine(val => !Number.isNaN(val), "Total amount must be a valid number").default(0),
+  spareParts: z.array(z.any()).optional().default([])
 });
 
 const insertInvoiceSchema = z.object({
@@ -80,7 +80,13 @@ import { GmailEmailService } from "./gmailEmailService";
 import { pool } from "./db";
 import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || "ServiceGuru2025ProductionJWTSecret!";
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'development' ? 'ServiceGuru2025DevelopmentJWTSecret!' : undefined);
+
+if (!JWT_SECRET) {
+  console.error('❌ CRITICAL: JWT_SECRET environment variable is not set');
+  console.error('Please set JWT_SECRET in your environment variables for production');
+  process.exit(1);
+}
 
 // Generate random temporary password
 function generateRandomPassword(): string {
@@ -1476,11 +1482,15 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   app.post("/api/garages/:garageId/job-cards", authenticateToken, requireGarageAccess, async (req, res) => {
+    const client = await pool.connect();
+    
     try {
+      await client.query('BEGIN');
+      
       const { garageId } = req.params;
       const jobCardData = insertJobCardSchema.parse({ ...req.body, garageId });
       
-      // Create or find customer  
+      // Create or find customer with proper field mapping
       let customer = await storage.getCustomers(garageId).then(customers => 
         customers.find(c => c.phone === jobCardData.phone && c.bike_number === jobCardData.bikeNumber)
       );
@@ -1500,6 +1510,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         if (part.id && part.quantity > 0) {
           const reservationResult = await storage.reserveInventory(part.id, part.quantity, garageId);
           if (!reservationResult.success) {
+            await client.query('ROLLBACK');
             return res.status(400).json({ 
               message: `Insufficient stock for ${part.name}. ${reservationResult.message}` 
             });
@@ -1524,15 +1535,36 @@ export async function registerRoutes(app: Express): Promise<void> {
       
       console.log(`✅ Job card created with atomic inventory reservation for ${spareParts.length} parts`);
       
+      await client.query('COMMIT');
       res.json(jobCard);
     } catch (error) {
+      await client.query('ROLLBACK');
       console.error('Job card creation error:', error);
+      if (error instanceof z.ZodError) {
+        const issues = error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join('; ');
+        return res.status(400).json({ message: `Validation error: ${issues}` });
+      }
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+          return res.status(409).json({ message: 'A job card with this customer and complaint already exists' });
+        }
+        if (error.message.includes('violates not null constraint')) {
+          return res.status(400).json({ message: 'Required fields are missing. Please check customer details, phone, bike number, and complaint.' });
+        }
+        return res.status(400).json({ message: error.message });
+      }
       res.status(500).json({ message: 'Failed to create job card' });
+    } finally {
+      client.release();
     }
   });
 
   app.put("/api/garages/:garageId/job-cards/:id", authenticateToken, requireGarageAccess, async (req, res) => {
+    const client = await pool.connect();
+    
     try {
+      await client.query('BEGIN');
+      
       const { id, garageId } = req.params;
       const updateData = insertJobCardSchema.partial().parse(req.body);
       
@@ -1570,6 +1602,7 @@ export async function registerRoutes(app: Express): Promise<void> {
             // Need to deduct more inventory (user increased quantity)
             const reservationResult = await storage.reserveInventory(part.id, qtyDiff, garageId);
             if (!reservationResult.success) {
+              await client.query('ROLLBACK');
               return res.status(400).json({ 
                 message: `Insufficient stock for ${part.name}. ${reservationResult.message}` 
               });
@@ -1595,6 +1628,7 @@ export async function registerRoutes(app: Express): Promise<void> {
             const reservationResult = await storage.reserveInventory(partId, quantity, garageId);
             if (!reservationResult.success) {
               const part = newParts.find((p: any) => p.id === partId);
+              await client.query('ROLLBACK');
               return res.status(400).json({ 
                 message: `Insufficient stock for ${part?.name || 'part'}. ${reservationResult.message}` 
               });
@@ -1629,12 +1663,32 @@ export async function registerRoutes(app: Express): Promise<void> {
       const jobCard = await storage.updateJobCard(id, updatePayload);
       
       console.log(`🔧 Job card ${id} updated with inventory management`);
+      await client.query('COMMIT');
       res.json(jobCard);
     } catch (error) {
+      await client.query('ROLLBACK');
       console.error('Job card update error:', error);
       console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
       console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+      if (error instanceof z.ZodError) {
+        const issues = error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join('; ');
+        return res.status(400).json({ message: `Validation error: ${issues}` });
+      }
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+          return res.status(409).json({ message: 'A job card with this customer and complaint already exists' });
+        }
+        if (error.message.includes('violates not null constraint')) {
+          return res.status(400).json({ message: 'Required fields are missing. Please check customer details, phone, bike number, and complaint.' });
+        }
+        if (error.message.includes('Insufficient stock')) {
+          return res.status(400).json({ message: error.message });
+        }
+        return res.status(400).json({ message: error.message });
+      }
       res.status(500).json({ message: 'Failed to update job card', error: error instanceof Error ? error.message : 'Unknown error' });
+    } finally {
+      client.release();
     }
   });
 
@@ -1692,13 +1746,18 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   app.post("/api/garages/:garageId/invoices", authenticateToken, requireGarageAccess, async (req, res) => {
+    const client = await pool.connect();
+    
     try {
+      await client.query('BEGIN');
+      
       const { garageId } = req.params;
       const invoiceData = insertInvoiceSchema.parse({ ...req.body, garageId });
       
       // Check if invoice already exists for this job card
       const existingInvoice = invoiceData.jobCardId ? await storage.getInvoiceByJobCardId(invoiceData.jobCardId) : null;
       if (existingInvoice) {
+        await client.query('ROLLBACK');
         return res.status(400).json({ 
           message: 'Invoice already exists for this job card',
           existingInvoice 
@@ -1778,10 +1837,30 @@ export async function registerRoutes(app: Express): Promise<void> {
         }
       }
       
+      await client.query('COMMIT');
       res.json(invoice);
     } catch (error) {
+      await client.query('ROLLBACK');
       console.error('Invoice creation error:', error);
+      if (error instanceof z.ZodError) {
+        const issues = error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join('; ');
+        return res.status(400).json({ message: `Validation error: ${issues}` });
+      }
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+          return res.status(409).json({ message: 'Invoice number already exists. Please use a different invoice number.' });
+        }
+        if (error.message.includes('violates not null constraint')) {
+          return res.status(400).json({ message: 'Required fields are missing. Please check all invoice details.' });
+        }
+        if (error.message.includes('violates foreign key constraint')) {
+          return res.status(400).json({ message: 'Invalid job card or customer reference. Please refresh and try again.' });
+        }
+        return res.status(400).json({ message: error.message });
+      }
       res.status(500).json({ message: 'Failed to create invoice', error: error instanceof Error ? error.message : 'Unknown error' });
+    } finally {
+      client.release();
     }
   });
 
