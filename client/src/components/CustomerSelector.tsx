@@ -50,6 +50,7 @@ export default function CustomerSelector({ onCustomerSelect, selectedCustomer }:
   const handleCustomerSelect = (customer: Customer) => {
     onCustomerSelect(customer);
     setSearchQuery(`${customer.name} - ${customer.bikeNumber}`);
+    setDebouncedQuery(""); // Clear debounced query to prevent automatic search
     setShowResults(false);
   };
 
@@ -57,9 +58,10 @@ export default function CustomerSelector({ onCustomerSelect, selectedCustomer }:
     setSearchQuery(value);
     setShowResults(true);
     
-    // Clear selection if user is typing new search
+    // Clear selection if user is typing new search (not a selected customer display)
     if (selectedCustomer && value !== `${selectedCustomer.name} - ${selectedCustomer.bikeNumber}`) {
-      // Don't clear immediately - let user type
+      // User is searching for someone else, this is intentional typing
+      // Don't clear selection immediately to allow search
     }
   };
 
