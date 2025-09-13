@@ -1038,7 +1038,14 @@ export async function registerRoutes(app: Express): Promise<void> {
     try {
       const { garageId } = req.params;
       const customers = await storage.getCustomers(garageId);
-      res.json(customers);
+      
+      // Map database snake_case fields back to frontend camelCase fields
+      const responseCustomers = customers.map(customer => ({
+        ...customer,
+        bikeNumber: customer.bike_number
+      }));
+      
+      res.json(responseCustomers);
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch customers' });
     }
@@ -1058,7 +1065,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       };
       
       const customer = await storage.createCustomer(mappedData);
-      res.json(customer);
+      
+      // Map database snake_case fields back to frontend camelCase fields
+      const responseCustomer = {
+        ...customer,
+        bikeNumber: customer.bike_number
+      };
+      
+      res.json(responseCustomer);
     } catch (error: any) {
       // Check if it's a duplicate bike number error
       if (error.message && error.message.includes('already exists')) {
@@ -1090,7 +1104,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (!customer) {
         return res.status(404).json({ message: 'Customer not found' });
       }
-      res.json(customer);
+      
+      // Map database snake_case fields back to frontend camelCase fields
+      const responseCustomer = {
+        ...customer,
+        bikeNumber: customer.bike_number
+      };
+      
+      res.json(responseCustomer);
     } catch (error: any) {
       // Check if it's a duplicate bike number error
       if (error.message && error.message.includes('already exists')) {
@@ -1117,7 +1138,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       
       const customers = await storage.searchCustomers(garageId, q);
-      res.json(customers);
+      
+      // Map database snake_case fields back to frontend camelCase fields
+      const responseCustomers = customers.map(customer => ({
+        ...customer,
+        bikeNumber: customer.bike_number
+      }));
+      
+      res.json(responseCustomers);
     } catch (error) {
       res.status(500).json({ message: 'Failed to search customers' });
     }
